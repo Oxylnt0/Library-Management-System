@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>My Account</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .font-cinzel {
+            font-family: 'Cinzel', serif;
+        }
+        /* Custom scrollbar for a cleaner look */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+    </style>
+</head>
+
+<body class="text-slate-800 h-screen overflow-hidden bg-gradient-to-b from-[#Fdfbf7] via-[#eef2f3] to-[#dceefb]">
+
+    <div class="flex h-screen w-screen overflow-hidden">
+
+        <div id="sidebar-container" class="w-80 shrink-0"></div>
+
+        <div class="flex-1 flex flex-col overflow-hidden">
+            <div id="topbar-container" class="shrink-0"></div>
+
+            <div id="content-wrapper" class="flex-1 flex flex-col overflow-hidden transition-opacity duration-300">
+
+                <main class="flex-1 overflow-y-auto p-8">
+
+        <!-- Back Button -->
+        <a href="user_dashboard.html" class="inline-flex items-center gap-2 text-sm text-[#2E5F87] hover:text-[#183B5B] transition-colors mb-6">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+            Back to Dashboard
+        </a>
+
+        <!-- Page Header -->
+        <header class="mb-8">
+            <h1 class="text-2xl font-bold text-[#183B5B] tracking-tight mb-2 font-cinzel">My Account</h1>
+            <p class="text-[#2E5F87] max-w-2xl">
+                View and manage your personal information, account security, and library preferences.
+            </p>
+        </header>
+
+        <!-- Profile Overview -->
+        <section class="bg-white/70 backdrop-blur-md border border-white/20 rounded-xl shadow-lg p-6 mb-8 flex flex-col sm:flex-row gap-6">
+            <div class="flex-shrink-0">
+                <div class="w-24 h-24 rounded-full bg-slate-200 flex items-center justify-center text-slate-500">
+                    Photo
+                </div>
+            </div>
+
+            <div class="flex-1">
+                <h2 class="text-xl font-bold text-[#1A202C]">Sarah Collins</h2>
+                <p class="text-[#2E5F87]">sarah.collins@email.com</p>
+
+                <div class="flex flex-wrap gap-3 mt-4">
+                    <span class="px-3 py-1 text-xs rounded-full bg-[#183B5B]/10 text-[#183B5B]">
+                        Active Member
+                    </span>
+                    <span class="px-3 py-1 text-xs rounded-full bg-[#5B8C5A]/10 text-[#5B8C5A]">
+                        No Outstanding Fines
+                    </span>
+                </div>
+            </div>
+
+            <div class="self-start sm:self-center">
+                <button class="px-5 py-2 rounded-lg bg-[#183B5B] text-white text-sm font-medium hover:bg-[#2E5F87] transition-colors shadow-sm">
+                    Change Photo
+                </button>
+            </div>
+        </section>
+
+        <!-- Account Information -->
+        <section class="bg-white/70 backdrop-blur-md border border-white/20 rounded-xl shadow-lg p-6 mb-8">
+            <h2 class="text-lg font-bold text-[#1A202C] mb-6 font-cinzel">Account Information</h2>
+
+            <form class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+
+                <div>
+                    <label class="block text-sm font-medium text-[#2E5F87] mb-1">First Name</label>
+                    <input type="text" value="Sarah"
+                        class="w-full border border-white/30 bg-white/80 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#D6A84A]/50 text-[#1A202C]" />
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-[#2E5F87] mb-1">Last Name</label>
+                    <input type="text" value="Collins"
+                        class="w-full border border-white/30 bg-white/80 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#D6A84A]/50 text-[#1A202C]" />
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-[#2E5F87] mb-1">Email Address</label>
+                    <input type="email" value="sarah.collins@email.com"
+                        class="w-full border border-white/30 bg-white/80 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#D6A84A]/50 text-[#1A202C]" />
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-[#2E5F87] mb-1">Contact Number</label>
+                    <input type="text" value="+63 912 345 6789"
+                        class="w-full border border-white/30 bg-white/80 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#D6A84A]/50 text-[#1A202C]" />
+                </div>
+
+                <div class="sm:col-span-2">
+                    <label class="block text-sm font-medium text-[#2E5F87] mb-1">Address</label>
+                    <textarea rows="3"
+                        class="w-full border border-white/30 bg-white/80 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#D6A84A]/50 text-[#1A202C]">
+123 Coastal Road, Cavite
+          </textarea>
+                </div>
+
+            </form>
+
+            <div class="mt-6 text-right">
+                <button class="px-6 py-2 rounded-lg bg-[#5B8C5A] text-white text-sm font-medium hover:bg-[#5B8C5A]/80 transition-colors shadow-sm">
+                    Save Changes
+                </button>
+            </div>
+        </section>
+
+        <!-- Security Settings -->
+        <section class="bg-white/70 backdrop-blur-md border border-white/20 rounded-xl shadow-lg p-6">
+            <h2 class="text-lg font-bold text-[#1A202C] mb-6 font-cinzel">Security</h2>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+
+                <div>
+                    <label class="block text-sm font-medium text-[#2E5F87] mb-1">Current Password</label>
+                    <input type="password"
+                        class="w-full border border-white/30 bg-white/80 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#D6A84A]/50 text-[#1A202C]" />
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-[#2E5F87] mb-1">New Password</label>
+                    <input type="password"
+                        class="w-full border border-white/30 bg-white/80 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#D6A84A]/50 text-[#1A202C]" />
+                </div>
+
+                <div class="sm:col-span-2">
+                    <label class="block text-sm font-medium text-[#2E5F87] mb-1">Confirm New Password</label>
+                    <input type="password"
+                        class="w-full border border-white/30 bg-white/80 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#D6A84A]/50 text-[#1A202C]" />
+                </div>
+
+            </div>
+
+            <div class="mt-6 text-right">
+                <button class="px-6 py-2 rounded-lg bg-[#C05640] text-white text-sm font-medium hover:bg-[#C05640]/80 transition-colors shadow-sm">
+                    Update Password
+                </button>
+            </div>
+        </section>
+
+                </main>
+
+            </div>
+        </div>
+    </div>
+
+    <script src="../user_js/user_loader.js"></script>
+</body>
+
+</html>

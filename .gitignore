@@ -1,0 +1,12 @@
+# --- Dependencies (The biggest culprit!) ---
+node_modules/
+dist/
+out/
+build/
+
+# --- Environment Variables (Security) ---
+.env
+.DS_Store
+
+# --- System Files ---
+thumbs.db

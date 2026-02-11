@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Puerto Palabra - All Current Books</title>
+
+    <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self' 'unsafe-inline' https:; font-src 'self' https://fonts.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https:;">
+
+    <link href="../output.css" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .font-cinzel {
+            font-family: 'Cinzel', serif;
+        }
+        /* Hide scrollbar for Chrome, Safari and Opera */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        /* Hide scrollbar for IE, Edge and Firefox */
+        .no-scrollbar {
+            -ms-overflow-style: none;  /* IE and Edge */
+            scrollbar-width: none;  /* Firefox */
+        }
+        @keyframes rise {
+            0% {
+                bottom: -20px;
+                transform: translateX(0);
+                opacity: 0;
+            }
+            50% {
+                opacity: 0.6;
+            }
+            100% {
+                bottom: 100vh;
+                transform: translateX(-20px);
+                opacity: 0;
+            }
+        }
+        .bubble {
+            position: absolute;
+            background: radial-gradient(circle at 30% 30%, rgba(46, 95, 135, 0.6), rgba(46, 95, 135, 0.1));
+            border-radius: 50%;
+            box-shadow: 0 0 6px rgba(46, 95, 135, 0.3);
+            animation: rise linear infinite;
+        }
+    </style>
+</head>
+
+<body class="text-slate-800 h-screen overflow-hidden bg-[#e6e0d4]">
+
+    <!-- Background Image -->
+    <div class="fixed inset-0 z-0 pointer-events-none bg-cover bg-center bg-no-repeat" style="background-image: url('../assets/background.png');"></div>
+
+    <!-- Water Particles (Bubbles) -->
+    <div class="fixed inset-0 z-0 pointer-events-none overflow-hidden">
+        <div class="bubble" style="left: 5%; width: 15px; height: 15px; animation-duration: 12s; animation-delay: 0s;"></div>
+        <div class="bubble" style="left: 15%; width: 25px; height: 25px; animation-duration: 15s; animation-delay: 2s;"></div>
+        <div class="bubble" style="left: 25%; width: 10px; height: 10px; animation-duration: 10s; animation-delay: 4s;"></div>
+        <div class="bubble" style="left: 35%; width: 20px; height: 20px; animation-duration: 18s; animation-delay: 1s;"></div>
+        <div class="bubble" style="left: 45%; width: 30px; height: 30px; animation-duration: 20s; animation-delay: 3s;"></div>
+        <div class="bubble" style="left: 55%; width: 12px; height: 12px; animation-duration: 14s; animation-delay: 5s;"></div>
+        <div class="bubble" style="left: 65%; width: 22px; height: 22px; animation-duration: 16s; animation-delay: 2s;"></div>
+        <div class="bubble" style="left: 75%; width: 18px; height: 18px; animation-duration: 13s; animation-delay: 6s;"></div>
+        <div class="bubble" style="left: 85%; width: 28px; height: 28px; animation-duration: 19s; animation-delay: 0.5s;"></div>
+        <div class="bubble" style="left: 95%; width: 14px; height: 14px; animation-duration: 11s; animation-delay: 3.5s;"></div>
+    </div>
+
+    <div class="flex h-screen w-screen overflow-hidden relative z-10">
+
+        <div id="sidebar-container" class="w-64 shrink-0"></div>
+
+        <div class="flex-1 flex flex-col overflow-hidden">
+            <div id="topbar-container" class="shrink-0"></div>
+
+            <div id="content-wrapper" class="flex-1 flex flex-col overflow-hidden transition-opacity duration-300">
+
+                <main class="flex-1 overflow-y-auto p-8 no-scrollbar">
+                    
+                    <!-- Header & Back Button -->
+                    <div class="flex items-center justify-between mb-8">
+                        <div>
+                            <h1 class="text-3xl font-bold text-[#183B5B] font-cinzel">Currently Reading</h1>
+                            <p class="text-[#2E5F87] mt-1">All books currently checked out to your account.</p>
+                        </div>
+                        <a href="user_dashboard.html" class="flex items-center gap-2 text-[#183B5B] font-bold hover:text-[#D6A84A] transition-colors">
+                            <span>←</span> Back to Dashboard
+                        </a>
+                    </div>
+
+                    <!-- Books Grid -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pb-10">
+                        
+                        <!-- Book Card 1 -->
+                        <div class="bg-[#fffaf0]/80 backdrop-blur-sm border border-[#D6A84A]/20 p-4 rounded-2xl shadow-md flex gap-4 hover:shadow-lg hover:-translate-y-1 transition-all group">
+                            <div class="w-24 h-36 bg-slate-200 rounded-lg flex-shrink-0 bg-[url('https://covers.openlibrary.org/b/id/12547191-M.jpg')] bg-cover bg-center"></div>
+                            <div class="flex flex-col justify-between flex-1">
+                                <div>
+                                    <h4 class="font-bold text-[#1A202C] text-lg">Noli Me Tangere</h4>
+                                    <p class="text-sm text-[#2E5F87]">Jose Rizal</p>
+                                </div>
+                                <div>
+                                    <div class="flex justify-between text-xs font-bold mb-1">
+                                        <span class="text-[#2E5F87]">Due in 3 days</span>
+                                        <span class="text-[#C05640]">Feb 06</span>
+                                    </div>
+                                    <div class="w-full bg-slate-100 rounded-full h-2">
+                                        <div class="bg-[#C05640] h-2 rounded-full" style="width: 70%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Book Card 2 -->
+                        <div class="bg-[#fffaf0]/80 backdrop-blur-sm border border-[#D6A84A]/20 p-4 rounded-2xl shadow-md flex gap-4 hover:shadow-lg hover:-translate-y-1 transition-all group">
+                            <div class="w-24 h-36 bg-slate-200 rounded-lg flex-shrink-0 bg-[url('https://covers.openlibrary.org/b/id/10603706-M.jpg')] bg-cover bg-center"></div>
+                            <div class="flex flex-col justify-between flex-1">
+                                <div>
+                                    <h4 class="font-bold text-[#1A202C] text-lg">Clean Code</h4>
+                                    <p class="text-sm text-[#2E5F87]">Robert C. Martin</p>
+                                </div>
+                                <div>
+                                    <div class="flex justify-between text-xs font-bold mb-1">
+                                        <span class="text-[#2E5F87]">Due in 7 days</span>
+                                        <span class="text-[#5B8C5A]">Feb 10</span>
+                                    </div>
+                                    <div class="w-full bg-slate-100 rounded-full h-2">
+                                        <div class="bg-[#5B8C5A] h-2 rounded-full" style="width: 20%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </main>
+            </div>
+        </div>
+    </div>
+
+    <script src="../user_js/user_loader.js"></script>
+</body>
+</html>

@@ -1,0 +1,35 @@
+<header class="h-20 bg-[#3E2723] backdrop-blur-md text-[#D4AF37] flex items-center justify-end pr-6 shadow-sm border-b border-[#2D1B18] shrink-0 relative z-20 overflow-hidden">
+
+    <!-- Enchantment Particles -->
+    <div id="particles-container" class="absolute inset-0 pointer-events-none"></div>
+
+    <div class="flex items-center space-x-6 relative z-10">
+        <div class="flex items-center gap-3">
+            <div class="text-right">
+                <p class="text-sm font-bold text-[#D4AF37] font-cinzel">Simoun Ibarra</p>
+                <p class="text-xs text-[#A1887F]">Student ID: 2024-88</p>
+            </div>
+            <a href="user_account.html"
+                class="h-10 w-10 rounded-full bg-gradient-to-br from-[#5D4037] to-[#3E2723] text-[#D4AF37] flex items-center justify-center font-bold hover:scale-105 transition-transform border-2 border-[#D4AF37] shadow-md">
+                SI
+            </a>
+        </div>
+    </div>
+
+    <style>
+        @keyframes float-enchant {
+            0% { transform: translateY(20px) scale(0.5) rotate(0deg); opacity: 0; }
+            20% { opacity: 1; }
+            80% { opacity: 0.6; }
+            100% { transform: translateY(-30px) scale(1.2) rotate(10deg); opacity: 0; }
+        }
+        .enchant-particle {
+            position: absolute;
+            color: rgba(212, 175, 55, 0.2);
+            font-size: 14px;
+            font-weight: bold;
+            text-shadow: 0 0 2px rgba(212, 175, 55, 0.2);
+            animation: float-enchant 4s linear infinite;
+        }
+    </style>
+</header>

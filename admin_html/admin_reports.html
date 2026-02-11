@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Puerto Palabra - Reports</title>
+
+    <link href="../output.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+    </style>
+</head>
+
+<body class="text-slate-800 h-screen overflow-hidden bg-[#e6e0d4]">
+
+    <!-- Background Image -->
+    <div class="fixed inset-0 z-0 pointer-events-none bg-cover bg-center bg-no-repeat" style="background-image: url('../assets/background.png');"></div>
+
+    <div class="flex h-screen w-screen overflow-hidden relative z-10">
+
+        <div id="sidebar-container" class="w-72 shrink-0"></div>
+
+        <div class="flex-1 flex flex-col overflow-hidden">
+
+            <div id="topbar-container" class="shrink-0"></div>
+
+            <div id="content-wrapper" class="flex-1 flex flex-col overflow-hidden transition-opacity duration-300">
+
+                <main class="flex-1 flex overflow-hidden">
+
+                <div class="flex-1 flex flex-col overflow-hidden p-6">
+
+                    <div class="flex justify-between items-center mb-6 shrink-0">
+                        <div>
+                            <h2 class="text-2xl font-bold text-slate-800">Library Analytics</h2>
+                            <p class="text-sm text-slate-500">Performance metrics and usage statistics</p>
+                        </div>
+
+                        <div class="flex gap-3">
+                            <div
+                                class="flex items-center bg-white border border-slate-300 rounded-lg px-3 py-2 shadow-sm">
+                                <span class="text-slate-400 mr-2"></span>
+                                <span class="text-sm font-medium text-slate-700">Oct 2025</span>
+                                <span class="text-slate-400 ml-2 text-xs">▼</span>
+                            </div>
+
+                            <button
+                                class="bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 px-4 py-2 rounded-lg font-medium shadow-sm flex items-center gap-2 transition-colors">
+                                <span></span> Export PDF
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="flex-1 overflow-y-auto space-y-6 pr-2">
+
+                        <div class="grid grid-cols-4 gap-4">
+                            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                                <p class="text-xs text-slate-500 uppercase font-bold">Monthly Loans</p>
+                                <h3 class="text-2xl font-bold text-blue-900 mt-1">482</h3>
+                                <p class="text-xs text-green-600 font-medium mt-1">↑ 12% vs last month</p>
+                            </div>
+                            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                                <p class="text-xs text-slate-500 uppercase font-bold">New Users</p>
+                                <h3 class="text-2xl font-bold text-slate-800 mt-1">35</h3>
+                                <p class="text-xs text-green-600 font-medium mt-1">↑ 5% vs last month</p>
+                            </div>
+                            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                                <p class="text-xs text-slate-500 uppercase font-bold">Fines Collected</p>
+                                <h3 class="text-2xl font-bold text-slate-800 mt-1">₱1,250</h3>
+                                <p class="text-xs text-slate-400 font-medium mt-1">Stable</p>
+                            </div>
+                            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                                <p class="text-xs text-slate-500 uppercase font-bold">Lost Books</p>
+                                <h3 class="text-2xl font-bold text-red-600 mt-1">2</h3>
+                                <p class="text-xs text-red-500 font-medium mt-1">Needs attention</p>
+                            </div>
+                        </div>
+
+                        <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                            <h3 class="font-bold text-slate-800 mb-6">Borrowing Activity (Last 6 Months)</h3>
+
+                            <div class="flex items-end justify-between h-48 px-4 border-b border-slate-100 pb-2 gap-4">
+
+                                <div class="flex flex-col items-center w-full group cursor-pointer">
+                                    <div
+                                        class="text-xs font-bold text-blue-600 mb-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                        320</div>
+                                    <div
+                                        class="w-full bg-blue-100 hover:bg-blue-200 rounded-t-md transition-all h-[40%] relative group">
+                                    </div>
+                                    <span class="text-xs text-slate-400 mt-2">May</span>
+                                </div>
+
+                                <div class="flex flex-col items-center w-full group cursor-pointer">
+                                    <div
+                                        class="text-xs font-bold text-blue-600 mb-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                        280</div>
+                                    <div
+                                        class="w-full bg-blue-100 hover:bg-blue-200 rounded-t-md transition-all h-[35%]">
+                                    </div>
+                                    <span class="text-xs text-slate-400 mt-2">Jun</span>
+                                </div>
+
+                                <div class="flex flex-col items-center w-full group cursor-pointer">
+                                    <div
+                                        class="text-xs font-bold text-blue-600 mb-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                        450</div>
+                                    <div
+                                        class="w-full bg-blue-100 hover:bg-blue-200 rounded-t-md transition-all h-[65%]">
+                                    </div>
+                                    <span class="text-xs text-slate-400 mt-2">Jul</span>
+                                </div>
+
+                                <div class="flex flex-col items-center w-full group cursor-pointer">
+                                    <div
+                                        class="text-xs font-bold text-blue-600 mb-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                        510</div>
+                                    <div
+                                        class="w-full bg-blue-100 hover:bg-blue-200 rounded-t-md transition-all h-[75%]">
+                                    </div>
+                                    <span class="text-xs text-slate-400 mt-2">Aug</span>
+                                </div>
+
+                                <div class="flex flex-col items-center w-full group cursor-pointer">
+                                    <div
+                                        class="text-xs font-bold text-blue-600 mb-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                        490</div>
+                                    <div
+                                        class="w-full bg-blue-100 hover:bg-blue-200 rounded-t-md transition-all h-[70%]">
+                                    </div>
+                                    <span class="text-xs text-slate-400 mt-2">Sep</span>
+                                </div>
+
+                                <div class="flex flex-col items-center w-full group cursor-pointer">
+                                    <div class="text-xs font-bold text-[#D6A84A] mb-1">482</div>
+                                    <div class="w-full bg-[#D6A84A] rounded-t-md shadow-lg h-[68%]"></div>
+                                    <span class="text-xs font-bold text-slate-600 mt-2">Oct</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-white rounded-xl shadow-md border border-slate-200 overflow-hidden">
+                            <div class="p-4 border-b border-slate-100 flex justify-between items-center">
+                                <h3 class="font-bold text-slate-800 text-sm">Generated Reports History</h3>
+                            </div>
+                            <table class="w-full text-left text-sm text-slate-600">
+                                <thead class="bg-slate-50 text-xs text-slate-500 uppercase font-semibold">
+                                    <tr>
+                                        <th class="px-4 py-3">Report Name</th>
+                                        <th class="px-4 py-3">Type</th>
+                                        <th class="px-4 py-3">Date Generated</th>
+                                        <th class="px-4 py-3 text-right">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-100">
+                                    <tr class="hover:bg-slate-50">
+                                        <td class="px-4 py-3 font-medium text-slate-800">Q3 Financial Summary</td>
+                                        <td class="px-4 py-3"><span
+                                                class="bg-purple-50 text-purple-700 px-2 py-1 rounded text-xs">Finance</span>
+                                        </td>
+                                        <td class="px-4 py-3">Oct 01, 2025</td>
+                                        <td class="px-4 py-3 text-right"><button
+                                                class="text-blue-600 hover:underline">Download</button></td>
+                                    </tr>
+                                    <tr class="hover:bg-slate-50">
+                                        <td class="px-4 py-3 font-medium text-slate-800">September Inventory Audit</td>
+                                        <td class="px-4 py-3"><span
+                                                class="bg-blue-50 text-blue-700 px-2 py-1 rounded text-xs">Inventory</span>
+                                        </td>
+                                        <td class="px-4 py-3">Sep 30, 2025</td>
+                                        <td class="px-4 py-3 text-right"><button
+                                                class="text-blue-600 hover:underline">Download</button></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                    </div>
+                </div>
+
+                <aside
+                    class="w-80 bg-white border-l border-slate-200 p-6 flex flex-col h-full overflow-y-auto shrink-0">
+                    <h3 class="font-bold text-slate-800 mb-6">Generate Report</h3>
+
+                    <div class="space-y-4">
+                        <div
+                            class="p-4 rounded-xl border border-slate-200 hover:border-blue-300 hover:shadow-md transition-all cursor-pointer group">
+                            <div class="flex items-center mb-2">
+                                <div
+                                    class="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center mr-3">
+                                </div>
+                                <h4 class="font-bold text-slate-700 group-hover:text-blue-600">Borrowing History</h4>
+                            </div>
+                            <p class="text-xs text-slate-500">Full log of who borrowed what and when.</p>
+                        </div>
+
+                        <div
+                            class="p-4 rounded-xl border border-slate-200 hover:border-amber-300 hover:shadow-md transition-all cursor-pointer group">
+                            <div class="flex items-center mb-2">
+                                <div
+                                    class="w-8 h-8 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center mr-3">
+                                </div>
+                                <h4 class="font-bold text-slate-700 group-hover:text-amber-600">Fines & Revenue</h4>
+                            </div>
+                            <p class="text-xs text-slate-500">Collected fines, outstanding balances.</p>
+                        </div>
+
+                        <div
+                            class="p-4 rounded-xl border border-slate-200 hover:border-green-300 hover:shadow-md transition-all cursor-pointer group">
+                            <div class="flex items-center mb-2">
+                                <div
+                                    class="w-8 h-8 rounded-full bg-green-100 text-green-600 flex items-center justify-center mr-3">
+                                </div>
+                                <h4 class="font-bold text-slate-700 group-hover:text-green-600">Inventory Status</h4>
+                            </div>
+                            <p class="text-xs text-slate-500">Lost books, condition reports, stock levels.</p>
+                        </div>
+                    </div>
+
+                    <div class="mt-8 pt-6 border-t border-slate-100">
+                        <h4 class="font-bold text-slate-800 text-sm mb-3">Custom Export</h4>
+                        <div class="space-y-3">
+                            <label class="block text-xs font-medium text-slate-500">Date Range</label>
+                            <select
+                                class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500">
+                                <option>Last 7 Days</option>
+                                <option>Last 30 Days</option>
+                                <option>This Year</option>
+                            </select>
+
+                            <label class="block text-xs font-medium text-slate-500">Format</label>
+                            <div class="flex gap-2">
+                                <button
+                                    class="flex-1 py-2 border border-blue-500 bg-blue-50 text-blue-700 rounded-lg text-sm font-bold">PDF</button>
+                                <button
+                                    class="flex-1 py-2 border border-slate-200 bg-white text-slate-600 rounded-lg text-sm hover:bg-slate-50">CSV</button>
+                            </div>
+                        </div>
+                        <button
+                            class="w-full mt-4 bg-[#183B5B] hover:bg-[#2E5F87] text-white font-bold py-3 rounded-xl shadow-md transition-colors text-sm">
+                            Run Custom Report
+                        </button>
+                    </div>
+                </aside>
+
+                </main>
+
+            </div>
+        </div>
+    </div>
+
+    <script src="../admin_js/dashboard_loader.js"></script>
+    <script src="../admin_js/admin_renderer.js"></script>
+</body>
+
+</html>

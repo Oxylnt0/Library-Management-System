@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>My Fines</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .font-cinzel {
+            font-family: 'Cinzel', serif;
+        }
+        /* Custom scrollbar for a cleaner look */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+    </style>
+</head>
+
+<body class="text-slate-800 h-screen overflow-hidden bg-gradient-to-b from-[#Fdfbf7] via-[#eef2f3] to-[#dceefb]">
+
+    <div class="flex h-screen w-screen overflow-hidden">
+
+        <div id="sidebar-container" class="w-80 shrink-0"></div>
+
+        <div class="flex-1 flex flex-col overflow-hidden">
+            <div id="topbar-container" class="shrink-0"></div>
+
+            <div id="content-wrapper" class="flex-1 flex flex-col overflow-hidden transition-opacity duration-300">
+
+                <main class="flex-1 overflow-y-auto p-8">
+
+        <!-- Page Header -->
+        <header class="mb-8">
+            <h1 class="text-3xl font-semibold mb-2 font-cinzel text-[#183B5B]">My Fines</h1>
+            <p class="text-[#2E5F87] max-w-2xl">
+                Review your library fines, including overdue fees and lost item charges.
+                Unpaid fines must be settled before borrowing or reserving books.
+            </p>
+        </header>
+
+        <!-- Summary Cards -->
+        <section class="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-10">
+
+            <div class="bg-white/70 backdrop-blur-md border border-white/20 rounded-xl p-6 shadow-lg">
+                <p class="text-sm text-[#2E5F87]">Total Unpaid</p>
+                <h2 class="text-2xl font-semibold text-[#C05640] mt-2">₱120.00</h2>
+            </div>
+
+            <div class="bg-white/70 backdrop-blur-md border border-white/20 rounded-xl p-6 shadow-lg">
+                <p class="text-sm text-[#2E5F87]">Total Paid</p>
+                <h2 class="text-2xl font-semibold text-[#5B8C5A] mt-2">₱350.00</h2>
+            </div>
+
+            <div class="bg-white/70 backdrop-blur-md border border-white/20 rounded-xl p-6 shadow-lg">
+                <p class="text-sm text-[#2E5F87]">Outstanding Items</p>
+                <h2 class="text-2xl font-semibold mt-2 text-[#1A202C]">2</h2>
+            </div>
+
+        </section>
+
+        <!-- Unpaid Fines -->
+        <section class="mb-14">
+            <h2 class="text-xl font-semibold mb-4 text-[#1A202C] font-cinzel">Unpaid Fines</h2>
+
+            <div class="bg-white/70 backdrop-blur-md border border-white/20 rounded-xl shadow-lg overflow-hidden">
+                <table class="w-full text-sm">
+                    <thead class="bg-white/50 text-[#1A202C]">
+                        <tr>
+                            <th class="text-left px-5 py-3">Book</th>
+                            <th class="text-left px-5 py-3">Reason</th>
+                            <th class="text-left px-5 py-3">Due Date</th>
+                            <th class="text-left px-5 py-3">Amount</th>
+                            <th class="text-left px-5 py-3">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+
+                        <tr class="border-t border-white/20">
+                            <td class="px-5 py-4 text-[#1A202C]">The Lighthouse Mystery</td>
+                            <td class="px-5 py-4 text-[#C05640]">Overdue (5 days)</td>
+                            <td class="px-5 py-4 text-[#2E5F87]">03/01/2024</td>
+                            <td class="px-5 py-4 font-medium text-[#1A202C]">₱50.00</td>
+                            <td class="px-5 py-4">
+                                <button onclick="openPayFinePanel('The Lighthouse Mystery', '₱50.00')" class="bg-[#183B5B] text-white px-4 py-2 rounded-lg text-xs hover:bg-[#2E5F87]">
+                                    Pay Now
+                                </button>
+                            </td>
+                        </tr>
+
+                        <tr class="border-t border-white/20">
+                            <td class="px-5 py-4 text-[#1A202C]">Marine Biology</td>
+                            <td class="px-5 py-4 text-[#C05640]">Overdue (7 days)</td>
+                            <td class="px-5 py-4 text-[#2E5F87]">02/28/2024</td>
+                            <td class="px-5 py-4 font-medium text-[#1A202C]">₱70.00</td>
+                            <td class="px-5 py-4">
+                                <button onclick="openPayFinePanel('Marine Biology', '₱70.00')" class="bg-[#183B5B] text-white px-4 py-2 rounded-lg text-xs hover:bg-[#2E5F87]">
+                                    Pay Now
+                                </button>
+                            </td>
+                        </tr>
+
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Payment History -->
+        <section>
+            <h2 class="text-xl font-semibold mb-4 text-[#1A202C] font-cinzel">Payment History</h2>
+
+            <div class="bg-white/70 backdrop-blur-md border border-white/20 rounded-xl shadow-lg overflow-hidden">
+                <table class="w-full text-sm">
+                    <thead class="bg-white/50 text-[#1A202C]">
+                        <tr>
+                            <th class="text-left px-5 py-3">Book</th>
+                            <th class="text-left px-5 py-3">Reason</th>
+                            <th class="text-left px-5 py-3">Paid On</th>
+                            <th class="text-left px-5 py-3">Amount</th>
+                            <th class="text-left px-5 py-3">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+
+                        <tr class="border-t border-white/20">
+                            <td class="px-5 py-4 text-[#1A202C]">Invisible Man</td>
+                            <td class="px-5 py-4 text-[#2E5F87]">Overdue</td>
+                            <td class="px-5 py-4 text-[#2E5F87]">02/10/2024</td>
+                            <td class="px-5 py-4 text-[#1A202C]">₱150.00</td>
+                            <td class="px-5 py-4">
+                                <span class="px-3 py-1 text-xs rounded-full bg-[#5B8C5A]/10 text-[#5B8C5A]">
+                                    Paid
+                                </span>
+                            </td>
+                        </tr>
+
+                        <tr class="border-t border-white/20">
+                            <td class="px-5 py-4 text-[#1A202C]">Tales of the Sea</td>
+                            <td class="px-5 py-4 text-[#2E5F87]">Lost Item</td>
+                            <td class="px-5 py-4 text-[#2E5F87]">01/18/2024</td>
+                            <td class="px-5 py-4 text-[#1A202C]">₱200.00</td>
+                            <td class="px-5 py-4">
+                                <span class="px-3 py-1 text-xs rounded-full bg-[#5B8C5A]/10 text-[#5B8C5A]">
+                                    Paid
+                                </span>
+                            </td>
+                        </tr>
+
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Pay Fine Panel (Modal) -->
+        <div id="user_pay_fine_panel" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden items-center justify-center z-50 transition-opacity duration-300">
+            <div class="bg-white rounded-xl shadow-2xl w-full max-w-md p-6 transform transition-all scale-100">
+                <h3 class="text-2xl font-cinzel text-[#183B5B] mb-4">Pay Fine</h3>
+                
+                <div class="mb-6 p-4 bg-slate-50 rounded-lg border border-slate-200">
+                    <p class="text-sm text-slate-500 mb-1">Book Title</p>
+                    <p id="pay_fine_book_title" class="font-semibold text-[#1A202C] text-lg mb-3">Book Title Here</p>
+                    
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm text-slate-500">Amount Due</span>
+                        <span id="pay_fine_amount" class="font-bold text-[#C05640] text-xl">₱0.00</span>
+                    </div>
+                </div>
+
+                <div class="mb-6">
+                    <p class="text-sm font-medium text-slate-700 mb-3">Select Payment Method</p>
+                    
+                    <div class="space-y-3">
+                        <label class="flex items-center p-3 border border-slate-200 rounded-lg cursor-pointer hover:bg-slate-50 transition">
+                            <input type="radio" name="payment_method" value="ewallet" class="w-4 h-4 text-[#183B5B] focus:ring-[#183B5B]">
+                            <span class="ml-3 text-slate-700">E-Wallet (GCash / Maya)</span>
+                        </label>
+                        
+                        <label class="flex items-center p-3 border border-slate-200 rounded-lg cursor-pointer hover:bg-slate-50 transition">
+                            <input type="radio" name="payment_method" value="desk" class="w-4 h-4 text-[#183B5B] focus:ring-[#183B5B]">
+                            <span class="ml-3 text-slate-700">Pay at the Desk</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="flex justify-end gap-3">
+                    <button onclick="closePayFinePanel()" class="px-4 py-2 rounded-lg text-slate-600 hover:bg-slate-100 transition">Cancel</button>
+                    <button onclick="closePayFinePanel()" class="px-4 py-2 rounded-lg bg-[#183B5B] text-white hover:bg-[#2E5F87] transition shadow-md">Proceed to Pay</button>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            function openPayFinePanel(title, amount) {
+                document.getElementById('pay_fine_book_title').textContent = title;
+                document.getElementById('pay_fine_amount').textContent = amount;
+                const panel = document.getElementById('user_pay_fine_panel');
+                panel.classList.remove('hidden');
+                panel.classList.add('flex');
+            }
+
+            function closePayFinePanel() {
+                const panel = document.getElementById('user_pay_fine_panel');
+                panel.classList.add('hidden');
+                panel.classList.remove('flex');
+            }
+        </script>
+
+                </main>
+
+            </div>
+        </div>
+    </div>
+
+    <script src="../user_js/user_loader.js"></script>
+</body>
+
+</html>

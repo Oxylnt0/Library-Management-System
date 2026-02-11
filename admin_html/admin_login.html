@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login - Puerto Palabra Library</title>
+
+    <link href="../output.css" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Inter:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .font-cinzel {
+            font-family: 'Cinzel', serif;
+        }
+
+        /* --- BUBBLE ANIMATION --- */
+        @keyframes rise {
+            0% { bottom: -20px; transform: translateX(0); opacity: 0; }
+            50% { opacity: 0.6; }
+            100% { bottom: 100vh; transform: translateX(-20px); opacity: 0; }
+        }
+        .bubble {
+            position: absolute;
+            background: radial-gradient(circle at 30% 30%, rgba(46, 95, 135, 0.6), rgba(46, 95, 135, 0.1));
+            border-radius: 50%;
+            box-shadow: 0 0 6px rgba(46, 95, 135, 0.3);
+            animation: rise linear infinite;
+        }
+
+        /* --- 3D BOOK STYLES --- */
+        .scene {
+            perspective: 2000px;
+            z-index: 10;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+            margin-top: 2rem;
+        }
+
+        .book-container {
+            position: relative;
+            width: 900px;
+            height: 600px;
+            transform-style: preserve-3d;
+        }
+
+        /* Deep Blue Hardcover */
+        .book-cover {
+            position: absolute;
+            top: -20px; left: -20px; right: -20px; bottom: -20px;
+            background: linear-gradient(to right, #0f263d 0%, #183B5B 48%, #0f263d 52%, #183B5B 100%);
+            border-radius: 18px;
+            box-shadow: 0 35px 70px rgba(0, 0, 0, 0.6);
+            z-index: 0;
+        }
+
+        .book-cover::after {
+            content: '';
+            position: absolute;
+            top: 0; bottom: 0; left: 50%;
+            width: 4px;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.2);
+            box-shadow: inset 1px 0 2px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Common Page Styles */
+        .paper {
+            position: absolute;
+            width: 50%;
+            height: 100%;
+            top: 0;
+            background-color: #fdfbf7;
+            background-image: repeating-linear-gradient(#fdfbf7 0px, #fdfbf7 24px, #e6e0d4 25px);
+            border: 1px solid #d4af37;
+            display: flex;
+            flex-direction: column;
+            padding: 2.5rem;
+        }
+
+        .paper.left-base {
+            left: 0;
+            border-radius: 12px 0 0 12px;
+            z-index: 1;
+            align-items: center;
+            justify-content: center;
+            border-right: none;
+        }
+
+        .paper.right-base {
+            right: 0;
+            border-radius: 0 12px 12px 0;
+            z-index: 1;
+            border-left: 1px solid #e2e8f0;
+        }
+
+        /* MOVABLE SHEETS */
+        .sheet {
+            position: absolute;
+            right: 0;
+            width: 50%;
+            height: 100%;
+            top: 0;
+            transform-style: preserve-3d;
+            transform-origin: left center;
+            transition: transform 1.2s cubic-bezier(0.645, 0.045, 0.355, 1);
+        }
+
+        .front, .back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            background-color: #fdfbf7;
+            background-image: repeating-linear-gradient(#fdfbf7 0px, #fdfbf7 24px, #e6e0d4 25px);
+            border: 1px solid #d4af37;
+            backface-visibility: hidden;
+            display: flex;
+            flex-direction: column;
+            padding: 2.5rem;
+        }
+
+        .front {
+            border-radius: 0 12px 12px 0;
+            z-index: 2;
+            border-left: 1px solid #e2e8f0;
+        }
+
+        .back {
+            transform: rotateY(180deg);
+            border-radius: 12px 0 0 12px;
+            z-index: 1;
+            box-shadow: inset -10px 0 20px rgba(0, 0, 0, 0.05);
+            border-right: none;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #sheet-1 { z-index: 20; }
+
+        /* Form Styles */
+        .form-group { margin-bottom: 1.2rem; }
+        .form-label { display: block; font-size: 0.85rem; font-weight: 700; color: #183B5B; margin-bottom: 0.3rem; font-family: 'Cinzel', serif; }
+        .form-input {
+            width: 100%;
+            background: transparent;
+            border: none;
+            border-bottom: 2px solid #D6A84A;
+            padding: 0.5rem 0;
+            font-family: 'Inter', sans-serif;
+            color: #1A202C;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+        .form-input:focus { border-bottom-color: #183B5B; }
+
+        /* Enchanted Particles (from public_view) */
+        @keyframes float-enchant {
+            0% { transform: translateY(20px) scale(0.5) rotate(0deg); opacity: 0; }
+            20% { opacity: 1; }
+            80% { opacity: 0.6; }
+            100% { transform: translateY(-30px) scale(1.2) rotate(10deg); opacity: 0; }
+        }
+        .enchant-particle {
+            position: absolute;
+            color: rgba(214, 168, 74, 0.5);
+            font-size: 14px;
+            font-weight: bold;
+            text-shadow: 0 0 4px rgba(214, 168, 74, 0.8);
+            animation: float-enchant 4s linear infinite;
+        }
+
+        @keyframes bookFadeIn {
+            from {
+                opacity: 0;
+                transform: scale(0.95) translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+        .animate-book-entry {
+            animation: bookFadeIn 1.2s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+        }
+        
+        /* Shimmer for buttons */
+        @keyframes shimmer {
+            0% { background-position: -200% center; }
+            100% { background-position: 200% center; }
+        }
+        .animate-shimmer-bg {
+            background: linear-gradient(to right, #D6A84A 0%, #f7e6b5 50%, #D6A84A 100%);
+            background-size: 200% auto;
+            animation: shimmer 6s linear infinite;
+        }
+        .animate-shimmer-bg:hover {
+            background: #F0C66B;
+            animation: none;
+        }
+
+        /* Spinner Animation */
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .spinner {
+            display: inline-block;
+            width: 1em;
+            height: 1em;
+            border: 2px solid currentColor;
+            border-right-color: transparent;
+            border-radius: 50%;
+            animation: spin 0.75s linear infinite;
+            vertical-align: text-bottom;
+            margin-right: 0.5rem;
+        }
+    </style>
+</head>
+
+<body class="text-slate-800 min-h-screen flex flex-col bg-[#e6e0d4] relative overflow-hidden">
+
+    <!-- Background Image -->
+    <div class="fixed inset-0 z-0 pointer-events-none bg-cover bg-center bg-no-repeat" style="background-image: url('../assets/background.png');"></div>
+
+    <!-- Water Particles -->
+    <div class="fixed inset-0 z-0 pointer-events-none overflow-hidden">
+        <div class="bubble" style="left: 10%; width: 20px; height: 20px; animation-duration: 12s;"></div>
+        <div class="bubble" style="left: 30%; width: 15px; height: 15px; animation-duration: 15s; animation-delay: 2s;"></div>
+        <div class="bubble" style="left: 70%; width: 25px; height: 25px; animation-duration: 18s; animation-delay: 1s;"></div>
+        <div class="bubble" style="left: 90%; width: 10px; height: 10px; animation-duration: 10s; animation-delay: 4s;"></div>
+    </div>
+
+    <div id="page-container" class="flex flex-col flex-1 transition-opacity duration-500 ease-in-out opacity-100">
+    <!-- Navbar -->
+    <nav class="w-full bg-gradient-to-r from-[#183B5B] to-[#244D75] px-6 py-5 shadow-lg border-b border-[#D6A84A]/30 relative z-20 overflow-hidden">
+        <div id="particles-container" class="absolute inset-0 pointer-events-none"></div>
+        <div class="w-full flex justify-between items-center relative z-10">
+            <a href="../public_view/public_view.html" class="nav-link text-[#D6A84A] font-bold text-lg font-cinzel hover:text-white transition-colors flex items-center gap-2">
+                <span>←</span> Back to Library
+            </a>
+            <div class="text-white/80 text-sm font-cinzel tracking-widest">Admin Portal</div>
+        </div>
+    </nav>
+
+    <!-- Book Scene -->
+    <div class="scene flex-1">
+        <div class="book-container animate-book-entry">
+            <div class="book-cover"></div>
+
+            <!-- Left Base (Inside Front Cover) -->
+            <div class="paper left-base">
+                <img src="../assets/library_logo.jpg" alt="Logo" class="w-32 h-32 object-cover rounded-full border-4 border-[#D6A84A] shadow-xl mb-6">
+                <h2 class="text-3xl font-bold text-[#183B5B] font-cinzel text-center mb-2">Administrator</h2>
+                <p class="text-center text-slate-600 italic">"Management & Oversight"</p>
+                <div class="mt-8 text-sm text-[#183B5B]/70 text-center">
+                    <p>Restricted Access. Authorized personnel only.</p>
+                </div>
+            </div>
+
+            <!-- Right Base (Inside Back Cover) -->
+            <div class="paper right-base">
+                <!-- Decorative or empty if using sheet-1 -->
+            </div>
+
+            <!-- Sheet 1: Login Form -->
+            <div class="sheet" id="sheet-1">
+                <div class="front">
+                    <h3 class="text-xl font-bold text-[#183B5B] font-cinzel mb-8 text-center">Admin Sign In</h3>
+                    
+                    <div class="w-full max-w-xs mx-auto space-y-6">
+                        <div class="form-group">
+                            <label class="form-label">Username</label>
+                            <input type="text" id="login-username" class="form-input" placeholder="Enter admin username">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Password</label>
+                            <input type="password" id="login-password" class="form-input" placeholder="Enter password">
+                        </div>
+
+                        <button id="btn-login" onclick="handleLogin()" class="w-full px-8 py-3 rounded-full bg-[#D6A84A] text-black font-bold text-sm hover:bg-[#F0C66B] hover:text-black shadow-md transition-transform duration-300 transform hover:scale-105 animate-shimmer-bg flex items-center justify-center">
+                            Login
+                        </button>
+                    </div>
+
+                    <div class="text-center text-sm text-slate-500 mt-auto">
+                        <p>Forgot credentials?</p>
+                        <span class="text-[#183B5B] font-bold">Contact System Administrator</span>
+                    </div>
+                </div>
+                <div class="back">
+                    <!-- Decorative back of page -->
+                    <div class="w-full h-full border-4 border-double border-[#D6A84A]/30 flex items-center justify-center">
+                        <div class="text-6xl text-[#D6A84A]/20">🛡️</div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        function showCustomAlert(message, callback) {
+            const alertBox = document.getElementById('custom-alert');
+            const alertMsg = document.getElementById('custom-alert-msg');
+            const alertBtn = document.getElementById('custom-alert-btn');
+            
+            alertMsg.textContent = message;
+            alertBox.classList.remove('hidden');
+            
+            // Replace button to remove old event listeners
+            const newBtn = alertBtn.cloneNode(true);
+            alertBtn.parentNode.replaceChild(newBtn, alertBtn);
+            
+            newBtn.onclick = function() {
+                alertBox.classList.add('hidden');
+                if (callback) callback();
+            }
+        }
+
+        window.handleLogin = function() {
+            const username = document.getElementById('login-username').value;
+            const password = document.getElementById('login-password').value;
+            const btn = document.getElementById('btn-login');
+            const originalText = btn.innerHTML;
+
+            // Show Loading State
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner"></span> Verifying...';
+            btn.classList.add('opacity-75', 'cursor-not-allowed');
+
+            // Simulate network delay for effect
+            setTimeout(() => {
+                if (username === 'admin' && password === 'password') {
+                    showCustomAlert("Access Granted. Welcome, Administrator.", () => {
+                        window.location.href = 'admin_dashboard.html'; 
+                    });
+                } else {
+                    showCustomAlert("Access Denied: Invalid credentials.");
+                    // Restore Button State
+                    btn.disabled = false;
+                    btn.innerHTML = originalText;
+                    btn.classList.remove('opacity-75', 'cursor-not-allowed');
+                }
+            }, 800);
+        }
+
+        {
+        // Navbar Particles
+        document.addEventListener('DOMContentLoaded', () => {
+            const container = document.getElementById('particles-container');
+            const particleCount = 20;
+            const runes = ['ᚠ', 'ᚢ', 'ᚦ', 'ᚨ', 'ᚱ', 'ᚲ', 'ᚷ', 'ᚹ', 'ᚺ', 'ᚾ', 'ᛁ', 'ᛃ', 'ᛈ', 'ᛇ', 'ᛉ', 'ᛊ', 'ᛏ', 'ᛒ', 'ᛖ', 'ᛗ', 'ᛚ', 'ᛜ', 'ᛞ', 'ᛟ'];
+
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'enchant-particle';
+                particle.textContent = runes[Math.floor(Math.random() * runes.length)];
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.top = Math.random() * 100 + '%';
+                particle.style.animationDelay = Math.random() * 5 + 's';
+                particle.style.fontSize = (Math.random() * 10 + 10) + 'px';
+                container.appendChild(particle);
+            }
+        });
+        }
+    </script>
+    </div>
+
+    <!-- Custom Alert Modal -->
+    <div id="custom-alert" class="fixed inset-0 z-[100] hidden flex items-center justify-center bg-black/50 backdrop-blur-sm transition-opacity duration-300">
+        <div class="bg-[#fdfbf7] border-2 border-[#D6A84A] rounded-lg p-8 max-w-sm w-full shadow-2xl transform scale-100 transition-transform duration-300 relative overflow-hidden">
+            <div class="absolute top-0 left-0 w-16 h-16 border-t-4 border-l-4 border-[#183B5B]/20 rounded-tl-lg"></div>
+            <div class="absolute bottom-0 right-0 w-16 h-16 border-b-4 border-r-4 border-[#183B5B]/20 rounded-br-lg"></div>
+            
+            <h3 class="text-xl font-bold text-[#183B5B] font-cinzel mb-4 text-center">System Message</h3>
+            <p id="custom-alert-msg" class="text-slate-700 text-center mb-6 font-inter"></p>
+            <div class="flex justify-center">
+                <button id="custom-alert-btn" class="px-6 py-2 bg-[#183B5B] text-[#D6A84A] font-bold font-cinzel rounded hover:bg-[#244D75] transition-colors">
+                    OK
+                </button>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

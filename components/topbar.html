@@ -1,0 +1,51 @@
+<header class="h-20 bg-[#3E2723] backdrop-blur-md text-[#D4AF37] flex items-center justify-end pr-6 shadow-sm border-b border-[#2D1B18] shrink-0 relative z-20 overflow-hidden">
+
+    <!-- Enchantment Particles -->
+    <div id="particles-container" class="absolute inset-0 pointer-events-none">
+        <div class="enchant-particle" style="left: 10%; top: 15%; animation-delay: 0s; animation-duration: 4s;">✦</div>
+        <div class="enchant-particle" style="left: 25%; top: 45%; animation-delay: 1.5s; animation-duration: 5s;">✦</div>
+        <div class="enchant-particle" style="left: 40%; top: 70%; animation-delay: 0.5s; animation-duration: 3.5s;">✦</div>
+        <div class="enchant-particle" style="left: 60%; top: 20%; animation-delay: 2s; animation-duration: 4.5s;">✦</div>
+        <div class="enchant-particle" style="left: 75%; top: 60%; animation-delay: 1s; animation-duration: 3s;">✦</div>
+        <div class="enchant-particle" style="left: 90%; top: 30%; animation-delay: 2.5s; animation-duration: 5s;">✦</div>
+        <div class="enchant-particle" style="left: 15%; top: 80%; animation-delay: 3s; animation-duration: 4s;">✦</div>
+        <div class="enchant-particle" style="left: 50%; top: 50%; animation-delay: 0.2s; animation-duration: 3.8s;">✦</div>
+        <div class="enchant-particle" style="left: 85%; top: 10%; animation-delay: 1.8s; animation-duration: 4.2s;">✦</div>
+        <div class="enchant-particle" style="left: 5%; top: 40%; animation-delay: 0.8s; animation-duration: 5.5s;">✦</div>
+        <div class="enchant-particle" style="left: 35%; top: 90%; animation-delay: 2.2s; animation-duration: 3.2s;">✦</div>
+        <div class="enchant-particle" style="left: 65%; top: 5%; animation-delay: 1.2s; animation-duration: 4.8s;">✦</div>
+        <div class="enchant-particle" style="left: 95%; top: 75%; animation-delay: 2.8s; animation-duration: 3.6s;">✦</div>
+        <div class="enchant-particle" style="left: 20%; top: 10%; animation-delay: 0.4s; animation-duration: 4.1s;">✦</div>
+        <div class="enchant-particle" style="left: 80%; top: 85%; animation-delay: 1.6s; animation-duration: 5.2s;">✦</div>
+    </div>
+
+    <div class="flex items-center space-x-6 relative z-10">
+        <div class="flex items-center gap-3">
+            <div class="text-right">
+                <p class="text-sm font-bold text-[#D4AF37] font-cinzel">Administrator</p>
+                <p class="text-xs text-[#A1887F]">System Access</p>
+            </div>
+            <a href="admin_account.html"
+                class="h-10 w-10 rounded-full bg-gradient-to-br from-[#5D4037] to-[#3E2723] text-[#D4AF37] flex items-center justify-center font-bold hover:scale-105 transition-transform border-2 border-[#D4AF37] shadow-md">
+                A
+            </a>
+        </div>
+    </div>
+
+    <style>
+        @keyframes float-enchant {
+            0% { transform: translateY(20px) scale(0.5) rotate(0deg); opacity: 0; }
+            20% { opacity: 1; }
+            80% { opacity: 0.6; }
+            100% { transform: translateY(-30px) scale(1.2) rotate(10deg); opacity: 0; }
+        }
+        .enchant-particle {
+            position: absolute;
+            color: rgba(212, 175, 55, 0.2);
+            font-size: 14px;
+            font-weight: bold;
+            text-shadow: 0 0 2px rgba(212, 175, 55, 0.2);
+            animation: float-enchant 4s linear infinite;
+        }
+    </style>
+</header>

@@ -1,0 +1,146 @@
+<aside class="h-screen w-64 bg-[#3E2723] text-[#D4AF37] flex flex-col shadow-[inset_-10px_0_20px_rgba(0,0,0,0.6)] relative overflow-hidden font-serif border-r-8 border-[#2D1B18] bookshelf-container">
+    
+    <!-- Top Shelf / Header -->
+    <div class="p-6 text-center border-b-8 border-[#2D1B18] bg-[#4E342E] shadow-lg relative z-10">
+        <div class="absolute inset-0 bg-black/20 pointer-events-none"></div>
+        <h1 class="text-xl font-bold tracking-widest uppercase drop-shadow-md relative z-10 font-cinzel">Navigation</h1>
+    </div>
+
+    <!-- Bookshelf (Navigation) -->
+    <nav class="flex-1 flex flex-col justify-start px-2 gap-2 py-8 bg-[url('https://www.transparenttextures.com/patterns/wood-pattern.png')] relative">
+        <!-- Shadow overlay for depth -->
+        <div class="absolute inset-0 pointer-events-none shadow-[inset_0_0_50px_rgba(0,0,0,0.7)]"></div>
+
+        <!-- Book 1: Dashboard -->
+        <a href="user_dashboard.html" class="nav-link book-spine bg-[#722F37] group">
+            <span class="book-title">Dashboard</span>
+            <div class="spine-detail top"></div>
+            <div class="spine-detail bottom"></div>
+        </a>
+
+        <!-- Book 2: Browse Books -->
+        <a href="user_catalog.html" class="nav-link book-spine bg-[#183B5B] group">
+            <span class="book-title">Browse Books</span>
+            <div class="spine-detail top"></div>
+            <div class="spine-detail bottom"></div>
+        </a>
+
+        <!-- Book 3: Borrowed Books -->
+        <a href="user_loans.html" class="nav-link book-spine bg-[#2E4a28] group">
+            <span class="book-title">My Loans</span>
+            <div class="spine-detail top"></div>
+            <div class="spine-detail bottom"></div>
+        </a>
+
+        <!-- Book 4: Reservations -->
+        <a href="user_reservations.html" class="nav-link book-spine bg-[#4B0082] group">
+            <span class="book-title">Reservations</span>
+            <div class="spine-detail top"></div>
+            <div class="spine-detail bottom"></div>
+        </a>
+
+        <!-- Book 5: Fines -->
+        <a href="user_fines.html" class="nav-link book-spine bg-[#5D4037] group">
+            <span class="book-title">Fines</span>
+            <div class="spine-detail top"></div>
+            <div class="spine-detail bottom"></div>
+        </a>
+
+    </nav>
+
+    <!-- Footer (Desk Surface) -->
+    <div class="h-40 bg-[#2D1B18] relative flex items-center justify-center shadow-[0_-5px_15px_rgba(0,0,0,0.6)] z-20 desk-surface">
+        <!-- Logout "Library Card" -->
+        <button onclick="window.location.href='../public_view/login.html'" class="library-card transform hover:-translate-y-2 transition-transform duration-300 cursor-pointer">
+            <div class="text-[10px] text-slate-500 uppercase tracking-tighter mb-1 text-center">Library Card</div>
+            <div class="font-bold text-[#8B0000] text-center text-lg font-cinzel">LOGOUT</div>
+            <div class="w-full h-px bg-slate-300 my-2"></div>
+            <div class="text-[9px] text-slate-400 text-center">Sign out securely</div>
+            <div class="absolute top-1 right-2 text-[8px] text-slate-300">№ 001</div>
+        </button>
+    </div>
+
+    <style>
+        .bookshelf-container {
+            background-image: repeating-linear-gradient(90deg, rgba(255,255,255,0.02) 0px, rgba(255,255,255,0.02) 1px, transparent 1px, transparent 10px), linear-gradient(to right, #2a1b18, #3e2723, #2a1b18);
+        }
+
+        .book-spine {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 54px;
+            width: 92%;
+            margin-left: 0;
+            border-radius: 2px 6px 6px 2px;
+            box-shadow: inset 3px 0 8px rgba(0,0,0,0.4), 0 4px 6px rgba(0,0,0,0.5);
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            text-decoration: none;
+            border-left: 1px solid rgba(255,255,255,0.15);
+            border-top: 1px solid rgba(255,255,255,0.1);
+            border-bottom: 1px solid rgba(0,0,0,0.3);
+            /* Spine roundness gradient */
+            background-image: linear-gradient(to bottom, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0) 10%, rgba(0,0,0,0.1) 40%, rgba(0,0,0,0.2) 80%, rgba(0,0,0,0.4) 100%);
+            z-index: 5;
+        }
+
+        .book-spine:hover, .book-spine.active-book {
+            transform: translateX(20px);
+            box-shadow: -4px 4px 12px rgba(0,0,0,0.6), inset 2px 0 5px rgba(0,0,0,0.3);
+            width: 95%;
+            z-index: 10;
+        }
+        
+        .book-spine.active-book {
+             border-right: 4px solid #D4AF37;
+        }
+
+        .book-title {
+            color: #D4AF37;
+            font-family: 'Cinzel', serif;
+            font-weight: 700;
+            text-shadow: 0 2px 2px rgba(0,0,0,0.9);
+            letter-spacing: 1px;
+            font-size: 0.85rem;
+            z-index: 2;
+            text-transform: uppercase;
+        }
+
+        .spine-detail {
+            position: absolute;
+            left: 12px;
+            right: 12px;
+            height: 2px;
+            background: linear-gradient(to right, #b8860b, #ffd700, #b8860b);
+            opacity: 0.6;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.8);
+        }
+        .spine-detail.top { top: 6px; }
+        .spine-detail.bottom { bottom: 6px; }
+
+        .desk-surface {
+            background-image: url('https://www.transparenttextures.com/patterns/wood-pattern.png');
+            border-top: 4px solid #1a100e;
+        }
+
+        .library-card {
+            width: 160px;
+            height: 90px;
+            background-color: #fdfbf7;
+            background-image: radial-gradient(#e6e0d4 1px, transparent 1px);
+            background-size: 10px 10px;
+            padding: 10px;
+            border: 1px solid #d1d5db;
+            border-radius: 2px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+            position: relative;
+            transform: rotate(-2deg);
+        }
+        .library-card:hover {
+            transform: rotate(0deg) translateY(-5px) scale(1.05);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.4);
+            z-index: 30;
+        }
+    </style>
+</aside>

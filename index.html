@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Puerto Palabra - Welcome</title>
+    <link href="./output.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;700;800;900&display=swap"
+        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Crimson+Text:ital,wght@0,400;0,600;0,700;1,400&display=swap"
+        rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            overflow: hidden;
+        }
+
+        /* --- WAVES ANIMATION --- */
+        .waves-container {
+            width: 100%;
+            height: 15vh;
+            min-height: 100px;
+            max-height: 150px;
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            z-index: 0;
+        }
+
+        .parallax>use {
+            animation: move-forever 25s cubic-bezier(.55, .5, .45, .5) infinite;
+        }
+
+        .parallax>use:nth-child(1) {
+            animation-delay: -2s;
+            animation-duration: 7s;
+        }
+
+        .parallax>use:nth-child(2) {
+            animation-delay: -3s;
+            animation-duration: 10s;
+        }
+
+        .parallax>use:nth-child(3) {
+            animation-delay: -4s;
+            animation-duration: 13s;
+        }
+
+        .parallax>use:nth-child(4) {
+            animation-delay: -5s;
+            animation-duration: 20s;
+        }
+
+        @keyframes move-forever {
+            0% {
+                transform: translate3d(-90px, 0, 0);
+            }
+
+            100% {
+                transform: translate3d(85px, 0, 0);
+            }
+        }
+
+        /* --- 3D BOOK STYLES --- */
+        .scene {
+            perspective: 2000px;
+            z-index: 10;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+        }
+
+        .book-container {
+            position: relative;
+            width: 950px;
+            height: 650px;
+            transform-style: preserve-3d;
+        }
+
+        /* Brown Hardcover */
+        .book-cover {
+            position: absolute;
+            top: -25px;
+            left: -25px;
+            right: -25px;
+            bottom: -25px;
+            background: linear-gradient(to right, #3E2723 0%, #5D4037 48%, #3E2723 52%, #5D4037 100%);
+            border-radius: 18px;
+            box-shadow: 0 35px 70px rgba(0, 0, 0, 0.6);
+            z-index: 0;
+        }
+
+        .book-cover::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 50%;
+            width: 4px;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.2);
+            box-shadow: inset 1px 0 2px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Common Page Styles */
+        .paper {
+            position: absolute;
+            width: 50%;
+            height: 100%;
+            top: 0;
+            background-color: #fdfbf7;
+            background-image: repeating-linear-gradient(#fdfbf7 0px, #fdfbf7 24px, #cbd5e1 25px);
+            border: 1px solid #e2e8f0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 3rem;
+        }
+
+        .paper.left-base {
+            left: 0;
+            border-radius: 12px 0 0 12px;
+            z-index: 1;
+        }
+
+        .paper.right-base {
+            right: 0;
+            border-radius: 0 12px 12px 0;
+            z-index: 1;
+        }
+
+        /* MOVABLE SHEETS */
+        .sheet {
+            position: absolute;
+            right: 0;
+            width: 50%;
+            height: 100%;
+            top: 0;
+            transform-style: preserve-3d;
+            transform-origin: left center;
+            transition: transform 1.8s cubic-bezier(0.645, 0.045, 0.355, 1);
+        }
+
+        .front,
+        .back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            background-color: #fdfbf7;
+            background-image: repeating-linear-gradient(#fdfbf7 0px, #fdfbf7 24px, #cbd5e1 25px);
+            border: 1px solid #e2e8f0;
+            backface-visibility: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 3rem;
+        }
+
+        .front {
+            border-radius: 0 12px 12px 0;
+            z-index: 2;
+        }
+
+        .back {
+            transform: rotateY(180deg);
+            border-radius: 12px 0 0 12px;
+            z-index: 1;
+            box-shadow: inset -10px 0 20px rgba(0, 0, 0, 0.05);
+        }
+
+        .sheet.flipped {
+            transform: rotateY(-180deg);
+        }
+
+        #sheet-1 {
+            z-index: 20;
+        }
+
+        #sheet-2 {
+            z-index: 10;
+        }
+
+        /* COLORFUL LOGIN OPTIONS */
+        .login-option {
+            border-radius: 20px;
+            padding: 2.5rem;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 70%;
+        }
+
+        .login-option:hover {
+            transform: translateY(-8px) scale(1.03);
+            box-shadow: 0 25px 30px -5px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Student Option (Blue) */
+        .option-student {
+            background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+            color: white;
+        }
+
+        /* Staff Option (Cyan) */
+        .option-staff {
+            background: linear-gradient(135deg, #0891b2 0%, #155e75 100%);
+            color: white;
+        }
+
+        /* Admin Option (Amber/Gold) */
+        .option-admin {
+            background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
+            color: white;
+        }
+
+        /* ARROWS */
+        .nav-arrow {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 70px;
+            height: 70px;
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+            cursor: pointer;
+            z-index: 100;
+            color: #5D4037;
+            font-size: 2rem;
+            transition: all 0.3s ease;
+        }
+
+        .nav-arrow:hover {
+            transform: translateY(-50%) scale(1.2);
+            background: #5D4037;
+            color: white;
+        }
+
+        .arrow-right {
+            right: -120px;
+        }
+
+        .arrow-left {
+            left: -120px;
+            transform: translateY(-50%) rotate(180deg);
+        }
+
+        .arrow-left:hover {
+            transform: translateY(-50%) rotate(180deg) scale(1.2);
+        }
+
+        .hidden {
+            display: none;
+            opacity: 0;
+            pointer-events: none;
+        }
+    </style>
+</head>
+
+<body
+    class="bg-gradient-to-br from-[#183B5B] via-[#244D75] to-[#2E5F87] h-screen w-screen flex flex-col items-center justify-center relative">
+
+    <div
+        class="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] pointer-events-none">
+    </div>
+
+    <header class="absolute top-8 z-20 flex items-center gap-5 animate-fade-in-down">
+        <div class="bg-white/10 p-2 rounded-2xl border border-white/20 shadow-lg backdrop-blur-md">
+            <img src="./Assets/library_logo.jpg" alt="Logo" class="w-14 h-14 object-contain rounded-xl" />
+        </div>
+        <div class="text-white">
+            <h1 class="font-extrabold text-3xl tracking-[0.15em] leading-none drop-shadow-md">PUERTO PALABRA</h1>
+            <p class="text-blue-200 text-xs font-medium tracking-[0.4em] uppercase mt-1 opacity-80">
+                Library System</p>
+        </div>
+    </header>
+
+    <div class="scene">
+        <div class="book-container">
+
+            <div class="book-cover"></div>
+
+            <div class="paper left-base">
+                <div class="text-center">
+                    <div
+                        class="w-24 h-24 rounded-full bg-white/20 flex items-center justify-center mb-6 backdrop-blur-sm shadow-inner">
+                        <img src="./Assets/Icons/users.png" alt="Student Logo"
+                            class="w-16 h-16 object-contain drop-shadow-md">
+                    </div>
+                    <h2 class="text-4xl font-extrabold text-slate-800 mb-4 font-serif">Student & Faculty</h2>
+                    <p class="text-slate-600 text-xl font-medium leading-relaxed">Access the extensive book catalog,
+                        view your borrowing history, and reserve materials online.</p>
+                </div>
+            </div>
+
+            <div class="paper right-base">
+                <a href="admin_dashboard.html" class="login-option option-admin group">
+                    <div
+                        class="w-24 h-24 rounded-full bg-white/20 flex items-center justify-center mb-6 backdrop-blur-sm shadow-inner">
+                        <img src="./Assets/Icons/librarian.png" alt="Student Logo"
+                            class="w-16 h-16 object-contain drop-shadow-md">
+                    </div>
+                    <h3 class="font-extrabold text-4xl mb-2">Head Librarian</h3>
+                    <p class="text-amber-100 text-lg uppercase tracking-widest font-bold">Admin Login</p>
+                </a>
+            </div>
+
+
+            <div class="sheet" id="sheet-2">
+                <div class="front">
+                    <a href="#" class="login-option option-staff group">
+                        <div
+                            class="w-24 h-24 rounded-full bg-white/20 flex items-center justify-center mb-6 backdrop-blur-sm shadow-inner">
+                            <img src="./Assets/Icons/assistant_librarian.png" alt="Student Logo"
+                                class="w-16 h-16 object-contain drop-shadow-md">
+                        </div>
+                        <h3 class="font-extrabold text-4xl mb-2">Assistant</h3>
+                        <p class="text-cyan-100 text-lg uppercase tracking-widest font-bold">Staff Login</p>
+                    </a>
+                    <div class="absolute bottom-6 text-slate-400 text-sm font-serif italic">Page 2</div>
+                </div>
+
+                <div class="back">
+                    <div class="text-center">
+                        <div
+                            class="w-24 h-24 rounded-full bg-white/20 flex items-center justify-center mb-6 backdrop-blur-sm shadow-inner">
+                            <img src="./Assets/Icons/librarian.png" alt="Student Logo"
+                                class="w-16 h-16 object-contain drop-shadow-md">
+                        </div>
+                        <h2 class="text-4xl font-extrabold text-slate-800 mb-4 font-serif">Head Librarian</h2>
+                        <p class="text-slate-600 text-xl font-medium leading-relaxed">Full system administration,
+                            configuration settings, user management, and financial reporting.</p>
+                    </div>
+                </div>
+            </div>
+
+
+            <div class="sheet" id="sheet-1">
+                <div class="front">
+                    <a href="user_dashboard.html" class="login-option option-student group">
+                        <div
+                            class="w-24 h-24 rounded-full bg-white/20 flex items-center justify-center mb-6 backdrop-blur-sm shadow-inner">
+                            <img src="./Assets/Icons/users.png" alt="Student Logo"
+                                class="w-16 h-16 object-contain drop-shadow-md">
+                        </div>
+                        <h3 class="font-extrabold text-4xl mb-2">Student / Faculty</h3>
+                        <p class="text-blue-100 text-lg uppercase tracking-widest font-bold">User Login</p>
+                    </a>
+                    <div class="absolute bottom-6 text-slate-400 text-sm font-serif italic">Page 1</div>
+                </div>
+
+                <div class="back">
+                    <div class="text-center">
+                        <div
+                            class="w-24 h-24 rounded-full bg-white/20 flex items-center justify-center mb-6 backdrop-blur-sm shadow-inner">
+                            <img src="./Assets/Icons/assistant_librarian.png" alt="Student Logo"
+                                class="w-16 h-16 object-contain drop-shadow-md">
+                        </div>
+                        <h2 class="text-4xl font-extrabold text-slate-800 mb-4 font-serif">Assistant Librarian</h2>
+                        <p class="text-slate-600 text-xl font-medium leading-relaxed">Manage daily circulation, process
+                            book loans and returns, and organize shelf inventory.</p>
+                    </div>
+                </div>
+            </div>
+
+
+            <div class="nav-arrow arrow-right" id="btn-next" onclick="turnPage(1)">➤</div>
+            <div class="nav-arrow arrow-left hidden" id="btn-prev" onclick="turnPage(-1)">➤</div>
+
+        </div>
+    </div>
+
+    <div class="waves-container">
+        <svg class="waves w-full h-full" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+            viewBox="0 24 150 28" preserveAspectRatio="none" shape-rendering="auto">
+            <defs>
+                <path id="gentle-wave" d="M-160 44c30 0 58-18 88-18s 58 18 88 18 58-18 88-18 58 18 88 18 v44h-352z" />
+            </defs>
+            <g class="parallax">
+                <use xlink:href="#gentle-wave" x="48" y="0" fill="rgba(255,255,255,0.1)" />
+                <use xlink:href="#gentle-wave" x="48" y="3" fill="rgba(255,255,255,0.2)" />
+                <use xlink:href="#gentle-wave" x="48" y="5" fill="rgba(255,255,255,0.3)" />
+                <use xlink:href="#gentle-wave" x="48" y="7" fill="rgba(255,255,255,0.5)" />
+            </g>
+        </svg>
+    </div>
+
+    <script>
+        let currentPage = 1;
+        const totalPages = 3;
+
+        function turnPage(direction) {
+            const btnNext = document.getElementById('btn-next');
+            const btnPrev = document.getElementById('btn-prev');
+            const sheet1 = document.getElementById('sheet-1');
+            const sheet2 = document.getElementById('sheet-2');
+
+            if (direction === 1) { // Forward
+                if (currentPage < totalPages) {
+
+                    if (currentPage === 1) {
+                        sheet1.classList.add('flipped');
+                        // Fix Z-Index immediately
+                        sheet1.style.zIndex = "20";
+                        sheet2.style.zIndex = "10";
+                    }
+                    else if (currentPage === 2) {
+                        sheet2.classList.add('flipped');
+                        // Fix Z-Index so Sheet 2 covers Sheet 1 on the left
+                        sheet2.style.zIndex = "30";
+                    }
+
+                    currentPage++;
+                }
+            } else { // Backward
+                if (currentPage > 1) {
+
+                    if (currentPage === 3) {
+                        sheet2.classList.remove('flipped');
+                        setTimeout(() => {
+                            sheet2.style.zIndex = "10";
+                        }, 600);
+                    }
+                    else if (currentPage === 2) {
+                        sheet1.classList.remove('flipped');
+                        sheet2.style.zIndex = "10";
+                        sheet1.style.zIndex = "20";
+                    }
+
+                    currentPage--;
+                }
+            }
+
+            btnPrev.classList.toggle('hidden', currentPage === 1);
+            btnNext.classList.toggle('hidden', currentPage === totalPages);
+        }
+    </script>
+</body>
+
+</html>

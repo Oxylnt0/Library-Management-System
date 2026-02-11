@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Puerto Palabra - Manage Books</title>
+
+    <link href="../output.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+    </style>
+</head>
+
+<body class="text-slate-800 h-screen overflow-hidden bg-[#e6e0d4]">
+
+    <!-- Background Image -->
+    <div class="fixed inset-0 z-0 pointer-events-none bg-cover bg-center bg-no-repeat" style="background-image: url('../assets/background.png');"></div>
+
+    <!-- APP LAYOUT -->
+    <div class="flex h-screen w-screen overflow-hidden relative z-10">
+
+        <!-- SIDEBAR -->
+        <div id="sidebar-container" class="w-72 shrink-0"></div>
+
+        <!-- MAIN CONTENT -->
+        <div class="flex-1 flex flex-col overflow-hidden">
+
+            <!-- TOPBAR -->
+            <div id="topbar-container" class="shrink-0"></div>
+
+            <!-- PAGE CONTENT -->
+            <div id="content-wrapper" class="flex-1 flex flex-col overflow-hidden transition-opacity duration-300">
+
+                <main class="flex-1 overflow-hidden p-6 flex flex-col">
+
+                <!-- HEADER -->
+                <div class="flex justify-between items-center mb-6">
+                    <div>
+                        <h2 class="text-2xl font-bold text-slate-800">Book Catalog</h2>
+                        <p class="text-sm text-slate-500">Manage your library's collection</p>
+                    </div>
+
+                    <div class="flex gap-3">
+                        <div class="relative">
+                            <input type="text" placeholder="Search title, author, ISBN..."
+                                class="pl-10 pr-4 py-2 rounded-lg border border-slate-300 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 w-64 shadow-sm">
+                            <span class="absolute left-3 top-2.5 text-slate-400"></span>
+                        </div>
+
+                        <a href="../admin_html/admin_add_books.html"
+                            class="bg-[#183B5B] hover:bg-[#2E5F87] text-white px-4 py-2 rounded-lg font-medium shadow-md flex items-center gap-2 transition-colors">
+                            <span>+</span>
+                            Add New Book
+                        </a>
+                    </div>
+                </div>
+
+                <!-- TABLE CARD -->
+                <div class="flex-1 bg-white rounded-xl shadow-md border border-slate-200 overflow-hidden flex flex-col">
+
+                    <div class="overflow-y-auto flex-1">
+                        <table class="w-full text-left border-collapse">
+                            <thead class="bg-slate-50 sticky top-0 z-10">
+                                <tr>
+                                    <th class="p-4 text-xs font-bold text-slate-500 uppercase border-b">Cover</th>
+                                    <th class="p-4 text-xs font-bold text-slate-500 uppercase border-b">Title / ISBN
+                                    </th>
+                                    <th class="p-4 text-xs font-bold text-slate-500 uppercase border-b">Author</th>
+                                    <th class="p-4 text-xs font-bold text-slate-500 uppercase border-b">Category</th>
+                                    <th class="p-4 text-xs font-bold text-slate-500 uppercase border-b">Status</th>
+                                    <th class="p-4 text-xs font-bold text-slate-500 uppercase border-b text-right">
+                                        Actions</th>
+                                </tr>
+                            </thead>
+
+                            <tbody class="divide-y divide-slate-100 text-sm">
+
+                                <!-- ROW -->
+                                <tr class="hover:bg-slate-50">
+                                    <td class="p-4">
+                                        <div
+                                            class="w-10 h-14 bg-slate-200 rounded border flex items-center justify-center text-xs text-slate-400">
+                                            No IMG
+                                        </div>
+                                    </td>
+                                    <td class="p-4">
+                                        <div class="font-bold">Noli Me Tangere</div>
+                                        <div class="text-xs text-slate-500 font-mono">978-1234567890</div>
+                                    </td>
+                                    <td class="p-4">Jose Rizal</td>
+                                    <td class="p-4">
+                                        <span class="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs font-semibold">
+                                            Fiction
+                                        </span>
+                                    </td>
+                                    <td class="p-4">
+                                        <span
+                                            class="bg-green-100 text-green-700 px-2 py-1 rounded-full text-xs font-bold">
+                                            Available (5)
+                                        </span>
+                                    </td>
+                                    <td class="p-4 text-right">
+                                        <button onclick="openEditModal(this)" class="text-slate-400 hover:text-blue-600 p-1">Edit</button>
+                                        <button onclick="openDeleteModal(this)" class="text-slate-400 hover:text-red-500 p-1 ml-2">Delete</button>
+                                    </td>
+                                </tr>
+
+                                <!-- ROW -->
+                                <tr class="hover:bg-slate-50">
+                                    <td class="p-4">
+                                        <div
+                                            class="w-10 h-14 bg-slate-200 rounded border flex items-center justify-center text-xs text-slate-400">
+                                            No IMG
+                                        </div>
+                                    </td>
+                                    <td class="p-4">
+                                        <div class="font-bold">El Filibusterismo</div>
+                                        <div class="text-xs text-slate-500 font-mono">978-0987654321</div>
+                                    </td>
+                                    <td class="p-4">Jose Rizal</td>
+                                    <td class="p-4">
+                                        <span class="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs font-semibold">
+                                            Fiction
+                                        </span>
+                                    </td>
+                                    <td class="p-4">
+                                        <span
+                                            class="bg-amber-100 text-amber-700 px-2 py-1 rounded-full text-xs font-bold">
+                                            Low Stock (1)
+                                        </span>
+                                    </td>
+                                    <td class="p-4 text-right">
+                                        <button onclick="openEditModal(this)" class="text-slate-400 hover:text-blue-600 p-1">Edit</button>
+                                        <button onclick="openDeleteModal(this)" class="text-slate-400 hover:text-red-500 p-1 ml-2">Delete</button>
+                                    </td>
+                                </tr>
+
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- FOOTER -->
+                    <div class="bg-slate-50 p-4 border-t flex justify-between items-center text-xs text-slate-500">
+                        <span>Showing 1–3 of 1,562 books</span>
+                        <div class="flex gap-2">
+                            <button class="px-3 py-1 bg-white border rounded hover:bg-slate-100">Previous</button>
+                            <button class="px-3 py-1 bg-white border rounded hover:bg-slate-100">Next</button>
+                        </div>
+                    </div>
+
+                </div>
+
+                </main>
+
+                <!-- Edit Modal -->
+                <div id="edit-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black/50 backdrop-blur-sm transition-opacity duration-300">
+                    <div class="bg-white rounded-xl shadow-2xl w-full max-w-lg p-6 transform transition-all scale-100">
+                        <h3 class="text-2xl font-cinzel text-[#183B5B] mb-4">Edit Book Details</h3>
+                        <form class="space-y-4">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Book Title</label>
+                                <input type="text" id="edit-title" class="w-full p-2 rounded border border-slate-300 focus:ring-2 focus:ring-[#183B5B] outline-none">
+                            </div>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Author</label>
+                                    <input type="text" id="edit-author" class="w-full p-2 rounded border border-slate-300 focus:ring-2 focus:ring-[#183B5B] outline-none">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">ISBN</label>
+                                    <input type="text" id="edit-isbn" class="w-full p-2 rounded border border-slate-300 focus:ring-2 focus:ring-[#183B5B] outline-none">
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Category</label>
+                                <select id="edit-category" class="w-full p-2 rounded border border-slate-300 focus:ring-2 focus:ring-[#183B5B] outline-none">
+                                    <option>Fiction</option>
+                                    <option>Non-Fiction</option>
+                                    <option>Science</option>
+                                    <option>History</option>
+                                </select>
+                            </div>
+                            <div class="flex justify-end gap-3 mt-6">
+                                <button type="button" onclick="closeModal('edit-modal')" class="px-4 py-2 rounded-lg text-slate-600 hover:bg-slate-100 transition">Cancel</button>
+                                <button type="button" onclick="closeModal('edit-modal')" class="px-4 py-2 rounded-lg bg-[#183B5B] text-white hover:bg-[#2E5F87] transition shadow-md">Save Changes</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Delete Modal -->
+                <div id="delete-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black/50 backdrop-blur-sm transition-opacity duration-300">
+                    <div class="bg-white rounded-xl shadow-2xl w-full max-w-sm p-6 text-center transform transition-all scale-100">
+                        <div class="w-12 h-12 rounded-full bg-[#C05640]/10 text-[#C05640] flex items-center justify-center mx-auto mb-4">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                        </div>
+                        <h3 class="text-2xl font-cinzel text-[#C05640] mb-4">Delete Book?</h3>
+                        <p class="text-slate-600 mb-6">Are you sure you want to delete <span class="font-semibold text-[#183B5B]" id="delete-book-title">this book</span>? This action cannot be undone.</p>
+                        <div class="flex justify-center gap-3">
+                            <button type="button" onclick="closeModal('delete-modal')" class="px-4 py-2 rounded-lg text-slate-600 hover:bg-slate-100 transition">Cancel</button>
+                            <button type="button" onclick="closeModal('delete-modal')" class="px-4 py-2 rounded-lg bg-[#C05640] text-white hover:bg-[#C05640]/80 transition shadow-md">Delete</button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- JS -->
+    <script src="../admin_js/dashboard_loader.js"></script>
+    <script src="../admin_js/admin_renderer.js"></script>
+</body>
+
+</html>

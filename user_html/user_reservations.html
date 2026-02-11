@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Reserve a Book</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .font-cinzel {
+            font-family: 'Cinzel', serif;
+        }
+        /* Custom scrollbar for a cleaner look */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+    </style>
+</head>
+
+<body class="text-slate-800 h-screen overflow-hidden bg-gradient-to-b from-[#Fdfbf7] via-[#eef2f3] to-[#dceefb]">
+
+    <div class="flex h-screen w-screen overflow-hidden">
+
+        <div id="sidebar-container" class="w-80 shrink-0"></div>
+
+        <div class="flex-1 flex flex-col overflow-hidden">
+            <div id="topbar-container" class="shrink-0"></div>
+
+            <div id="content-wrapper" class="flex-1 flex flex-col overflow-hidden transition-opacity duration-300">
+
+                <main class="flex-1 overflow-y-auto p-8">
+
+        <!-- Page Header -->
+        <header class="mb-8">
+            <h1 class="text-3xl font-semibold mb-2 font-cinzel text-[#183B5B]">Reserve a Book</h1>
+            <p class="text-[#2E5F87] max-w-2xl">
+                Reserve books that are currently borrowed. Once the book is returned to the library,
+                it will be automatically held for you.
+            </p>
+        </header>
+
+        <!-- Search & Filters -->
+        <section class="flex flex-wrap items-center gap-4 mb-10">
+            <input type="text" placeholder="Search by title, author, or Dewey number"
+                class="flex-1 min-w-[260px] rounded-lg border border-white/30 bg-white/80 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#D6A84A]/50 text-[#1A202C]" />
+
+            <select class="rounded-lg border border-white/30 bg-white/80 px-4 py-2 text-[#1A202C]">
+                <option>All Categories</option>
+                <option>Science</option>
+                <option>Literature</option>
+                <option>History</option>
+            </select>
+
+            <select class="rounded-lg border border-white/30 bg-white/80 px-4 py-2 text-[#1A202C]">
+                <option>All Status</option>
+                <option>Available</option>
+                <option>Borrowed</option>
+                <option>Reserved</option>
+            </select>
+        </section>
+
+        <!-- Book Grid -->
+        <section>
+            <h2 class="text-xl font-semibold mb-4 text-[#1A202C] font-cinzel">Available for Reservation</h2>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+
+                <!-- Book Card -->
+                <div class="bg-white/70 backdrop-blur-md rounded-xl shadow-lg border border-white/20 p-5 flex flex-col">
+                    <div class="flex gap-4 mb-4">
+                        <div
+                            class="w-20 h-28 bg-gray-200 rounded-md flex items-center justify-center text-sm text-gray-500">
+                            Cover
+                        </div>
+
+                        <div class="flex-1">
+                            <h3 class="font-semibold text-lg text-[#1A202C]">The Lighthouse Mystery</h3>
+                            <p class="text-sm text-[#2E5F87]">A. Collins</p>
+                            <p class="text-sm text-[#2E5F87] mt-1">Dewey: 823.91</p>
+
+                            <span
+                                class="inline-block mt-2 px-3 py-1 text-xs rounded-full bg-yellow-100 text-yellow-800">
+                                Borrowed
+                            </span>
+                        </div>
+                    </div>
+
+                    <button onclick="openReservePanel()" class="mt-auto bg-[#183B5B] text-white py-2 rounded-lg hover:bg-[#2E5F87] transition">
+                        Reserve Book
+                    </button>
+                </div>
+
+                <!-- Book Card (Already Reserved) -->
+                <div class="bg-white/70 backdrop-blur-md rounded-xl shadow-lg border border-white/20 p-5 flex flex-col">
+                    <div class="flex gap-4 mb-4">
+                        <div
+                            class="w-20 h-28 bg-gray-200 rounded-md flex items-center justify-center text-sm text-gray-500">
+                            Cover
+                        </div>
+
+                        <div class="flex-1">
+                            <h3 class="font-semibold text-lg text-[#1A202C]">Marine Biology</h3>
+                            <p class="text-sm text-[#2E5F87]">S. Rivera</p>
+                            <p class="text-sm text-[#2E5F87] mt-1">Dewey: 578.77</p>
+
+                            <span class="inline-block mt-2 px-3 py-1 text-xs rounded-full bg-[#C05640]/10 text-[#C05640]">
+                                Reserved
+                            </span>
+                        </div>
+                    </div>
+
+                    <button disabled class="mt-auto bg-slate-200 text-slate-500 py-2 rounded-lg cursor-not-allowed">
+                        Already Reserved
+                    </button>
+                </div>
+
+                <!-- Book Card (Available Now) -->
+                <div class="bg-white/70 backdrop-blur-md rounded-xl shadow-lg border border-white/20 p-5 flex flex-col">
+                    <div class="flex gap-4 mb-4">
+                        <div
+                            class="w-20 h-28 bg-gray-200 rounded-md flex items-center justify-center text-sm text-gray-500">
+                            Cover
+                        </div>
+
+                        <div class="flex-1">
+                            <h3 class="font-semibold text-lg text-[#1A202C]">Ocean Adventures</h3>
+                            <p class="text-sm text-[#2E5F87]">J. Harrison</p>
+                            <p class="text-sm text-[#2E5F87] mt-1">Dewey: 910.45</p>
+
+                            <span class="inline-block mt-2 px-3 py-1 text-xs rounded-full bg-[#5B8C5A]/10 text-[#5B8C5A]">
+                                Available
+                            </span>
+                        </div>
+                    </div>
+
+                    <button onclick="openBorrowPanel()" class="mt-auto bg-[#5B8C5A] text-white py-2 rounded-lg hover:bg-[#5B8C5A]/80 transition">
+                        Borrow Now
+                    </button>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- Active Reservations -->
+        <section class="mt-14">
+            <h2 class="text-xl font-semibold mb-4 text-[#1A202C] font-cinzel">My Active Reservations</h2>
+
+            <div class="bg-white/70 backdrop-blur-md rounded-xl border border-white/20 shadow-lg overflow-hidden">
+                <table class="w-full text-sm">
+                    <thead class="bg-white/50 text-[#1A202C]">
+                        <tr>
+                            <th class="text-left px-5 py-3">Title</th>
+                            <th class="text-left px-5 py-3">Author</th>
+                            <th class="text-left px-5 py-3">Reserved On</th>
+                            <th class="text-left px-5 py-3">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="border-t border-white/20">
+                            <td class="px-5 py-4 text-[#1A202C]">The Lighthouse Mystery</td>
+                            <td class="px-5 py-4 text-[#2E5F87]">A. Collins</td>
+                            <td class="px-5 py-4 text-[#2E5F87]">03/02/2024</td>
+                            <td class="px-5 py-4">
+                                <span class="px-3 py-1 text-xs rounded-full bg-yellow-100 text-yellow-800">
+                                    Waiting for Return
+                                </span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+    <!-- Reserve Panel (Modal) -->
+    <div id="user_reserve_panel" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden items-center justify-center z-50 transition-opacity duration-300">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-md p-6 transform transition-all scale-100">
+            <h3 class="text-2xl font-cinzel text-[#183B5B] mb-4">Confirm Reservation</h3>
+            <p class="text-slate-600 mb-6">
+                Are you sure you want to reserve <span class="font-semibold text-[#183B5B]">The Lighthouse Mystery</span>?
+                You will be notified when it becomes available.
+            </p>
+            <div class="flex justify-end gap-3">
+                <button onclick="closeReservePanel()" class="px-4 py-2 rounded-lg text-slate-600 hover:bg-slate-100 transition">Cancel</button>
+                <button onclick="closeReservePanel()" class="px-4 py-2 rounded-lg bg-[#183B5B] text-white hover:bg-[#2E5F87] transition shadow-md">Confirm Reservation</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Borrow Panel (Modal) -->
+    <div id="user_borrow_panel" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden items-center justify-center z-50 transition-opacity duration-300">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-md p-6 transform transition-all scale-100">
+            <h3 class="text-2xl font-cinzel text-[#5B8C5A] mb-4">Confirm Borrow</h3>
+            <p class="text-slate-600 mb-6">
+                You are about to borrow <span class="font-semibold text-[#183B5B]">Ocean Adventures</span>.
+                Due date will be calculated from today.
+            </p>
+            <div class="flex justify-end gap-3">
+                <button onclick="closeBorrowPanel()" class="px-4 py-2 rounded-lg text-slate-600 hover:bg-slate-100 transition">Cancel</button>
+                <button onclick="closeBorrowPanel()" class="px-4 py-2 rounded-lg bg-[#5B8C5A] text-white hover:bg-[#5B8C5A]/80 transition shadow-md">Confirm Borrow</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function openReservePanel() {
+            const panel = document.getElementById('user_reserve_panel');
+            panel.classList.remove('hidden');
+            panel.classList.add('flex');
+        }
+        function closeReservePanel() {
+            const panel = document.getElementById('user_reserve_panel');
+            panel.classList.add('hidden');
+            panel.classList.remove('flex');
+        }
+        function openBorrowPanel() {
+            const panel = document.getElementById('user_borrow_panel');
+            panel.classList.remove('hidden');
+            panel.classList.add('flex');
+        }
+        function closeBorrowPanel() {
+            const panel = document.getElementById('user_borrow_panel');
+            panel.classList.add('hidden');
+            panel.classList.remove('flex');
+        }
+    </script>
+
+                </main>
+
+            </div>
+        </div>
+    </div>
+
+    <script src="../user_js/user_loader.js"></script>
+</body>
+
+</html>

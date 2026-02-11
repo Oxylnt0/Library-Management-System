@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Puerto Palabra - Reservations</title>
+
+    <link href="../output.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+    </style>
+</head>
+
+<body class="text-slate-800 h-screen overflow-hidden bg-[#e6e0d4]">
+
+    <!-- Background Image -->
+    <div class="fixed inset-0 z-0 pointer-events-none bg-cover bg-center bg-no-repeat" style="background-image: url('../assets/background.png');"></div>
+
+    <div class="flex h-screen w-screen overflow-hidden relative z-10">
+
+        <div id="sidebar-container" class="w-72 shrink-0"></div>
+
+        <div class="flex-1 flex flex-col overflow-hidden">
+
+            <div id="topbar-container" class="shrink-0"></div>
+
+            <div id="content-wrapper" class="flex-1 flex flex-col overflow-hidden transition-opacity duration-300">
+
+                <main class="flex-1 flex overflow-hidden">
+
+                <div class="flex-1 flex flex-col overflow-hidden p-6">
+
+                    <div class="flex justify-between items-center mb-6 shrink-0">
+                        <div>
+                            <h2 class="text-2xl font-bold text-slate-800">Reservations Desk</h2>
+                            <p class="text-sm text-slate-500">Approve or decline book requests</p>
+                        </div>
+
+                        <div class="flex gap-3">
+                            <div class="relative">
+                                <input type="text" placeholder="Search request..."
+                                    class="pl-10 pr-4 py-2 rounded-lg border border-slate-300 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 w-64 shadow-sm">
+                                <span class="absolute left-3 top-2.5 text-slate-400"></span>
+                            </div>
+
+                            <button
+                                class="bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 px-4 py-2 rounded-lg font-medium shadow-sm flex items-center gap-2 transition-colors">
+                                <span></span> Filter Date
+                            </button>
+                        </div>
+                    </div>
+
+                    <div
+                        class="flex-1 bg-white rounded-xl shadow-md border border-slate-200 overflow-hidden flex flex-col">
+                        <div class="overflow-y-auto flex-1">
+                            <table class="w-full text-left border-collapse">
+                                <thead class="bg-slate-50 sticky top-0 z-10">
+                                    <tr>
+                                        <th class="p-4 text-xs font-bold text-slate-500 uppercase border-b">Book Details
+                                        </th>
+                                        <th class="p-4 text-xs font-bold text-slate-500 uppercase border-b">Requested By
+                                        </th>
+                                        <th class="p-4 text-xs font-bold text-slate-500 uppercase border-b">Date
+                                            Requested</th>
+                                        <th class="p-4 text-xs font-bold text-slate-500 uppercase border-b">Pickup
+                                            Deadline</th>
+                                        <th class="p-4 text-xs font-bold text-slate-500 uppercase border-b">Status</th>
+                                        <th class="p-4 text-xs font-bold text-slate-500 uppercase border-b text-right">
+                                            Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-100 text-sm">
+
+                                    <tr class="hover:bg-slate-50 transition-colors">
+                                        <td class="p-4">
+                                            <div class="font-bold text-slate-800">Noli Me Tangere</div>
+                                            <div class="text-xs text-slate-500">ISBN: 978-1234567890</div>
+                                        </td>
+                                        <td class="p-4">
+                                            <div class="flex items-center gap-2">
+                                                <div
+                                                    class="w-6 h-6 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-xs font-bold">
+                                                    JD</div>
+                                                <span class="font-medium">Elaine</span>
+                                            </div>
+                                        </td>
+                                        <td class="p-4 text-slate-600">Oct 24, 2025 <span
+                                                class="text-xs text-slate-400">(2 hrs ago)</span></td>
+                                        <td class="p-4 text-slate-600">Oct 26, 2025</td>
+                                        <td class="p-4">
+                                            <span
+                                                class="bg-blue-100 text-blue-700 px-2 py-1 rounded-full text-xs font-bold">Pending</span>
+                                        </td>
+                                        <td class="p-4 text-right flex justify-end gap-2">
+                                            <button
+                                                class="bg-green-100 hover:bg-green-200 text-green-700 p-1.5 rounded-lg transition-colors"
+                                                title="Approve">Approve</button>
+                                            <button
+                                                class="bg-red-100 hover:bg-red-200 text-red-700 p-1.5 rounded-lg transition-colors"
+                                                title="Decline">Decline</button>
+                                        </td>
+                                    </tr>
+
+                                    <tr class="hover:bg-slate-50 transition-colors">
+                                        <td class="p-4">
+                                            <div class="font-bold text-slate-800">El Filibusterismo</div>
+                                            <div class="text-xs text-slate-500">ISBN: 978-0987654321</div>
+                                        </td>
+                                        <td class="p-4">
+                                            <div class="flex items-center gap-2">
+                                                <div
+                                                    class="w-6 h-6 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center text-xs font-bold">
+                                                    CI</div>
+                                                <span class="font-medium">Renne</span>
+                                            </div>
+                                        </td>
+                                        <td class="p-4 text-slate-600">Oct 23, 2025</td>
+                                        <td class="p-4 text-slate-600">Oct 25, 2025</td>
+                                        <td class="p-4">
+                                            <span
+                                                class="bg-green-100 text-green-700 px-2 py-1 rounded-full text-xs font-bold">Ready
+                                                for Pickup</span>
+                                        </td>
+                                        <td class="p-4 text-right">
+                                            <button class="text-blue-600 hover:text-blue-800 font-bold text-xs">Mark as
+                                                Picked Up</button>
+                                        </td>
+                                    </tr>
+
+                                    <tr class="hover:bg-slate-50 transition-colors opacity-60">
+                                        <td class="p-4">
+                                            <div class="font-bold text-slate-800">Florante at Laura</div>
+                                            <div class="text-xs text-slate-500">ISBN: 978-5555555555</div>
+                                        </td>
+                                        <td class="p-4">
+                                            <div class="flex items-center gap-2">
+                                                <div
+                                                    class="w-6 h-6 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center text-xs font-bold">
+                                                    MC</div>
+                                                <span class="font-medium">Lloyd</span>
+                                            </div>
+                                        </td>
+                                        <td class="p-4 text-slate-600">Oct 20, 2025</td>
+                                        <td class="p-4 text-red-500 font-bold">Oct 22, 2025</td>
+                                        <td class="p-4">
+                                            <span
+                                                class="bg-red-100 text-red-700 px-2 py-1 rounded-full text-xs font-bold">Expired</span>
+                                        </td>
+                                        <td class="p-4 text-right">
+                                            <span class="text-xs text-slate-400">Cancelled</span>
+                                        </td>
+                                    </tr>
+
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div
+                            class="bg-slate-50 p-4 border-t border-slate-200 flex justify-between items-center text-xs text-slate-500 shrink-0">
+                            <span>Showing 1-3 pending requests</span>
+                            <div class="flex gap-2">
+                                <button class="px-3 py-1 bg-white border rounded hover:bg-slate-100">Previous</button>
+                                <button class="px-3 py-1 bg-white border rounded hover:bg-slate-100">Next</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <aside
+                    class="w-80 bg-white border-l border-slate-200 p-6 flex flex-col h-full overflow-y-auto shrink-0">
+                    <h3 class="font-bold text-slate-800 mb-6">Reservation Stats</h3>
+
+                    <div class="space-y-4">
+                        <div class="p-4 rounded-xl border border-blue-100 shadow-sm bg-blue-50">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-xs font-bold text-blue-600 uppercase">Pending</span>
+                                <span class="text-lg"></span>
+                            </div>
+                            <div class="text-2xl font-bold text-slate-800">12</div>
+                            <div class="text-xs text-slate-500 mt-1">Requires action</div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="p-4 rounded-xl border border-green-100 shadow-sm bg-green-50">
+                                <div class="text-xs font-bold text-green-700 mb-1">Approved</div>
+                                <div class="text-xl font-bold text-slate-800">45</div>
+                            </div>
+                            <div class="p-4 rounded-xl border border-slate-100 shadow-sm bg-white">
+                                <div class="text-xs font-bold text-slate-400 mb-1">Rejected</div>
+                                <div class="text-xl font-bold text-slate-800">3</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-8 flex-1">
+                        <h4 class="font-bold text-slate-700 text-sm mb-4">Urgent Actions</h4>
+                        <div class="bg-amber-50 border border-amber-100 rounded-xl p-4">
+                            <p class="text-xs text-amber-800 font-bold mb-2">Expiring Soon</p>
+                            <p class="text-sm text-slate-700 mb-1"><strong>Noli Me Tangere</strong> reserved by Andre
+                                needs pickup by 5:00 PM.</p>
+                            <button class="mt-2 text-xs font-bold text-amber-600 hover:text-amber-800">Send
+                                Reminder</button>
+                        </div>
+                    </div>
+
+                    <button
+                        class="w-full mt-6 bg-[#183B5B] hover:bg-[#2E5F87] text-white font-bold py-3 rounded-xl shadow-md transition-colors text-sm">
+                        Print Pick-up List
+                    </button>
+                </aside>
+
+                </main>
+
+            </div>
+        </div>
+    </div>
+
+    <script src="../admin_js/dashboard_loader.js"></script>
+    <script src="../admin_js/admin_renderer.js"></script>
+</body>
+
+</html>

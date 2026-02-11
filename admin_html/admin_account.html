@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin Account - Puerto Palabra</title>
+    <link href="../output.css" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .font-cinzel {
+            font-family: 'Cinzel', serif;
+        }
+        /* Custom scrollbar for a cleaner look */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+    </style>
+</head>
+
+<body class="text-slate-800 h-screen overflow-hidden bg-[#e6e0d4]">
+
+    <!-- Background Image -->
+    <div class="fixed inset-0 z-0 pointer-events-none bg-cover bg-center bg-no-repeat" style="background-image: url('../assets/background.png');"></div>
+
+    <div class="flex h-screen w-screen overflow-hidden relative z-10">
+
+        <div id="sidebar-container" class="w-72 shrink-0"></div>
+
+        <div class="flex-1 flex flex-col overflow-hidden">
+            <div id="topbar-container" class="shrink-0"></div>
+
+            <div id="content-wrapper" class="flex-1 flex flex-col overflow-hidden transition-opacity duration-300">
+
+                <main class="flex-1 overflow-y-auto p-8">
+
+                    <!-- Back Button -->
+                    <a href="admin_dashboard.html" class="inline-flex items-center gap-2 text-sm text-[#183B5B] hover:text-[#D6A84A] transition-colors mb-6 font-bold">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                        Back to Dashboard
+                    </a>
+
+                    <!-- Page Header -->
+                    <header class="mb-8">
+                        <h1 class="text-2xl font-bold text-[#183B5B] tracking-tight mb-2 font-cinzel">Admin Profile</h1>
+                        <p class="text-slate-600 max-w-2xl">
+                            Manage your administrative credentials and system access settings.
+                        </p>
+                    </header>
+
+                    <!-- Profile Overview -->
+                    <section class="bg-white/80 backdrop-blur-md border border-[#D6A84A]/30 rounded-xl shadow-lg p-6 mb-8 flex flex-col sm:flex-row gap-6">
+                        <div class="flex-shrink-0">
+                            <div class="w-24 h-24 rounded-full bg-[#183B5B] text-[#D6A84A] flex items-center justify-center text-3xl font-cinzel border-4 border-[#D6A84A]">
+                                A
+                            </div>
+                        </div>
+
+                        <div class="flex-1">
+                            <h2 class="text-xl font-bold text-[#183B5B]">Administrator</h2>
+                            <p class="text-slate-600">admin@library.com</p>
+
+                            <div class="flex flex-wrap gap-3 mt-4">
+                                <span class="px-3 py-1 text-xs rounded-full bg-[#183B5B]/10 text-[#183B5B] font-bold border border-[#183B5B]/20">
+                                    Super Admin
+                                </span>
+                                <span class="px-3 py-1 text-xs rounded-full bg-[#D6A84A]/20 text-[#8B6508] font-bold border border-[#D6A84A]/30">
+                                    Full System Access
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="self-start sm:self-center">
+                            <button class="px-5 py-2 rounded-lg bg-[#183B5B] text-[#D6A84A] text-sm font-bold hover:bg-[#244D75] transition-colors shadow-md border border-[#D6A84A]/50">
+                                Edit Profile
+                            </button>
+                        </div>
+                    </section>
+
+                    <!-- Account Information -->
+                    <section class="bg-white/80 backdrop-blur-md border border-[#D6A84A]/30 rounded-xl shadow-lg p-6 mb-8">
+                        <h2 class="text-lg font-bold text-[#183B5B] mb-6 font-cinzel">System Information</h2>
+
+                        <form class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+
+                            <div>
+                                <label class="block text-sm font-bold text-[#183B5B] mb-1">Username</label>
+                                <input type="text" value="admin" readonly
+                                    class="w-full border border-slate-300 bg-slate-100 rounded-lg px-4 py-2 focus:outline-none text-slate-500 cursor-not-allowed" />
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-bold text-[#183B5B] mb-1">Role</label>
+                                <input type="text" value="Super Administrator" readonly
+                                    class="w-full border border-slate-300 bg-slate-100 rounded-lg px-4 py-2 focus:outline-none text-slate-500 cursor-not-allowed" />
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-bold text-[#183B5B] mb-1">Email Address</label>
+                                <input type="email" value="admin@library.com"
+                                    class="w-full border border-slate-300 bg-white rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#D6A84A] text-slate-800" />
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-bold text-[#183B5B] mb-1">Contact Number</label>
+                                <input type="text" value="+63 900 000 0000"
+                                    class="w-full border border-slate-300 bg-white rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#D6A84A] text-slate-800" />
+                            </div>
+
+                        </form>
+
+                        <div class="mt-6 text-right">
+                            <button class="px-6 py-2 rounded-lg bg-[#183B5B] text-white text-sm font-bold hover:bg-[#244D75] transition-colors shadow-md">
+                                Save Changes
+                            </button>
+                        </div>
+                    </section>
+
+                </main>
+
+            </div>
+        </div>
+    </div>
+
+    <script src="../admin_js/dashboard_loader.js"></script>
+</body>
+
+</html>

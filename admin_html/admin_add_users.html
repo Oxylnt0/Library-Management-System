@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self' 'unsafe-inline' https:; script-src 'self' 'unsafe-inline' https://esm.run https://cdn.jsdelivr.net; img-src 'self' data: https:;">
+
+    <title>Add New User - Puerto Palabra</title>
+    <link href="../output.css" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        .book-cover-bg {
+            background: linear-gradient(to right, #0f263d 0%, #183B5B 48%, #0f263d 52%, #183B5B 100%);
+            box-shadow: 0 35px 70px rgba(0, 0, 0, 0.6);
+        }
+        .paper-bg {
+            background-color: #fdfbf7;
+            background-image: repeating-linear-gradient(#fdfbf7 0px, #fdfbf7 24px, #e6e0d4 25px);
+        }
+    </style>
+
+    <script type="importmap">
+    {
+        "imports": {
+            "@libsql/client": "https://esm.run/@libsql/client"
+        }
+    }
+    </script>
+</head>
+
+<body class="bg-[#e6e0d4] text-slate-800 h-screen flex overflow-hidden font-sans">
+
+    <!-- Background Image -->
+    <div class="fixed inset-0 z-0 pointer-events-none bg-cover bg-center bg-no-repeat" style="background-image: url('../assets/background.png');"></div>
+
+    <main class="flex-1 flex flex-col h-full overflow-hidden relative z-10">
+
+        <header class="w-full bg-gradient-to-r from-[#183B5B] to-[#244D75] px-6 py-5 shadow-lg border-b border-[#D6A84A]/30 relative z-20 overflow-hidden shrink-0">
+            <div class="w-full flex justify-between items-center relative z-10">
+                <a href="admin_users.html" class="nav-link text-[#D6A84A] font-bold text-lg font-cinzel hover:text-white transition-colors flex items-center gap-2">
+                    <span>←</span> Back
+                </a>
+                <div class="text-white/80 text-sm font-cinzel tracking-widest">Add New User</div>
+            </div>
+        </header>
+
+        <div class="flex-1 overflow-y-auto p-8 font-sans flex items-center justify-center">
+            <div class="max-w-6xl w-full mx-auto">
+
+                <div class="book-cover-bg rounded-[18px] p-5 relative z-0">
+                    <div class="flex flex-col lg:flex-row bg-[#fdfbf7] rounded-xl overflow-hidden relative z-10 min-h-[600px]">
+
+                        <!-- Left Page (Form) -->
+                        <div class="flex-1 paper-bg p-10 border-r border-[#e2e8f0]">
+                            <div class="space-y-8">
+
+                            <div>
+                                <h4 class="text-xs font-bold text-[#1A202C] uppercase tracking-widest mb-4 border-b border-[#D6A84A]/20 pb-2 font-cinzel">
+                                    1. Personal Information</h4>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                    <div class="col-span-2 md:col-span-1">
+                                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">First Name *</label>
+                                        <input type="text" id="inp-first-name"
+                                            class="w-full p-3 rounded-lg bg-white/80 border border-slate-200 focus:ring-2 focus:ring-[#D6A84A]/50 focus:border-[#D6A84A] outline-none transition-all"
+                                            placeholder="Ex: Juan">
+                                    </div>
+                                    <div class="col-span-2 md:col-span-1">
+                                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Last Name *</label>
+                                        <input type="text" id="inp-last-name"
+                                            class="w-full p-3 rounded-lg bg-white/80 border border-slate-200 focus:ring-2 focus:ring-[#D6A84A]/50 focus:border-[#D6A84A] outline-none transition-all"
+                                            placeholder="Ex: Dela Cruz">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Middle Initial</label>
+                                        <input type="text" id="inp-middle-initial" maxlength="5"
+                                            class="w-full p-3 rounded-lg bg-white/80 border border-slate-200 focus:ring-2 focus:ring-[#D6A84A]/50 focus:border-[#D6A84A] outline-none transition-all"
+                                            placeholder="Ex: A.">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Birth Date</label>
+                                        <input type="date" id="inp-birth-date"
+                                            class="w-full p-3 rounded-lg bg-white/80 border border-slate-200 focus:ring-2 focus:ring-[#D6A84A]/50 focus:border-[#D6A84A] outline-none transition-all">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div>
+                                <h4 class="text-xs font-bold text-[#1A202C] uppercase tracking-widest mb-4 border-b border-[#D6A84A]/20 pb-2 font-cinzel">
+                                    2. Contact Details</h4>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                    <div class="col-span-2">
+                                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Email Address *</label>
+                                        <input type="email" id="inp-email"
+                                            class="w-full p-3 rounded-lg bg-white/80 border border-slate-200 focus:ring-2 focus:ring-[#D6A84A]/50 focus:border-[#D6A84A] outline-none transition-all"
+                                            placeholder="juan@example.com">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Contact Number</label>
+                                        <input type="text" id="inp-contact"
+                                            class="w-full p-3 rounded-lg bg-white/80 border border-slate-200 focus:ring-2 focus:ring-[#D6A84A]/50 focus:border-[#D6A84A] outline-none transition-all"
+                                            placeholder="0912 345 6789">
+                                    </div>
+                                    <div class="col-span-2">
+                                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Address</label>
+                                        <input type="text" id="inp-address"
+                                            class="w-full p-3 rounded-lg bg-white/80 border border-slate-200 focus:ring-2 focus:ring-[#D6A84A]/50 focus:border-[#D6A84A] outline-none transition-all"
+                                            placeholder="House No., Street, City">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div>
+                                <h4 class="text-xs font-bold text-[#1A202C] uppercase tracking-widest mb-4 border-b border-[#D6A84A]/20 pb-2 font-cinzel">
+                                    3. Account Security</h4>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                    <div class="col-span-2">
+                                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Password *</label>
+                                        <input type="password" id="inp-password"
+                                            class="w-full p-3 rounded-lg bg-white/80 border border-slate-200 focus:ring-2 focus:ring-[#D6A84A]/50 focus:border-[#D6A84A] outline-none transition-all"
+                                            placeholder="••••••••">
+                                    </div>
+                                </div>
+                            </div>
+
+                            </div>
+
+                        </div>
+                        
+                        <!-- Right Page (Preview) -->
+                        <div class="w-full lg:w-[350px] shrink-0 flex flex-col items-center border-l border-[#e2e8f0] paper-bg p-10">
+                            <label class="block text-xs font-bold text-[#1A202C] uppercase mb-4 tracking-widest font-cinzel">User Profile</label>
+
+                            <div class="w-64 bg-white/80 rounded-xl shadow-lg border border-[#D6A84A]/20 p-6 text-center transform transition hover:scale-105 duration-300 relative overflow-hidden">
+                                <div class="absolute top-0 left-0 w-full h-2 bg-[#183B5B]"></div>
+                                <div class="w-24 h-24 mx-auto bg-slate-200 rounded-full mb-4 overflow-hidden relative flex items-center justify-center shadow-inner border-2 border-white">
+                                    <span id="img-placeholder" class="text-4xl text-slate-400 opacity-50">👤</span>
+                                </div>
+
+                                <h4 id="preview-name" class="font-bold text-lg text-[#1A202C] leading-tight mb-1">New User</h4>
+                                <p id="preview-email" class="text-xs text-[#2E5F87] truncate">user@email.com</p>
+
+                                <div class="mt-4 pt-4 border-t border-slate-100 flex flex-col gap-2 text-xs text-slate-500">
+                                    <div class="flex justify-between">
+                                        <span>ID:</span>
+                                        <span class="font-mono font-bold text-slate-700">AUTO-GEN</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span>Role:</span>
+                                        <span class="font-bold text-slate-700">Patron</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mt-8 w-full">
+                                <button id="btn-save"
+                                    class="w-full py-4 rounded-xl font-bold text-[#D6A84A] bg-[#183B5B] shadow-lg hover:bg-[#2E5F87] transition-all flex justify-center items-center gap-2 transform hover:scale-105">
+                                    <span></span> Create User
+                                </button>
+                                <button onclick="window.location.reload()"
+                                    class="w-full mt-3 py-3 rounded-xl font-bold text-slate-500 hover:bg-slate-100 transition-colors">
+                                    Reset Form
+                                </button>
+                            </div>
+                        </div>
+
+                    </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <script src="../admin_js/admin_add_users.js"></script>
+</body>
+
+</html>
