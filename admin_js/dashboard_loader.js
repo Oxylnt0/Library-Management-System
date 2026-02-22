@@ -83,6 +83,14 @@ async function navigateTo(url) {
                 // 4. Swap Content
                 contentWrapper.innerHTML = newContent.innerHTML;
                 
+                // Re-execute scripts in the new content
+                Array.from(contentWrapper.querySelectorAll('script')).forEach(oldScript => {
+                    const newScript = document.createElement('script');
+                    Array.from(oldScript.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
+                    newScript.appendChild(document.createTextNode(oldScript.innerHTML));
+                    oldScript.parentNode.replaceChild(newScript, oldScript);
+                });
+
                 // 5. Update URL and State
                 window.history.pushState({}, '', url);
                 highlightActiveLink();

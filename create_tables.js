@@ -173,6 +173,23 @@ async function createAllTables() {
         date_time DATETIME DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (guardian_id) REFERENCES GUARDIAN_NAME(guardian_id)
       );
+
+      CREATE TABLE IF NOT EXISTS SECURITY_QUESTIONS (
+        security_id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INT,
+        guardian_id INT,
+        question_1 VARCHAR(255) NOT NULL,
+        answer_1 VARCHAR(255) NOT NULL,
+        question_2 VARCHAR(255) NOT NULL,
+        answer_2 VARCHAR(255) NOT NULL,
+        question_3 VARCHAR(255) NOT NULL,
+        answer_3 VARCHAR(255) NOT NULL,
+        FOREIGN KEY (user_id) REFERENCES USER(user_id) ON DELETE CASCADE,
+        FOREIGN KEY (guardian_id) REFERENCES GUARDIAN_NAME(guardian_id) ON DELETE CASCADE,
+        CHECK (
+            (user_id IS NOT NULL AND guardian_id IS NULL) OR 
+            (user_id IS NULL AND guardian_id IS NOT NULL)
+        )
     `;
 
     try {

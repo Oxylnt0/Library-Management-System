@@ -52,6 +52,10 @@
                             <span class="absolute left-3 top-2.5 text-slate-400"></span>
                         </div>
 
+                        <button onclick="loadBooks()" class="bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 px-3 py-2 rounded-lg font-medium shadow-sm transition-colors" title="Refresh Catalog">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                        </button>
+
                         <a href="../admin_html/admin_add_books.html"
                             class="bg-[#183B5B] hover:bg-[#2E5F87] text-white px-4 py-2 rounded-lg font-medium shadow-md flex items-center gap-2 transition-colors">
                             <span>+</span>
@@ -60,113 +64,36 @@
                     </div>
                 </div>
 
-                <!-- TABLE CARD -->
-                <div class="flex-1 bg-white rounded-xl shadow-md border border-slate-200 overflow-hidden flex flex-col">
-
-                    <div class="overflow-y-auto flex-1">
-                        <table class="w-full text-left border-collapse">
-                            <thead class="bg-slate-50 sticky top-0 z-10">
-                                <tr>
-                                    <th class="p-4 text-xs font-bold text-slate-500 uppercase border-b">Cover</th>
-                                    <th class="p-4 text-xs font-bold text-slate-500 uppercase border-b">Title / ISBN
-                                    </th>
-                                    <th class="p-4 text-xs font-bold text-slate-500 uppercase border-b">Author</th>
-                                    <th class="p-4 text-xs font-bold text-slate-500 uppercase border-b">Category</th>
-                                    <th class="p-4 text-xs font-bold text-slate-500 uppercase border-b">Status</th>
-                                    <th class="p-4 text-xs font-bold text-slate-500 uppercase border-b text-right">
-                                        Actions</th>
-                                </tr>
-                            </thead>
-
-                            <tbody class="divide-y divide-slate-100 text-sm">
-
-                                <!-- ROW -->
-                                <tr class="hover:bg-slate-50">
-                                    <td class="p-4">
-                                        <div
-                                            class="w-10 h-14 bg-slate-200 rounded border flex items-center justify-center text-xs text-slate-400">
-                                            No IMG
-                                        </div>
-                                    </td>
-                                    <td class="p-4">
-                                        <div class="font-bold">Noli Me Tangere</div>
-                                        <div class="text-xs text-slate-500 font-mono">978-1234567890</div>
-                                    </td>
-                                    <td class="p-4">Jose Rizal</td>
-                                    <td class="p-4">
-                                        <span class="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs font-semibold">
-                                            Fiction
-                                        </span>
-                                    </td>
-                                    <td class="p-4">
-                                        <span
-                                            class="bg-green-100 text-green-700 px-2 py-1 rounded-full text-xs font-bold">
-                                            Available (5)
-                                        </span>
-                                    </td>
-                                    <td class="p-4 text-right">
-                                        <button onclick="openEditModal(this)" class="text-slate-400 hover:text-blue-600 p-1">Edit</button>
-                                        <button onclick="openDeleteModal(this)" class="text-slate-400 hover:text-red-500 p-1 ml-2">Delete</button>
-                                    </td>
-                                </tr>
-
-                                <!-- ROW -->
-                                <tr class="hover:bg-slate-50">
-                                    <td class="p-4">
-                                        <div
-                                            class="w-10 h-14 bg-slate-200 rounded border flex items-center justify-center text-xs text-slate-400">
-                                            No IMG
-                                        </div>
-                                    </td>
-                                    <td class="p-4">
-                                        <div class="font-bold">El Filibusterismo</div>
-                                        <div class="text-xs text-slate-500 font-mono">978-0987654321</div>
-                                    </td>
-                                    <td class="p-4">Jose Rizal</td>
-                                    <td class="p-4">
-                                        <span class="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs font-semibold">
-                                            Fiction
-                                        </span>
-                                    </td>
-                                    <td class="p-4">
-                                        <span
-                                            class="bg-amber-100 text-amber-700 px-2 py-1 rounded-full text-xs font-bold">
-                                            Low Stock (1)
-                                        </span>
-                                    </td>
-                                    <td class="p-4 text-right">
-                                        <button onclick="openEditModal(this)" class="text-slate-400 hover:text-blue-600 p-1">Edit</button>
-                                        <button onclick="openDeleteModal(this)" class="text-slate-400 hover:text-red-500 p-1 ml-2">Delete</button>
-                                    </td>
-                                </tr>
-
-                            </tbody>
-                        </table>
+                <!-- BOOKS GRID -->
+                <div class="flex-1 overflow-y-auto min-h-0">
+                    <div id="books-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pb-6">
+                        <!-- Books will be loaded here dynamically -->
                     </div>
+                </div>
 
-                    <!-- FOOTER -->
-                    <div class="bg-slate-50 p-4 border-t flex justify-between items-center text-xs text-slate-500">
-                        <span>Showing 1–3 of 1,562 books</span>
-                        <div class="flex gap-2">
-                            <button class="px-3 py-1 bg-white border rounded hover:bg-slate-100">Previous</button>
-                            <button class="px-3 py-1 bg-white border rounded hover:bg-slate-100">Next</button>
-                        </div>
+                <!-- FOOTER -->
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4 flex justify-between items-center text-xs text-slate-500 shrink-0" id="books-footer">
+                    <span id="books-count">Loading...</span>
+                    <div class="flex gap-2">
+                        <button class="px-3 py-1 bg-white border rounded hover:bg-slate-100">Previous</button>
+                        <button class="px-3 py-1 bg-white border rounded hover:bg-slate-100">Next</button>
                     </div>
-
                 </div>
 
                 </main>
 
                 <!-- Edit Modal -->
                 <div id="edit-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black/50 backdrop-blur-sm transition-opacity duration-300">
-                    <div class="bg-white rounded-xl shadow-2xl w-full max-w-lg p-6 transform transition-all scale-100">
+                    <div class="bg-white rounded-xl shadow-2xl w-full max-w-4xl p-6 transform transition-all scale-100 max-h-[90vh] overflow-y-auto">
                         <h3 class="text-2xl font-cinzel text-[#183B5B] mb-4">Edit Book Details</h3>
                         <form class="space-y-4">
-                            <div>
-                                <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Book Title</label>
-                                <input type="text" id="edit-title" class="w-full p-2 rounded border border-slate-300 focus:ring-2 focus:ring-[#183B5B] outline-none">
-                            </div>
-                            <div class="grid grid-cols-2 gap-4">
+                            <input type="hidden" id="edit-book-id">
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div class="col-span-2">
+                                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Book Title</label>
+                                    <input type="text" id="edit-title" class="w-full p-2 rounded border border-slate-300 focus:ring-2 focus:ring-[#183B5B] outline-none">
+                                </div>
                                 <div>
                                     <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Author</label>
                                     <input type="text" id="edit-author" class="w-full p-2 rounded border border-slate-300 focus:ring-2 focus:ring-[#183B5B] outline-none">
@@ -176,20 +103,158 @@
                                     <input type="text" id="edit-isbn" class="w-full p-2 rounded border border-slate-300 focus:ring-2 focus:ring-[#183B5B] outline-none">
                                 </div>
                             </div>
-                            <div>
-                                <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Category</label>
-                                <select id="edit-category" class="w-full p-2 rounded border border-slate-300 focus:ring-2 focus:ring-[#183B5B] outline-none">
-                                    <option>Fiction</option>
-                                    <option>Non-Fiction</option>
-                                    <option>Science</option>
-                                    <option>History</option>
-                                </select>
+
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Publisher</label>
+                                    <input type="text" id="edit-publisher" class="w-full p-2 rounded border border-slate-300 focus:ring-2 focus:ring-[#183B5B] outline-none">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Year</label>
+                                    <input type="number" id="edit-year" class="w-full p-2 rounded border border-slate-300 focus:ring-2 focus:ring-[#183B5B] outline-none">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Genre</label>
+                                    <input type="text" id="edit-genre" class="w-full p-2 rounded border border-slate-300 focus:ring-2 focus:ring-[#183B5B] outline-none">
+                                </div>
                             </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Dewey Decimal</label>
+                                    <input type="text" id="edit-dewey" class="w-full p-2 rounded border border-slate-300 focus:ring-2 focus:ring-[#183B5B] outline-none">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Location</label>
+                                    <input type="text" id="edit-location" class="w-full p-2 rounded border border-slate-300 focus:ring-2 focus:ring-[#183B5B] outline-none">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Status</label>
+                                    <select id="edit-status" class="w-full p-2 rounded border border-slate-300 focus:ring-2 focus:ring-[#183B5B] outline-none">
+                                        <option value="Available">Available</option>
+                                        <option value="Archived">Archived</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Pages</label>
+                                    <input type="number" id="edit-pages" class="w-full p-2 rounded border border-slate-300 focus:ring-2 focus:ring-[#183B5B] outline-none">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Age Limit</label>
+                                    <input type="number" id="edit-age" class="w-full p-2 rounded border border-slate-300 focus:ring-2 focus:ring-[#183B5B] outline-none">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Total Copies</label>
+                                    <input type="number" id="edit-total-copies" class="w-full p-2 rounded border border-slate-300 focus:ring-2 focus:ring-[#183B5B] outline-none">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Avail. Copies</label>
+                                    <input type="number" id="edit-avail-copies" class="w-full p-2 rounded border border-slate-300 focus:ring-2 focus:ring-[#183B5B] outline-none">
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Image URL</label>
+                                <input type="text" id="edit-image" class="w-full p-2 rounded border border-slate-300 focus:ring-2 focus:ring-[#183B5B] outline-none">
+                            </div>
+
                             <div class="flex justify-end gap-3 mt-6">
                                 <button type="button" onclick="closeModal('edit-modal')" class="px-4 py-2 rounded-lg text-slate-600 hover:bg-slate-100 transition">Cancel</button>
-                                <button type="button" onclick="closeModal('edit-modal')" class="px-4 py-2 rounded-lg bg-[#183B5B] text-white hover:bg-[#2E5F87] transition shadow-md">Save Changes</button>
+                                <button type="button" onclick="saveBookChanges()" class="px-4 py-2 rounded-lg bg-[#183B5B] text-white hover:bg-[#2E5F87] transition shadow-md">Save Changes</button>
                             </div>
                         </form>
+                    </div>
+                </div>
+
+                <!-- Details Modal -->
+                <div id="details-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black/50 backdrop-blur-sm transition-opacity duration-300">
+                    <div class="bg-white rounded-xl shadow-2xl w-full max-w-2xl p-6 transform transition-all scale-100 max-h-[90vh] overflow-y-auto">
+                        <div class="flex justify-between items-start mb-6">
+                            <h3 class="text-2xl font-cinzel text-[#183B5B]">Book Details</h3>
+                            <button onclick="closeModal('details-modal')" class="text-slate-400 hover:text-slate-600">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                            </button>
+                        </div>
+                        
+                        <div class="flex flex-col md:flex-row gap-6">
+                            <!-- Cover Image -->
+                            <div class="w-full max-w-xs md:w-48 flex-shrink-0 mx-auto">
+                                <div class="aspect-[2/3] bg-slate-100 rounded-lg border border-slate-200 flex items-center justify-center text-slate-400 overflow-hidden">
+                                    <svg class="w-12 h-12 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                                </div>
+                                <div class="mt-4 text-center">
+                                    <span class="inline-block px-3 py-1 rounded-full text-sm font-bold bg-green-100 text-green-700">Available</span>
+                                </div>
+                            </div>
+                
+                            <!-- Details Grid -->
+                            <div class="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-4 text-sm">
+                                <div class="col-span-full">
+                                    <p class="text-xs font-bold text-slate-500 uppercase">Title</p>
+                                    <p class="text-lg font-bold text-slate-800" id="detail-title">Noli Me Tangere</p>
+                                </div>
+                                
+                                <div>
+                                    <p class="text-xs font-bold text-slate-500 uppercase">Book ID</p>
+                                    <p class="font-mono text-slate-600" id="detail-book-id">1</p>
+                                </div>
+                                <div>
+                                    <p class="text-xs font-bold text-slate-500 uppercase">Material ID</p>
+                                    <p class="font-mono text-slate-600" id="detail-material-id">101</p>
+                                </div>
+                                <div>
+                                    <p class="text-xs font-bold text-slate-500 uppercase">ISBN</p>
+                                    <p class="font-mono text-slate-600" id="detail-isbn">978-1234567890</p>
+                                </div>
+                                <div>
+                                    <p class="text-xs font-bold text-slate-500 uppercase">Author</p>
+                                    <p class="font-medium text-slate-700" id="detail-author">Jose Rizal</p>
+                                </div>
+                                <div>
+                                    <p class="text-xs font-bold text-slate-500 uppercase">Publisher</p>
+                                    <p class="text-slate-700" id="detail-publisher">Maximo Viola</p>
+                                </div>
+                                <div>
+                                    <p class="text-xs font-bold text-slate-500 uppercase">Publication Year</p>
+                                    <p class="text-slate-700" id="detail-year">1887</p>
+                                </div>
+                                <div>
+                                    <p class="text-xs font-bold text-slate-500 uppercase">Genre</p>
+                                    <p class="text-slate-700" id="detail-genre">Fiction</p>
+                                </div>
+                                <div>
+                                    <p class="text-xs font-bold text-slate-500 uppercase">Dewey Decimal</p>
+                                    <p class="text-slate-700" id="detail-dewey">899.21</p>
+                                </div>
+                                <div>
+                                    <p class="text-xs font-bold text-slate-500 uppercase">Status</p>
+                                    <p class="text-slate-700" id="detail-status">Available</p>
+                                </div>
+                                <div>
+                                    <p class="text-xs font-bold text-slate-500 uppercase">Location</p>
+                                    <p class="text-slate-700" id="detail-location">Shelf A-12</p>
+                                </div>
+                                <div>
+                                    <p class="text-xs font-bold text-slate-500 uppercase">Page Count</p>
+                                    <p class="text-slate-700" id="detail-pages">480</p>
+                                </div>
+                                <div>
+                                    <p class="text-xs font-bold text-slate-500 uppercase">Age Restriction</p>
+                                    <p class="text-slate-700" id="detail-age">None</p>
+                                </div>
+                                <div>
+                                    <p class="text-xs font-bold text-slate-500 uppercase">Copies (Avail/Total)</p>
+                                    <p class="text-slate-700" id="detail-copies">5 / 5</p>
+                                </div>
+                                <div>
+                                    <p class="text-xs font-bold text-slate-500 uppercase">Date Added</p>
+                                    <p class="text-slate-700" id="detail-date">2023-10-15</p>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -207,6 +272,188 @@
                         </div>
                     </div>
                 </div>
+
+    <script>
+        const path = require('path');
+        // Adjust path to point to root db_config.js using process.cwd() for reliability
+        const { db } = require(path.join(process.cwd(), 'db_config.js'));
+
+        async function loadBooks() {
+            const grid = document.getElementById('books-grid');
+            const footerCount = document.getElementById('books-count');
+            
+            grid.innerHTML = '<p class="text-slate-500 col-span-full text-center py-10">Loading books...</p>';
+            
+            try {
+                // Fetch books from database
+                const query = `SELECT * FROM BOOK ORDER BY date_added DESC`;
+                const result = await db.execute(query);
+                const books = result.rows;
+                
+                grid.innerHTML = '';
+                
+                if (!books || books.length === 0) {
+                    grid.innerHTML = '<p class="text-slate-500 col-span-full text-center py-10">No books found in the catalog.</p>';
+                    footerCount.innerText = 'Showing 0 books';
+                    return;
+                }
+                
+                footerCount.innerText = `Showing ${books.length} books`;
+
+                books.forEach(book => {
+                    // Determine Status Color
+                    let statusColor = 'bg-green-500';
+                    if (book.available_copies === 0) statusColor = 'bg-red-500';
+                    else if (book.available_copies < 3) statusColor = 'bg-amber-500';
+                    
+                    // Handle Image
+                    let imageHtml = '';
+                    if (book.image_url) {
+                        imageHtml = `<img src="${book.image_url}" class="w-full h-full object-cover" alt="Cover">`;
+                    } else {
+                        imageHtml = `<svg class="w-8 h-8 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>`;
+                    }
+
+                    const card = document.createElement('div');
+                    card.className = 'bg-white rounded-xl shadow-sm border border-slate-200 p-4 flex flex-col gap-4 hover:shadow-md transition-shadow group';
+                    
+                    // Escape strings for HTML attributes
+                    const safeBook = JSON.stringify(book).replace(/'/g, "&#39;").replace(/"/g, "&quot;");
+                    const safeTitle = book.title.replace(/'/g, "\\'");
+
+                    card.innerHTML = `
+                        <div class="flex gap-4">
+                            <div class="w-24 h-36 bg-slate-200 rounded-lg border flex-shrink-0 flex items-center justify-center text-xs text-slate-400 overflow-hidden relative">
+                                ${imageHtml}
+                            </div>
+                            <div class="flex-1 min-w-0 flex flex-col">
+                                <div class="flex justify-between items-start">
+                                    <h3 class="font-bold text-slate-800 text-lg leading-tight line-clamp-2" title="${book.title}">${book.title}</h3>
+                                    <span class="w-2.5 h-2.5 rounded-full ${statusColor} shrink-0 mt-1.5 ml-2" title="${book.status}"></span>
+                                </div>
+                                <p class="text-sm text-slate-600 mt-1">${book.author}</p>
+                                <p class="text-xs text-slate-400 font-mono mt-0.5">${book.isbn || 'No ISBN'}</p>
+                                
+                                <div class="mt-auto pt-2 flex flex-wrap gap-2">
+                                    <span class="bg-blue-50 text-blue-700 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide border border-blue-100">${book.genre || 'General'}</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="pt-3 border-t border-slate-100 flex items-center justify-between">
+                            <div class="text-xs text-slate-500">
+                                <span class="font-bold text-slate-700">${book.available_copies}</span> / ${book.total_copies} Copies
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <button onclick='openDetailsModal(${safeBook})' 
+                                    class="text-xs font-bold text-[#183B5B] hover:text-[#2E5F87] bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-lg transition-colors">
+                                    Details
+                                </button>
+                                <div class="h-4 w-px bg-slate-200 mx-1"></div>
+                                <button onclick='openEditModal(${safeBook})' class="text-slate-400 hover:text-blue-600 transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg></button>
+                                <button onclick="openDeleteModal(${book.book_id}, '${safeTitle}')" class="text-slate-400 hover:text-red-500 transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg></button>
+                            </div>
+                        </div>
+                    `;
+                    grid.appendChild(card);
+                });
+
+            } catch (err) {
+                console.error(err);
+                grid.innerHTML = `<p class="text-red-500 col-span-full text-center py-10">Error loading books: ${err.message}</p>`;
+            }
+        }
+        window.loadBooks = loadBooks;
+
+        function openEditModal(book) {
+            document.getElementById('edit-book-id').value = book.book_id;
+            document.getElementById('edit-title').value = book.title;
+            document.getElementById('edit-author').value = book.author;
+            document.getElementById('edit-isbn').value = book.isbn || '';
+            document.getElementById('edit-publisher').value = book.publisher || '';
+            document.getElementById('edit-year').value = book.publication_year || '';
+            document.getElementById('edit-genre').value = book.genre || '';
+            document.getElementById('edit-dewey').value = book.dewey_decimal || '';
+            document.getElementById('edit-location').value = book.location || '';
+            document.getElementById('edit-status').value = book.status;
+            document.getElementById('edit-pages').value = book.page_count || '';
+            document.getElementById('edit-age').value = book.age_restriction || '';
+            document.getElementById('edit-total-copies').value = book.total_copies;
+            document.getElementById('edit-avail-copies').value = book.available_copies;
+            document.getElementById('edit-image').value = book.image_url || '';
+
+            document.getElementById('edit-modal').classList.remove('hidden');
+        }
+        window.openEditModal = openEditModal;
+
+        async function saveBookChanges() {
+            const id = document.getElementById('edit-book-id').value;
+            const title = document.getElementById('edit-title').value;
+            const author = document.getElementById('edit-author').value;
+            const isbn = document.getElementById('edit-isbn').value;
+            const publisher = document.getElementById('edit-publisher').value;
+            const year = document.getElementById('edit-year').value;
+            const genre = document.getElementById('edit-genre').value;
+            const dewey = document.getElementById('edit-dewey').value;
+            const location = document.getElementById('edit-location').value;
+            const status = document.getElementById('edit-status').value;
+            const pages = document.getElementById('edit-pages').value;
+            const age = document.getElementById('edit-age').value;
+            const total = document.getElementById('edit-total-copies').value;
+            const avail = document.getElementById('edit-avail-copies').value;
+            const image = document.getElementById('edit-image').value;
+
+            try {
+                const query = `
+                    UPDATE BOOK SET 
+                    title = ?, author = ?, isbn = ?, publisher = ?, publication_year = ?, 
+                    genre = ?, dewey_decimal = ?, location = ?, status = ?, page_count = ?, 
+                    age_restriction = ?, total_copies = ?, available_copies = ?, image_url = ?
+                    WHERE book_id = ?
+                `;
+                
+                await db.execute({
+                    sql: query,
+                    args: [title, author, isbn, publisher, year, genre, dewey, location, status, pages, age, total, avail, image, id]
+                });
+
+                closeModal('edit-modal');
+                loadBooks(); // Refresh grid
+            } catch (err) {
+                console.error("Error updating book:", err);
+                alert("Failed to update book: " + err.message);
+            }
+        }
+        window.saveBookChanges = saveBookChanges;
+
+        // Modal Functions
+        function openDetailsModal(book) {
+            document.getElementById('detail-title').innerText = book.title;
+            document.getElementById('detail-book-id').innerText = book.book_id;
+            document.getElementById('detail-material-id').innerText = book.material_id;
+            document.getElementById('detail-isbn').innerText = book.isbn || 'N/A';
+            document.getElementById('detail-author').innerText = book.author;
+            document.getElementById('detail-publisher').innerText = book.publisher || 'N/A';
+            document.getElementById('detail-year').innerText = book.publication_year || 'N/A';
+            document.getElementById('detail-genre').innerText = book.genre || 'N/A';
+            document.getElementById('detail-dewey').innerText = book.dewey_decimal || 'N/A';
+            document.getElementById('detail-status').innerText = book.status;
+            document.getElementById('detail-location').innerText = book.location || 'N/A';
+            document.getElementById('detail-pages').innerText = book.page_count || 'N/A';
+            document.getElementById('detail-age').innerText = book.age_restriction ? book.age_restriction + '+' : 'None';
+            document.getElementById('detail-copies').innerText = `${book.available_copies} / ${book.total_copies}`;
+            document.getElementById('detail-date').innerText = book.date_added;
+            
+            document.getElementById('details-modal').classList.remove('hidden');
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.add('hidden');
+        }
+
+        // Initial Load
+        loadBooks();
+    </script>
 
             </div>
         </div>

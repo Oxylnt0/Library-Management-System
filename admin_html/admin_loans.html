@@ -50,7 +50,7 @@
                                 <p class="text-slate-500 font-medium">Scan user QR code</p>
                             </div>
                             <div class="flex gap-3">
-                                <button type="button"
+                                <button type="button" onclick="openScanner('borrow')"
                                     class="flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 font-medium transition-colors">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -114,7 +114,7 @@
                                 <p class="text-slate-500 font-medium">Scan user QR code</p>
                             </div>
                             <div class="flex gap-3">
-                                <button type="button"
+                                <button type="button" onclick="openScanner('return')"
                                     class="flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 font-medium transition-colors">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -185,7 +185,78 @@
                     </div>
                 </div>
             </div>
-        
+
+    <!-- Scanner Modal -->
+    <div id="scanner-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black/80 backdrop-blur-sm">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-md p-6 relative">
+            <button onclick="closeScanner()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+            <h3 class="text-lg font-bold text-slate-800 mb-4">Scan QR Code</h3>
+            <div id="reader" class="w-full h-64 bg-slate-100 rounded-lg overflow-hidden"></div>
+            <p id="scan-result" class="text-center text-sm text-slate-500 mt-4">Point camera at a QR code</p>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+    <script>
+        let html5QrCode;
+        let currentScanType = null;
+        let isScanning = false;
+
+        function openScanner(type) {
+            currentScanType = type;
+            const modal = document.getElementById('scanner-modal');
+            modal.classList.remove('hidden');
+            document.getElementById('scan-result').innerText = "Initializing camera...";
+
+            if (!html5QrCode) {
+                html5QrCode = new Html5Qrcode("reader");
+            }
+
+            const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+            
+            html5QrCode.start({ facingMode: "environment" }, config, onScanSuccess)
+            .then(() => {
+                isScanning = true;
+                document.getElementById('scan-result').innerText = "Point camera at a QR code";
+            })
+            .catch(err => {
+                console.error("Error starting scanner", err);
+                isScanning = false;
+                document.getElementById('scan-result').innerText = "Error: " + (err.message || err);
+            });
+        }
+
+        function closeScanner() {
+            const modal = document.getElementById('scanner-modal');
+            modal.classList.add('hidden');
+            
+            if (html5QrCode) {
+                if (isScanning) {
+                    html5QrCode.stop().then(() => {
+                        isScanning = false;
+                        return html5QrCode.clear();
+                    }).catch(err => {
+                        console.error("Failed to stop scanner", err);
+                        isScanning = false;
+                    });
+                } else {
+                    try { html5QrCode.clear(); } catch (e) { /* ignore if not rendered */ }
+                }
+            }
+        }
+
+        function onScanSuccess(decodedText, decodedResult) {
+            console.log(`Scan result: ${decodedText}`, decodedResult);
+            
+            // Handle result based on type
+            alert(`Scanned for ${currentScanType}: ${decodedText}`);
+            
+            closeScanner();
+        }
+    </script>
+
                 </main>
             </div>
     </div>

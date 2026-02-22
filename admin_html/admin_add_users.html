@@ -4,178 +4,1135 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Content-Security-Policy"
-        content="default-src 'self' 'unsafe-inline' https:; script-src 'self' 'unsafe-inline' https://esm.run https://cdn.jsdelivr.net; img-src 'self' data: https:;">
+    <title>Register - Puerto Palabra Library</title>
 
-    <title>Add New User - Puerto Palabra</title>
     <link href="../output.css" rel="stylesheet">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Inter:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+
     <style>
-        .book-cover-bg {
-            background: linear-gradient(to right, #0f263d 0%, #183B5B 48%, #0f263d 52%, #183B5B 100%);
-            box-shadow: 0 35px 70px rgba(0, 0, 0, 0.6);
+        body {
+            font-family: 'Inter', sans-serif;
         }
-        .paper-bg {
+
+        .font-cinzel {
+            font-family: 'Cinzel', serif;
+        }
+
+        /* --- BUBBLE ANIMATION --- */
+        @keyframes rise {
+            0% {
+                bottom: -20px;
+                transform: translateX(0);
+                opacity: 0;
+            }
+
+            50% {
+                opacity: 0.6;
+            }
+
+            100% {
+                bottom: 100vh;
+                transform: translateX(-20px);
+                opacity: 0;
+            }
+        }
+
+        .bubble {
+            position: absolute;
+            background: radial-gradient(circle at 30% 30%, rgba(46, 95, 135, 0.6), rgba(46, 95, 135, 0.1));
+            border-radius: 50%;
+            box-shadow: 0 0 6px rgba(46, 95, 135, 0.3);
+            animation: rise linear infinite;
+        }
+
+        /* --- 3D BOOK STYLES --- */
+        .scene {
+            perspective: 2000px;
+            z-index: 10;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+            margin-top: 2rem;
+        }
+
+        .book-container {
+            position: relative;
+            width: 900px;
+            height: 600px;
+            transform-style: preserve-3d;
+        }
+
+        /* Deep Blue Hardcover */
+        .book-cover {
+            position: absolute;
+            top: -20px;
+            left: -20px;
+            right: -20px;
+            bottom: -20px;
+            background: linear-gradient(to right, #0f263d 0%, #183B5B 48%, #0f263d 52%, #183B5B 100%);
+            border-radius: 18px;
+            box-shadow: 0 35px 70px rgba(0, 0, 0, 0.6);
+            z-index: 0;
+        }
+
+        .book-cover::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 50%;
+            width: 4px;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.2);
+            box-shadow: inset 1px 0 2px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Common Page Styles */
+        .paper {
+            position: absolute;
+            width: 50%;
+            height: 100%;
+            top: 0;
             background-color: #fdfbf7;
             background-image: repeating-linear-gradient(#fdfbf7 0px, #fdfbf7 24px, #e6e0d4 25px);
+            border: 1px solid #d4af37;
+            display: flex;
+            flex-direction: column;
+            padding: 2.5rem;
+        }
+
+        .paper.left-base {
+            left: 0;
+            border-radius: 12px 0 0 12px;
+            z-index: 1;
+            align-items: center;
+            justify-content: center;
+            border-right: none;
+        }
+
+        .paper.right-base {
+            right: 0;
+            border-radius: 0 12px 12px 0;
+            z-index: 1;
+            border-left: 1px solid #e2e8f0;
+        }
+
+        /* MOVABLE SHEETS */
+        .sheet {
+            position: absolute;
+            right: 0;
+            width: 50%;
+            height: 100%;
+            top: 0;
+            transform-style: preserve-3d;
+            transform-origin: left center;
+            transition: transform 1.2s cubic-bezier(0.645, 0.045, 0.355, 1);
+        }
+
+        .front,
+        .back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            background-color: #fdfbf7;
+            background-image: repeating-linear-gradient(#fdfbf7 0px, #fdfbf7 24px, #e6e0d4 25px);
+            border: 1px solid #d4af37;
+            backface-visibility: hidden;
+            display: flex;
+            flex-direction: column;
+            padding: 2.5rem;
+        }
+
+        .front {
+            border-radius: 0 12px 12px 0;
+            z-index: 2;
+            border-left: 1px solid #e2e8f0;
+        }
+
+        .back {
+            transform: rotateY(180deg);
+            border-radius: 12px 0 0 12px;
+            z-index: 1;
+            box-shadow: inset -10px 0 20px rgba(0, 0, 0, 0.05);
+            border-right: none;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .sheet.flipped {
+            transform: rotateY(-180deg);
+        }
+
+        #sheet-1 { z-index: 25; }
+        #sheet-2 { z-index: 20; }
+        #sheet-3 { z-index: 15; }
+        #sheet-password { z-index: 10; }
+        #sheet-security { z-index: 5; }
+
+        /* Compact Guardian Form */
+        #guardian-form-content .form-group { margin-bottom: 0.5rem; }
+        #guardian-form-content .form-label { font-size: 0.75rem; margin-bottom: 0.1rem; }
+        #guardian-form-content .form-input { padding: 0.25rem 0; font-size: 0.9rem; }
+
+        /* Form Styles */
+        .form-group {
+            margin-bottom: 1.2rem;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: #183B5B;
+            margin-bottom: 0.3rem;
+            font-family: 'Cinzel', serif;
+        }
+
+        .form-input {
+            width: 100%;
+            background: transparent;
+            border: none;
+            border-bottom: 2px solid #D6A84A;
+            padding: 0.5rem 0;
+            font-family: 'Inter', sans-serif;
+            color: #1A202C;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        .form-input:focus {
+            border-bottom-color: #183B5B;
+        }
+
+        /* Navigation Arrows */
+        .nav-arrow {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 40px;
+            height: 40px;
+            background: rgba(24, 59, 91, 0.1);
+            color: #183B5B;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            z-index: 50;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s;
+        }
+
+        .nav-arrow:hover {
+            transform: translateY(-50%) scale(1.1);
+            background: #183B5B;
+            color: #D6A84A;
+        }
+
+        .arrow-next {
+            right: -100px;
+        }
+
+        .arrow-prev {
+            left: -100px;
+        }
+
+        /* Selection Cards */
+        @keyframes shimmer {
+            0% {
+                background-position: 200% 0;
+            }
+
+            100% {
+                background-position: -200% 0;
+            }
+        }
+
+        .selection-card {
+            width: 100%;
+            aspect-ratio: 1;
+            perspective: 1000px;
+            cursor: pointer;
+        }
+
+        .selection-card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+        }
+
+        .selection-card:hover .selection-card-inner {
+            transform: rotateY(180deg);
+        }
+
+        .selection-card-front,
+        .selection-card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+            border-radius: 1rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid #D6A84A;
+            padding: 1.5rem;
+        }
+
+        .selection-card-front {
+            background: linear-gradient(120deg, rgba(255, 255, 255, 0.8) 30%, rgba(214, 168, 74, 0.2) 50%, rgba(255, 255, 255, 0.8) 70%);
+            background-size: 200% 100%;
+            animation: shimmer 4s infinite linear;
+            color: #183B5B;
+        }
+
+        .selection-card-back {
+            background: #183B5B;
+            color: #D6A84A;
+            transform: rotateY(180deg);
+            border-color: #D6A84A;
+            box-shadow: 0 0 20px rgba(214, 168, 74, 0.6);
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        /* Enchanted Particles (from public_view) */
+        @keyframes float-enchant {
+            0% {
+                transform: translateY(20px) scale(0.5) rotate(0deg);
+                opacity: 0;
+            }
+
+            20% {
+                opacity: 1;
+            }
+
+            80% {
+                opacity: 0.6;
+            }
+
+            100% {
+                transform: translateY(-30px) scale(1.2) rotate(10deg);
+                opacity: 0;
+            }
+        }
+
+        .enchant-particle {
+            position: absolute;
+            color: rgba(214, 168, 74, 0.5);
+            font-size: 14px;
+            font-weight: bold;
+            text-shadow: 0 0 4px rgba(214, 168, 74, 0.8);
+            animation: float-enchant 4s linear infinite;
+        }
+
+        @keyframes bookFadeIn {
+            from {
+                opacity: 0;
+                transform: scale(0.95) translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        .animate-book-entry {
+            animation: bookFadeIn 1.2s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+        }
+
+        .animate-shimmer-bg {
+            background: linear-gradient(to right, #D6A84A 0%, #f7e6b5 50%, #D6A84A 100%);
+            background-size: 200% auto;
+            animation: shimmer 6s linear infinite;
+        }
+
+        .animate-shimmer-bg:hover {
+            background: #F0C66B;
+            animation: none;
+        }
+
+        /* Spinner Animation */
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 1em;
+            height: 1em;
+            border: 2px solid currentColor;
+            border-right-color: transparent;
+            border-radius: 50%;
+            animation: spin 0.75s linear infinite;
+            vertical-align: text-bottom;
+            margin-right: 0.5rem;
         }
     </style>
-
-    <script type="importmap">
-    {
-        "imports": {
-            "@libsql/client": "https://esm.run/@libsql/client"
-        }
-    }
-    </script>
 </head>
 
-<body class="bg-[#e6e0d4] text-slate-800 h-screen flex overflow-hidden font-sans">
+<body class="text-slate-800 min-h-screen flex flex-col bg-[#e6e0d4] relative overflow-hidden">
 
     <!-- Background Image -->
-    <div class="fixed inset-0 z-0 pointer-events-none bg-cover bg-center bg-no-repeat" style="background-image: url('../assets/background.png');"></div>
+    <div class="fixed inset-0 z-0 pointer-events-none bg-cover bg-center bg-no-repeat"
+        style="background-image: url('../assets/background.png');"></div>
 
-    <main class="flex-1 flex flex-col h-full overflow-hidden relative z-10">
+    <!-- Water Particles -->
+    <div class="fixed inset-0 z-0 pointer-events-none overflow-hidden">
+        <div class="bubble" style="left: 10%; width: 20px; height: 20px; animation-duration: 12s;"></div>
+        <div class="bubble" style="left: 30%; width: 15px; height: 15px; animation-duration: 15s; animation-delay: 2s;">
+        </div>
+        <div class="bubble" style="left: 70%; width: 25px; height: 25px; animation-duration: 18s; animation-delay: 1s;">
+        </div>
+        <div class="bubble" style="left: 90%; width: 10px; height: 10px; animation-duration: 10s; animation-delay: 4s;">
+        </div>
+    </div>
 
-        <header class="w-full bg-gradient-to-r from-[#183B5B] to-[#244D75] px-6 py-5 shadow-lg border-b border-[#D6A84A]/30 relative z-20 overflow-hidden shrink-0">
+    <div id="page-container" class="flex flex-col flex-1 transition-opacity duration-500 ease-in-out opacity-100">
+        <!-- Navbar -->
+        <nav
+            class="w-full bg-gradient-to-r from-[#183B5B] to-[#244D75] px-6 py-5 shadow-lg border-b border-[#D6A84A]/30 relative z-20 overflow-hidden">
+            <div id="particles-container" class="absolute inset-0 pointer-events-none"></div>
             <div class="w-full flex justify-between items-center relative z-10">
-                <a href="admin_users.html" class="nav-link text-[#D6A84A] font-bold text-lg font-cinzel hover:text-white transition-colors flex items-center gap-2">
-                    <span>←</span> Back
+                <a href="admin_users.html"
+                    class="nav-link text-[#D6A84A] font-bold text-lg font-cinzel hover:text-white transition-colors flex items-center gap-2">
+                    <span>←</span> Back to Dashboard
                 </a>
-                <div class="text-white/80 text-sm font-cinzel tracking-widest">Add New User</div>
+                <div class="text-white/80 text-sm font-cinzel tracking-widest">Manual User Registration</div>
             </div>
-        </header>
+        </nav>
 
-        <div class="flex-1 overflow-y-auto p-8 font-sans flex items-center justify-center">
-            <div class="max-w-6xl w-full mx-auto">
+        <!-- Book Scene -->
+        <div class="scene flex-1">
+            <div class="book-container animate-book-entry">
+                <div class="book-cover"></div>
 
-                <div class="book-cover-bg rounded-[18px] p-5 relative z-0">
-                    <div class="flex flex-col lg:flex-row bg-[#fdfbf7] rounded-xl overflow-hidden relative z-10 min-h-[600px]">
-
-                        <!-- Left Page (Form) -->
-                        <div class="flex-1 paper-bg p-10 border-r border-[#e2e8f0]">
-                            <div class="space-y-8">
-
-                            <div>
-                                <h4 class="text-xs font-bold text-[#1A202C] uppercase tracking-widest mb-4 border-b border-[#D6A84A]/20 pb-2 font-cinzel">
-                                    1. Personal Information</h4>
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-                                    <div class="col-span-2 md:col-span-1">
-                                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">First Name *</label>
-                                        <input type="text" id="inp-first-name"
-                                            class="w-full p-3 rounded-lg bg-white/80 border border-slate-200 focus:ring-2 focus:ring-[#D6A84A]/50 focus:border-[#D6A84A] outline-none transition-all"
-                                            placeholder="Ex: Juan">
-                                    </div>
-                                    <div class="col-span-2 md:col-span-1">
-                                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Last Name *</label>
-                                        <input type="text" id="inp-last-name"
-                                            class="w-full p-3 rounded-lg bg-white/80 border border-slate-200 focus:ring-2 focus:ring-[#D6A84A]/50 focus:border-[#D6A84A] outline-none transition-all"
-                                            placeholder="Ex: Dela Cruz">
-                                    </div>
-                                    <div>
-                                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Middle Initial</label>
-                                        <input type="text" id="inp-middle-initial" maxlength="5"
-                                            class="w-full p-3 rounded-lg bg-white/80 border border-slate-200 focus:ring-2 focus:ring-[#D6A84A]/50 focus:border-[#D6A84A] outline-none transition-all"
-                                            placeholder="Ex: A.">
-                                    </div>
-                                    <div>
-                                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Birth Date</label>
-                                        <input type="date" id="inp-birth-date"
-                                            class="w-full p-3 rounded-lg bg-white/80 border border-slate-200 focus:ring-2 focus:ring-[#D6A84A]/50 focus:border-[#D6A84A] outline-none transition-all">
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div>
-                                <h4 class="text-xs font-bold text-[#1A202C] uppercase tracking-widest mb-4 border-b border-[#D6A84A]/20 pb-2 font-cinzel">
-                                    2. Contact Details</h4>
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-                                    <div class="col-span-2">
-                                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Email Address *</label>
-                                        <input type="email" id="inp-email"
-                                            class="w-full p-3 rounded-lg bg-white/80 border border-slate-200 focus:ring-2 focus:ring-[#D6A84A]/50 focus:border-[#D6A84A] outline-none transition-all"
-                                            placeholder="juan@example.com">
-                                    </div>
-                                    <div>
-                                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Contact Number</label>
-                                        <input type="text" id="inp-contact"
-                                            class="w-full p-3 rounded-lg bg-white/80 border border-slate-200 focus:ring-2 focus:ring-[#D6A84A]/50 focus:border-[#D6A84A] outline-none transition-all"
-                                            placeholder="0912 345 6789">
-                                    </div>
-                                    <div class="col-span-2">
-                                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Address</label>
-                                        <input type="text" id="inp-address"
-                                            class="w-full p-3 rounded-lg bg-white/80 border border-slate-200 focus:ring-2 focus:ring-[#D6A84A]/50 focus:border-[#D6A84A] outline-none transition-all"
-                                            placeholder="House No., Street, City">
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div>
-                                <h4 class="text-xs font-bold text-[#1A202C] uppercase tracking-widest mb-4 border-b border-[#D6A84A]/20 pb-2 font-cinzel">
-                                    3. Account Security</h4>
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-                                    <div class="col-span-2">
-                                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Password *</label>
-                                        <input type="password" id="inp-password"
-                                            class="w-full p-3 rounded-lg bg-white/80 border border-slate-200 focus:ring-2 focus:ring-[#D6A84A]/50 focus:border-[#D6A84A] outline-none transition-all"
-                                            placeholder="••••••••">
-                                    </div>
-                                </div>
-                            </div>
-
-                            </div>
-
-                        </div>
-                        
-                        <!-- Right Page (Preview) -->
-                        <div class="w-full lg:w-[350px] shrink-0 flex flex-col items-center border-l border-[#e2e8f0] paper-bg p-10">
-                            <label class="block text-xs font-bold text-[#1A202C] uppercase mb-4 tracking-widest font-cinzel">User Profile</label>
-
-                            <div class="w-64 bg-white/80 rounded-xl shadow-lg border border-[#D6A84A]/20 p-6 text-center transform transition hover:scale-105 duration-300 relative overflow-hidden">
-                                <div class="absolute top-0 left-0 w-full h-2 bg-[#183B5B]"></div>
-                                <div class="w-24 h-24 mx-auto bg-slate-200 rounded-full mb-4 overflow-hidden relative flex items-center justify-center shadow-inner border-2 border-white">
-                                    <span id="img-placeholder" class="text-4xl text-slate-400 opacity-50">👤</span>
-                                </div>
-
-                                <h4 id="preview-name" class="font-bold text-lg text-[#1A202C] leading-tight mb-1">New User</h4>
-                                <p id="preview-email" class="text-xs text-[#2E5F87] truncate">user@email.com</p>
-
-                                <div class="mt-4 pt-4 border-t border-slate-100 flex flex-col gap-2 text-xs text-slate-500">
-                                    <div class="flex justify-between">
-                                        <span>ID:</span>
-                                        <span class="font-mono font-bold text-slate-700">AUTO-GEN</span>
-                                    </div>
-                                    <div class="flex justify-between">
-                                        <span>Role:</span>
-                                        <span class="font-bold text-slate-700">Patron</span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="mt-8 w-full">
-                                <button id="btn-save"
-                                    class="w-full py-4 rounded-xl font-bold text-[#D6A84A] bg-[#183B5B] shadow-lg hover:bg-[#2E5F87] transition-all flex justify-center items-center gap-2 transform hover:scale-105">
-                                    <span></span> Create User
-                                </button>
-                                <button onclick="window.location.reload()"
-                                    class="w-full mt-3 py-3 rounded-xl font-bold text-slate-500 hover:bg-slate-100 transition-colors">
-                                    Reset Form
-                                </button>
-                            </div>
-                        </div>
-
-                    </div>
+                <!-- Left Base (Inside Front Cover) -->
+                <div class="paper left-base">
+                    <img src="../assets/library_logo.jpg" alt="Logo"
+                        class="w-32 h-32 object-cover rounded-full border-4 border-[#D6A84A] shadow-xl mb-6">
+                    <h2 class="text-3xl font-bold text-[#183B5B] font-cinzel text-center mb-2">Welcome Aboard</h2>
+                    <p class="text-center text-slate-600 italic">"A library is a harbor for the mind."</p>
+                    <div class="mt-8 text-sm text-[#183B5B]/70 text-center">
+                        <p>Please fill out the logbook to receive QR code.</p>
                     </div>
                 </div>
 
+                <!-- Right Base (Inside Back Cover - Final Step) -->
+                <div class="paper right-base flex flex-col justify-center items-center">
+                    <h2 class="text-2xl font-bold text-[#183B5B] font-cinzel mb-6">Ready to Set Sail?</h2>
+                    <button id="btn-submit" onclick="submitRegistration()"
+                        class="px-8 py-3 bg-[#D6A84A] text-black rounded-full font-bold font-cinzel shadow-lg hover:bg-[#F0C66B] hover:text-black hover:scale-105 transition-transform w-full max-w-xs animate-shimmer-bg flex items-center justify-center">
+                        Submit Registration
+                    </button>
+                </div>
+
+                <!-- Sheet 5: Security Questions (New Last Step) -->
+                <div class="sheet" id="sheet-security">
+                    <div class="front">
+                        <h3 class="text-xl font-bold text-[#183B5B] font-cinzel mb-4 border-b border-[#D6A84A] pb-2">Security Questions</h3>
+                        <div class="overflow-y-auto max-h-[400px] pr-2 space-y-3">
+                            <div class="form-group mb-2">
+                                <label class="form-label">Question 1</label>
+                                <select id="sec-q1" class="form-input text-sm">
+                                    <option value="" disabled selected>Select a question</option>
+                                    <option value="What is your mother's maiden name?">What is your mother's maiden name?</option>
+                                    <option value="What was the name of your first pet?">What was the name of your first pet?</option>
+                                    <option value="What was the name of your elementary school?">What was the name of your elementary school?</option>
+                                    <option value="What is your favorite food?">What is your favorite food?</option>
+                                    <option value="What city were you born in?">What city were you born in?</option>
+                                    <option value="What is your father's middle name?">What is your father's middle name?</option>
+                                </select>
+                                <input type="text" id="sec-a1" class="form-input mt-1" placeholder="Answer">
+                            </div>
+                            <div class="form-group mb-2">
+                                <label class="form-label">Question 2</label>
+                                <select id="sec-q2" class="form-input text-sm">
+                                    <option value="" disabled selected>Select a question</option>
+                                    <option value="What is the name of your favorite teacher?">What is the name of your favorite teacher?</option>
+                                    <option value="What is your favorite movie?">What is your favorite movie?</option>
+                                    <option value="What was your first car?">What was your first car?</option>
+                                    <option value="What is your favorite color?">What is your favorite color?</option>
+                                    <option value="Where did you go for your first vacation?">Where did you go for your first vacation?</option>
+                                    <option value="What is the name of the street you grew up on?">What is the name of the street you grew up on?</option>
+                                </select>
+                                <input type="text" id="sec-a2" class="form-input mt-1" placeholder="Answer">
+                            </div>
+                            <div class="form-group mb-2">
+                                <label class="form-label">Question 3</label>
+                                <select id="sec-q3" class="form-input text-sm">
+                                    <option value="" disabled selected>Select a question</option>
+                                    <option value="What is your best friend's name?">What is your best friend's name?</option>
+                                    <option value="What is your favorite book?">What is your favorite book?</option>
+                                    <option value="What is your favorite sports team?">What is your favorite sports team?</option>
+                                    <option value="What was your childhood nickname?">What was your childhood nickname?</option>
+                                    <option value="What is the name of your first employer?">What is the name of your first employer?</option>
+                                    <option value="In what city did you meet your spouse/partner?">In what city did you meet your spouse/partner?</option>
+                                </select>
+                                <input type="text" id="sec-a3" class="form-input mt-1" placeholder="Answer">
+                            </div>
+                        </div>
+                        <div class="mt-auto text-right text-xs text-slate-400 italic" id="security-page-indicator">Page X</div>
+                    </div>
+                    <div class="back">
+                        <div class="w-full h-full border-4 border-double border-[#D6A84A]/30 flex items-center justify-center">
+                        <img id="back-icon-security" src="../assets/icons/anchor.png" class="w-32 h-32 object-contain opacity-20" alt="Anchor">
+                    
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sheet 4: Password (Last step before submit) -->
+                <div class="sheet" id="sheet-password">
+                    <div class="front">
+                        <h3 class="text-xl font-bold text-[#183B5B] font-cinzel mb-6 border-b border-[#D6A84A] pb-2">
+                            Security</h3>
+
+                        <div class="form-group">
+                            <label class="form-label">Password</label>
+                            <input type="password" id="reg-password" class="form-input" placeholder="Enter password">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Confirm Password</label>
+                            <div style="position: relative;">
+                                <input type="password" class="form-input" id="confirm-password"
+                                    placeholder="Confirm password" style="padding-right: 2.5rem;">
+                                <button type="button" onclick="togglePassword('confirm-password')"
+                                    class="absolute focus:outline-none" style="right: 0; bottom: 0.5rem;"
+                                    title="Show Password">
+                                    <img src="../assets/icons/show_pass.png"
+                                        class="w-6 h-6 opacity-50 hover:opacity-100 transition-opacity"
+                                        alt="Show Password">
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="mt-auto text-right text-xs text-slate-400 italic" id="password-page-indicator">Page
+                            X</div>
+                    </div>
+                    <div class="back">
+                        <div
+                            class="w-full h-full border-4 border-double border-[#D6A84A]/30 flex items-center justify-center">
+                            <img id="back-icon-password" src="../assets/icons/shield.png" class="w-32 h-32 object-contain opacity-20"
+                                alt="Shield">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sheet 3: Child Info (Only for Guardian Flow) -->
+                <div class="sheet hidden" id="sheet-3">
+                    <div class="front">
+                        <h3 class="text-xl font-bold text-[#183B5B] font-cinzel mb-6 border-b border-[#D6A84A] pb-2">
+                            Child Information</h3>
+
+                        <div class="flex gap-3">
+                            <div class="form-group flex-1">
+                                <label class="form-label">Last Name</label>
+                                <input type="text" id="child-lname" class="form-input" placeholder="Last Name">
+                            </div>
+                            <div class="form-group flex-1">
+                                <label class="form-label">First Name</label>
+                                <input type="text" id="child-fname" class="form-input" placeholder="First Name">
+                            </div>
+                            <div class="form-group w-12">
+                                <label class="form-label">M.I.</label>
+                                <input type="text" id="child-mi" class="form-input text-center" maxlength="2"
+                                    placeholder="M.I.">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Birth Date</label>
+                            <input type="date" id="child-dob" class="form-input">
+                        </div>
+
+                        <div class="mt-auto text-right text-xs text-slate-400 italic" id="page-3-indicator">Page 3</div>
+                    </div>
+                    <div class="back">
+                        <div
+                            class="w-full h-full border-4 border-double border-[#D6A84A]/30 flex items-center justify-center">
+                            <img id="back-icon-3" src="../assets/icons/child.png"
+                                class="w-32 h-32 object-contain opacity-20" alt="Child">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sheet 2: Dynamic Form (User or Guardian) -->
+                <div class="sheet" id="sheet-2">
+                    <div class="front">
+                        <!-- User Form Content (Hidden by default) -->
+                        <div id="user-form-content" class="hidden h-full flex flex-col">
+                            <h3
+                                class="text-xl font-bold text-[#183B5B] font-cinzel mb-6 border-b border-[#D6A84A] pb-2">
+                                User Information</h3>
+                            <!-- User fields injected via JS or static here -->
+                        </div>
+
+                        <!-- Guardian Form Content (Hidden by default) -->
+                        <div id="guardian-form-content" class="hidden h-full flex flex-col">
+                            <h3
+                                class="text-xl font-bold text-[#183B5B] font-cinzel mb-3 border-b border-[#D6A84A] pb-2">
+                                Guardian Information</h3>
+
+                            <div class="flex gap-3">
+                                <div class="form-group flex-1">
+                                    <label class="form-label">Last Name</label>
+                                    <input type="text" id="guardian-lname" class="form-input" placeholder="Last Name">
+                                </div>
+                                <div class="form-group flex-1">
+                                    <label class="form-label">First Name</label>
+                                    <input type="text" id="guardian-fname" class="form-input" placeholder="First Name">
+                                </div>
+                                <div class="form-group w-12">
+                                    <label class="form-label">M.I.</label>
+                                    <input type="text" id="guardian-mi" class="form-input text-center" maxlength="2"
+                                        placeholder="M.I.">
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Relationship</label>
+                                <select id="guardian-rel" class="form-input">
+                                    <option value="" disabled selected>Select relationship</option>
+                                    <option value="Parent">Parent</option>
+                                    <option value="Sibling">Sibling</option>
+                                    <option value="Relative">Relative</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Contact Number</label>
+                                <input type="tel" id="guardian-contact" class="form-input"
+                                    placeholder="+63 900 000 0000">
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Email Address</label>
+                                <input type="email" id="guardian-email" class="form-input"
+                                    placeholder="guardian@example.com">
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Address</label>
+                                <input type="text" id="guardian-address" class="form-input"
+                                    placeholder="House No., Street, City">
+                            </div>
+
+                            <div class="flex gap-3">
+                                <div class="form-group flex-1">
+                                    <label class="form-label">Birth Date</label>
+                                    <input type="date" id="guardian-dob" class="form-input" onchange="calculateAge('guardian')">
+                                </div>
+                                <div class="form-group w-20">
+                                    <label class="form-label">Age</label>
+                                    <input type="text" id="guardian-age" class="form-input text-center bg-slate-100 cursor-not-allowed" readonly>
+                                </div>
+                            </div>
+
+                            <div class="mt-auto text-right text-xs text-slate-400 italic" id="page-2-indicator">Page 2
+                            </div>
+                        </div>
+                    </div>
+                    <div class="back">
+                        <!-- Decorative back of page -->
+                        <div
+                            class="w-full h-full border-4 border-double border-[#D6A84A]/30 flex items-center justify-center">
+                            <img id="back-icon-2" src="../assets/icons/lock.png"
+                                class="w-32 h-32 object-contain opacity-20" alt="Lock">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sheet 1: Selection -->
+                <div class="sheet" id="sheet-1">
+                    <div class="front">
+                        <h3 class="text-xl font-bold text-[#183B5B] font-cinzel mb-8 text-center">Who is registering?
+                        </h3>
+
+                        <div class="grid grid-cols-2 gap-6 h-full content-center pb-10 px-4">
+                            <div class="selection-card" onclick="selectFlow('user')">
+                                <div class="selection-card-inner">
+                                    <div class="selection-card-front">
+                                        <img src="../assets/icons/user.png" class="w-20 h-20 mb-2 object-contain"
+                                            alt="User">
+                                        <div class="font-bold font-cinzel text-lg">User</div>
+                                    </div>
+                                    <div class="selection-card-back">
+                                        <h4 class="font-bold font-cinzel mb-2 text-lg">User</h4>
+                                        <p class="text-sm text-white/90 mb-4">Register a standard personal account</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="selection-card" onclick="selectFlow('guardian')">
+                                <div class="selection-card-inner">
+                                    <div class="selection-card-front">
+                                        <img src="../assets/icons/guardian.png" class="w-20 h-20 mb-2 object-contain"
+                                            alt="Guardian">
+                                        <div class="font-bold font-cinzel text-lg">Guardian</div>
+                                    </div>
+                                    <div class="selection-card-back">
+                                        <h4 class="font-bold font-cinzel mb-2 text-lg">Guardian</h4>
+                                        <p class="text-sm text-white/90 mb-4">Register a guardian account for a child
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="back">
+                        <!-- Decorative back of page -->
+                        <div
+                            class="w-full h-full border-4 border-double border-[#D6A84A]/30 flex items-center justify-center">
+                            <img id="back-icon-1" src="../assets/icons/user.png"
+                                class="w-32 h-32 object-contain opacity-20" alt="User">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Hidden Template for User Form (to be cloned or toggled) -->
+                <div id="user-form-template" class="hidden">
+                    <h3 class="text-xl font-bold text-[#183B5B] font-cinzel mb-6 border-b border-[#D6A84A] pb-2">User
+                        Information</h3>
+                    <div class="flex gap-3">
+                        <div class="form-group flex-1">
+                            <label class="form-label">Last Name</label>
+                            <input type="text" id="user-lname" class="form-input" placeholder="Last Name">
+                        </div>
+                        <div class="form-group flex-1">
+                            <label class="form-label">First Name</label>
+                            <input type="text" id="user-fname" class="form-input" placeholder="First Name">
+                        </div>
+                        <div class="form-group w-12">
+                            <label class="form-label">M.I.</label>
+                            <input type="text" id="user-mi" class="form-input text-center" maxlength="2"
+                                placeholder="M.I.">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Email Address</label>
+                        <input type="email" id="user-email" class="form-input" placeholder="email@example.com">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Contact Number</label>
+                        <input type="tel" id="user-contact" class="form-input" placeholder="+63 900 000 0000">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Address</label>
+                        <input type="text" id="user-address" class="form-input" placeholder="House No., Street, City">
+                    </div>
+                    <div class="flex gap-3">
+                        <div class="form-group flex-1">
+                            <label class="form-label">Birth Date</label>
+                            <input type="date" id="user-dob" class="form-input" onchange="calculateAge('user')">
+                        </div>
+                        <div class="form-group w-20">
+                            <label class="form-label">Age</label>
+                            <input type="text" id="user-age" class="form-input text-center bg-slate-100 cursor-not-allowed" readonly>
+                        </div>
+                    </div>
+                    <div class="mt-auto text-right text-xs text-slate-400 italic" id="user-page-indicator">Page 2</div>
+                </div>
+
+                <!-- Global Arrows -->
+                <div class="nav-arrow arrow-next hidden" id="btn-next" onclick="turnPage(1)">→</div>
+                <div class="nav-arrow arrow-prev hidden" id="btn-prev" onclick="turnPage(-1)">←</div>
+
             </div>
         </div>
-    </main>
 
-    <script src="../admin_js/admin_add_users.js"></script>
+        <script>
+            window.currentPage = 1;
+            window.totalPages = 3;
+            window.currentFlow = ''; // 'user' or 'guardian'
+
+            window.calculateAge = function(flow) {
+                const dobInput = document.getElementById(flow + '-dob');
+                const ageInput = document.getElementById(flow + '-age');
+                const emailInput = document.getElementById(flow + '-email');
+
+                if (dobInput.value) {
+                    const dob = new Date(dobInput.value);
+                    const today = new Date();
+                    let age = today.getFullYear() - dob.getFullYear();
+                    const m = today.getMonth() - dob.getMonth();
+                    if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) {
+                        age--;
+                    }
+                    ageInput.value = age;
+
+                    if (age >= 60) {
+                        emailInput.disabled = true;
+                        emailInput.classList.add('bg-slate-200', 'cursor-not-allowed');
+                        emailInput.value = '';
+                    } else {
+                        emailInput.disabled = false;
+                        emailInput.classList.remove('bg-slate-200', 'cursor-not-allowed');
+                    }
+                }
+            }
+
+            window.togglePassword = function (id) {
+                const input = document.getElementById(id);
+                if (input.type === 'password') {
+                    input.type = 'text';
+                } else {
+                    input.type = 'password';
+                }
+            }
+
+            window.selectFlow = function (flow) {
+                window.currentFlow = flow;
+                const sheet2 = document.getElementById('sheet-2');
+                const sheet3 = document.getElementById('sheet-3');
+                const sheetPass = document.getElementById('sheet-password');
+                const sheetSec = document.getElementById('sheet-security');
+                const userContent = document.getElementById('user-form-content');
+                const guardianContent = document.getElementById('guardian-form-content');
+                const userTemplate = document.getElementById('user-form-template');
+                const passIndicator = document.getElementById('password-page-indicator');
+                const secIndicator = document.getElementById('security-page-indicator');
+                const page2Indicator = document.getElementById('page-2-indicator');
+                const page3Indicator = document.getElementById('page-3-indicator');
+
+                // Icon elements
+                const backIcon1 = document.getElementById('back-icon-1');
+                const backIcon2 = document.getElementById('back-icon-2');
+                const backIcon3 = document.getElementById('back-icon-3');
+                const backIconSec = document.getElementById('back-icon-security');
+                const backIconPass = document.getElementById('back-icon-password');
+
+                if (flow === 'user') {
+                    window.totalPages = 4; // 1:Sel, 2:Info, 3:Pass, 4:Sec
+                    sheet3.classList.add('hidden'); // Hide sheet 3
+
+                    // Setup Sheet 2 for User
+                    userContent.innerHTML = userTemplate.innerHTML;
+                    userContent.classList.remove('hidden');
+                    guardianContent.classList.add('hidden');
+
+                    // Update Indicators
+                    const userPageInd = userContent.querySelector('#user-page-indicator');
+                    if (userPageInd) userPageInd.innerText = "Page 2 of 4";
+                    if (passIndicator) passIndicator.innerText = "Page 3 of 4";
+                    if (secIndicator) secIndicator.innerText = "Page 4 of 4";
+
+                    // Update Icons
+                    if (backIcon1) backIcon1.src = "../assets/icons/user.png";
+                    if (backIcon2) backIcon2.src = "../assets/icons/shield.png"; // Password page gets Shield
+                    if (backIconPass) backIconPass.src = "../assets/icons/shield.png"; // Security page gets Shield
+                    if (backIcon2) backIcon2.src = "../assets/icons/lock.png"; // Password page gets Lock
+                    if (backIconPass) backIconPass.src = "../assets/icons/lock.png"; // Security page gets Lock
+                    if (backIconSec) backIconSec.src = "../assets/icons/anchor.png"; // Submit page gets Anchor
+                } else {
+                    window.totalPages = 5; // 1:Sel, 2:Info, 3:Child, 4:Pass, 5:Sec
+                    sheet3.classList.remove('hidden'); // Show sheet 3
+
+                    // Setup Sheet 2 for Guardian
+                    userContent.classList.add('hidden');
+                    guardianContent.classList.remove('hidden');
+
+                    if (page2Indicator) page2Indicator.innerText = "Page 2 of 5";
+                    if (page3Indicator) page3Indicator.innerText = "Page 3 of 5";
+                    if (passIndicator) passIndicator.innerText = "Page 4 of 5";
+                    if (secIndicator) secIndicator.innerText = "Page 5 of 5";
+
+                    // Update Icons
+                    if (backIcon1) backIcon1.src = "../assets/icons/guardian.png";
+                    if (backIcon2) backIcon2.src = "../assets/icons/child.png";
+                    if (backIcon3) backIcon3.src = "../assets/icons/shield.png"; // Password page gets Shield
+                    if (backIconPass) backIconPass.src = "../assets/icons/shield.png"; // Security page gets Shield
+                    if (backIcon3) backIcon3.src = "../assets/icons/lock.png"; // Password page gets Lock
+                    if (backIconPass) backIconPass.src = "../assets/icons/lock.png"; // Security page gets Lock
+                    if (backIconSec) backIconSec.src = "../assets/icons/anchor.png"; // Submit page gets Anchor
+                }
+                turnPage(1); // Move to next page automatically
+            }
+
+            window.turnPage = function (direction) {
+                const sheet1 = document.getElementById('sheet-1');
+                const sheet2 = document.getElementById('sheet-2');
+                const sheet3 = document.getElementById('sheet-3');
+                const sheetPass = document.getElementById('sheet-password');
+                const sheetSec = document.getElementById('sheet-security');
+
+                if (direction === 1) { // Next
+                    if (currentPage === 1) {
+                        sheet1.classList.add('flipped');
+                        sheet1.style.zIndex = "20";
+                        currentPage++;
+                    } else if (currentPage === 2) {
+                        sheet2.classList.add('flipped');
+                        sheet2.style.zIndex = "30";
+                        currentPage++;
+                    } else if (currentPage === 3) {
+                        if (currentFlow === 'user') {
+                            // User: Page 3 is Password. Flip to reveal Security.
+                            sheetPass.classList.add('flipped');
+                            sheetPass.style.zIndex = "40";
+                            currentPage++;
+                        } else {
+                            // Guardian: Page 3 is Child Info. Flip to reveal Password.
+                            sheet3.classList.add('flipped');
+                            sheet3.style.zIndex = "40";
+                            currentPage++;
+                        }
+                    } else if (currentPage === 4 && currentFlow === 'guardian') {
+                        // Guardian: Page 4 is Password. Flip to reveal Security.
+                        sheetPass.classList.add('flipped');
+                        sheetPass.style.zIndex = "50";
+                        currentPage++;
+                    } else if ((currentPage === 4 && currentFlow === 'user') || (currentPage === 5 && currentFlow === 'guardian')) {
+                        // Flip Security to reveal Submit
+                        sheetSec.classList.add('flipped');
+                        sheetSec.style.zIndex = "60";
+                        currentPage++;
+                    }
+                } else { // Previous
+                    if (currentFlow === 'user') {
+                        if (currentPage === 5) { // From Submit to Security
+                            sheetSec.classList.remove('flipped');
+                            setTimeout(() => { sheetSec.style.zIndex = "5"; }, 600);
+                            currentPage--;
+                        } else if (currentPage === 4) { // From Security to Password
+                            sheetPass.classList.remove('flipped');
+                            setTimeout(() => { sheetPass.style.zIndex = "10"; }, 600);
+                            currentPage--;
+                        } else if (currentPage === 3) { // From Password to User Info
+                            sheet2.classList.remove('flipped');
+                            setTimeout(() => { sheet2.style.zIndex = "20"; }, 600);
+                            currentPage--;
+                        } else if (currentPage === 2) { // From User Info to Selection
+                            sheet1.classList.remove('flipped');
+                            currentPage--;
+                        }
+                    } else { // Guardian
+                        if (currentPage === 6) { // From Submit to Security
+                            sheetSec.classList.remove('flipped');
+                            setTimeout(() => { sheetSec.style.zIndex = "5"; }, 600);
+                            currentPage--;
+                        } else if (currentPage === 5) { // From Security to Password
+                            sheetPass.classList.remove('flipped');
+                            setTimeout(() => { sheetPass.style.zIndex = "10"; }, 600);
+                            currentPage--;
+                        } else if (currentPage === 4) { // From Password to Child Info
+                            sheet3.classList.remove('flipped');
+                            setTimeout(() => { sheet3.style.zIndex = "15"; }, 600);
+                            currentPage--;
+                        } else if (currentPage === 3) { // From Child Info to Guardian Info
+                            sheet2.classList.remove('flipped');
+                            setTimeout(() => { sheet2.style.zIndex = "20"; }, 600);
+                            currentPage--;
+                        } else if (currentPage === 2) { // From Guardian Info to Selection
+                            sheet1.classList.remove('flipped');
+                            currentPage--;
+                        }
+                    }
+                }
+                updateArrows();
+            }
+
+            window.updateArrows = function () {
+                const btnNext = document.getElementById('btn-next');
+                const btnPrev = document.getElementById('btn-prev');
+
+                // Hide all initially
+                btnNext.classList.add('hidden');
+                btnPrev.classList.add('hidden');
+
+                if (window.currentPage === 1) {
+                    // Selection page, no arrows (cards trigger next)
+                    return;
+                }
+
+                // Always show prev if not on page 1
+                btnPrev.classList.remove('hidden');
+
+                // Show next if not on last page
+                let maxPage = (window.currentFlow === 'user') ? 5 : 6;
+                if (window.currentPage < maxPage) {
+                    btnNext.classList.remove('hidden');
+                }
+            }
+
+            // Navbar Particles
+            document.addEventListener('DOMContentLoaded', () => {
+                const container = document.getElementById('particles-container');
+                const particleCount = 20;
+                const runes = ['ᚠ', 'ᚢ', 'ᚦ', 'ᚨ', 'ᚱ', 'ᚲ', 'ᚷ', 'ᚹ', 'ᚺ', 'ᚾ', 'ᛁ', 'ᛃ', 'ᛈ', 'ᛇ', 'ᛉ', 'ᛊ', 'ᛏ', 'ᛒ', 'ᛖ', 'ᛗ', 'ᛚ', 'ᛜ', 'ᛞ', 'ᛟ'];
+
+                for (let i = 0; i < particleCount; i++) {
+                    const particle = document.createElement('div');
+                    particle.className = 'enchant-particle';
+                    particle.textContent = runes[Math.floor(Math.random() * runes.length)];
+                    particle.style.left = Math.random() * 100 + '%';
+                    particle.style.top = Math.random() * 100 + '%';
+                    particle.style.animationDelay = Math.random() * 5 + 's';
+                    particle.style.fontSize = (Math.random() * 10 + 10) + 'px';
+                    container.appendChild(particle);
+                }
+            });
+        </script>
+
+        <script>
+            const path = require('path');
+            const { registerUser, registerGuardian } = require(path.join(process.cwd(), 'auth.js'));
+
+            function showCustomAlert(message, callback) {
+                const alertBox = document.getElementById('custom-alert');
+                const alertMsg = document.getElementById('custom-alert-msg');
+                const alertBtn = document.getElementById('custom-alert-btn');
+
+                alertMsg.textContent = message;
+                alertBox.classList.remove('hidden');
+
+                // Replace button to remove old event listeners
+                const newBtn = alertBtn.cloneNode(true);
+                alertBtn.parentNode.replaceChild(newBtn, alertBtn);
+
+                newBtn.onclick = function () {
+                    alertBox.classList.add('hidden');
+                    if (callback) callback();
+                }
+            }
+
+            window.submitRegistration = async function () {
+                const password = document.getElementById('reg-password').value;
+                const confirmPassword = document.getElementById('confirm-password').value;
+
+                // Security Questions
+                const q1 = document.getElementById('sec-q1').value;
+                const a1 = document.getElementById('sec-a1').value;
+                const q2 = document.getElementById('sec-q2').value;
+                const a2 = document.getElementById('sec-a2').value;
+                const q3 = document.getElementById('sec-q3').value;
+                const a3 = document.getElementById('sec-a3').value;
+
+                if (!q1 || !a1 || !q2 || !a2 || !q3 || !a3) {
+                    showCustomAlert("Please complete all security questions.");
+                    return;
+                }
+
+                if (password !== confirmPassword) {
+                    showCustomAlert("Passwords do not match!");
+                    return;
+                }
+
+                const btn = document.getElementById('btn-submit');
+                const originalText = btn.innerHTML;
+
+                // Show Loading State
+                btn.disabled = true;
+                btn.innerHTML = '<span class="spinner"></span> Processing...';
+                btn.classList.add('opacity-75', 'cursor-not-allowed');
+
+                try {
+                    if (window.currentFlow === 'user') {
+                        const userData = {
+                            firstName: document.getElementById('user-fname').value,
+                            lastName: document.getElementById('user-lname').value,
+                            mi: document.getElementById('user-mi').value,
+                            email: document.getElementById('user-email').value,
+                            contact: document.getElementById('user-contact').value,
+                            address: document.getElementById('user-address').value,
+                            birthDate: document.getElementById('user-dob').value,
+                            password: password,
+                            securityQuestions: [
+                                { question: q1, answer: a1 },
+                                { question: q2, answer: a2 },
+                                { question: q3, answer: a3 }
+                            ]
+                        };
+
+                        const result = await registerUser(userData);
+                        if (result.success) {
+                            showCustomAlert(result.message, () => {
+                                window.location.href = 'login.html';
+                            });
+                        } else {
+                            showCustomAlert("Registration Failed: " + result.message);
+                        }
+                    } else if (window.currentFlow === 'guardian') {
+                        const guardianData = {
+                            firstName: document.getElementById('guardian-fname').value,
+                            lastName: document.getElementById('guardian-lname').value,
+                            mi: document.getElementById('guardian-mi').value,
+                            relationship: document.getElementById('guardian-rel').value,
+                            contact: document.getElementById('guardian-contact').value,
+                            email: document.getElementById('guardian-email').value,
+                            address: document.getElementById('guardian-address').value,
+                            birthDate: document.getElementById('guardian-dob').value,
+                            password: password,
+                            securityQuestions: [
+                                { question: q1, answer: a1 },
+                                { question: q2, answer: a2 },
+                                { question: q3, answer: a3 }
+                            ]
+                        };
+
+                        const childData = {
+                            firstName: document.getElementById('child-fname').value,
+                            lastName: document.getElementById('child-lname').value,
+                            mi: document.getElementById('child-mi').value,
+                            birthDate: document.getElementById('child-dob').value
+                        };
+
+                        const result = await registerGuardian(guardianData, childData);
+                        if (result.success) {
+                            showCustomAlert(result.message, () => {
+                                window.location.href = 'login.html';
+                            });
+                        } else {
+                            showCustomAlert("Registration Failed: " + result.message);
+                        }
+                    }
+                } catch (error) {
+                    showCustomAlert("An unexpected error occurred: " + error.message);
+                } finally {
+                    // Restore Button State
+                    btn.disabled = false;
+                    btn.innerHTML = originalText;
+                    btn.classList.remove('opacity-75', 'cursor-not-allowed');
+                }
+            }
+        </script>
+    </div>
+
+    <!-- Custom Alert Modal -->
+    <div id="custom-alert"
+        class="fixed inset-0 z-[100] hidden flex items-center justify-center bg-black/50 backdrop-blur-sm transition-opacity duration-300">
+        <div
+            class="bg-[#fdfbf7] border-2 border-[#D6A84A] rounded-lg p-8 max-w-sm w-full shadow-2xl transform scale-100 transition-transform duration-300 relative overflow-hidden">
+            <div class="absolute top-0 left-0 w-16 h-16 border-t-4 border-l-4 border-[#183B5B]/20 rounded-tl-lg"></div>
+            <div class="absolute bottom-0 right-0 w-16 h-16 border-b-4 border-r-4 border-[#183B5B]/20 rounded-br-lg">
+            </div>
+
+            <h3 class="text-xl font-bold text-[#183B5B] font-cinzel mb-4 text-center">Notification</h3>
+            <p id="custom-alert-msg" class="text-slate-700 text-center mb-6 font-inter"></p>
+            <div class="flex justify-center">
+                <button id="custom-alert-btn"
+                    class="px-6 py-2 bg-[#183B5B] text-[#D6A84A] font-bold font-cinzel rounded hover:bg-[#244D75] transition-colors">
+                    Acknowledge
+                </button>
+            </div>
+        </div>
+    </div>
+    <script src="public_loader.js"></script>
 </body>
 
 </html>
