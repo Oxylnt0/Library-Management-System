@@ -41,7 +41,7 @@
                 <!-- HEADER -->
                 <div class="flex justify-between items-center mb-6">
                     <div>
-                        <h2 class="text-2xl font-bold text-slate-800">Book Catalog</h2>
+                        <h2 class="text-2xl font-bold text-slate-800" id="page-title">Book Catalog</h2>
                         <p class="text-sm text-slate-500">Manage your library's collection</p>
                     </div>
 
@@ -54,6 +54,10 @@
 
                         <button onclick="loadBooks()" class="bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 px-3 py-2 rounded-lg font-medium shadow-sm transition-colors" title="Refresh Catalog">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                        </button>
+
+                        <button id="archive-view-btn" onclick="toggleArchivedView()" class="bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 px-4 py-2 rounded-lg font-medium shadow-sm transition-colors">
+                            View Archived Books
                         </button>
 
                         <a href="../admin_html/admin_add_books.html"
@@ -132,6 +136,7 @@
                                     <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Status</label>
                                     <select id="edit-status" class="w-full p-2 rounded border border-slate-300 focus:ring-2 focus:ring-[#183B5B] outline-none">
                                         <option value="Available">Available</option>
+                                        <option value="Borrowed">Borrowed</option>
                                         <option value="Archived">Archived</option>
                                     </select>
                                 </div>
@@ -153,6 +158,35 @@
                                 <div>
                                     <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Avail. Copies</label>
                                     <input type="number" id="edit-avail-copies" class="w-full p-2 rounded border border-slate-300 focus:ring-2 focus:ring-[#183B5B] outline-none">
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Category</label>
+                                    <select id="edit-category" class="w-full p-2 rounded border border-slate-300 focus:ring-2 focus:ring-[#183B5B] outline-none">
+                                        <option value="Fiction">Fiction</option>
+                                        <option value="Non-Fiction">Non-Fiction</option>
+                                        <option value="Reference">Reference</option>
+                                        <option value="Textbook">Textbook</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Source</label>
+                                    <select id="edit-source" class="w-full p-2 rounded border border-slate-300 focus:ring-2 focus:ring-[#183B5B] outline-none">
+                                        <option value="Purchased">Purchased</option>
+                                        <option value="Donated">Donated</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Condition</label>
+                                    <select id="edit-condition" class="w-full p-2 rounded border border-slate-300 focus:ring-2 focus:ring-[#183B5B] outline-none">
+                                        <option value="New">New</option>
+                                        <option value="Good">Good</option>
+                                        <option value="Damaged">Damaged</option>
+                                        <option value="Outdated">Outdated</option>
+                                        <option value="Obsolete">Obsolete</option>
+                                    </select>
                                 </div>
                             </div>
 
@@ -182,8 +216,11 @@
                         <div class="flex flex-col md:flex-row gap-6">
                             <!-- Cover Image -->
                             <div class="w-full max-w-xs md:w-48 flex-shrink-0 mx-auto">
-                                <div class="aspect-[2/3] bg-slate-100 rounded-lg border border-slate-200 flex items-center justify-center text-slate-400 overflow-hidden">
-                                    <svg class="w-12 h-12 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                                <div class="aspect-[2/3] bg-slate-100 rounded-lg border border-slate-200 flex items-center justify-center text-slate-400 overflow-hidden relative">
+                                    <img id="detail-image" src="" class="w-full h-full object-cover hidden" alt="Book Cover">
+                                    <div id="detail-image-placeholder" class="flex items-center justify-center w-full h-full">
+                                        <svg class="w-12 h-12 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                                    </div>
                                 </div>
                                 <div class="mt-4 text-center">
                                     <span class="inline-block px-3 py-1 rounded-full text-sm font-bold bg-green-100 text-green-700">Available</span>
@@ -253,22 +290,51 @@
                                     <p class="text-xs font-bold text-slate-500 uppercase">Date Added</p>
                                     <p class="text-slate-700" id="detail-date">2023-10-15</p>
                                 </div>
+                                <div>
+                                    <p class="text-xs font-bold text-slate-500 uppercase">Category</p>
+                                    <p class="text-slate-700" id="detail-category">Fiction</p>
+                                </div>
+                                <div>
+                                    <p class="text-xs font-bold text-slate-500 uppercase">Source</p>
+                                    <p class="text-slate-700" id="detail-source">Purchased</p>
+                                </div>
+                                <div>
+                                    <p class="text-xs font-bold text-slate-500 uppercase">Condition</p>
+                                    <p class="text-slate-700" id="detail-condition">New</p>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Delete Modal -->
-                <div id="delete-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black/50 backdrop-blur-sm transition-opacity duration-300">
+                <!-- Restore Modal -->
+                <div id="restore-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black/50 backdrop-blur-sm transition-opacity duration-300">
                     <div class="bg-white rounded-xl shadow-2xl w-full max-w-sm p-6 text-center transform transition-all scale-100">
-                        <div class="w-12 h-12 rounded-full bg-[#C05640]/10 text-[#C05640] flex items-center justify-center mx-auto mb-4">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                        <div class="w-12 h-12 rounded-full bg-green-100 text-green-600 flex items-center justify-center mx-auto mb-4">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
                         </div>
-                        <h3 class="text-2xl font-cinzel text-[#C05640] mb-4">Delete Book?</h3>
-                        <p class="text-slate-600 mb-6">Are you sure you want to delete <span class="font-semibold text-[#183B5B]" id="delete-book-title">this book</span>? This action cannot be undone.</p>
+                        <h3 class="text-2xl font-cinzel text-slate-800 mb-2">Restore Book?</h3>
+                        <p class="text-slate-600 mb-6">Are you sure you want to restore <span class="font-semibold text-[#183B5B]" id="restore-book-title">this book</span>? It will be visible in the public catalog again.</p>
+                        <input type="hidden" id="restore-book-id">
                         <div class="flex justify-center gap-3">
-                            <button type="button" onclick="closeModal('delete-modal')" class="px-4 py-2 rounded-lg text-slate-600 hover:bg-slate-100 transition">Cancel</button>
-                            <button type="button" onclick="closeModal('delete-modal')" class="px-4 py-2 rounded-lg bg-[#C05640] text-white hover:bg-[#C05640]/80 transition shadow-md">Delete</button>
+                            <button type="button" onclick="closeModal('restore-modal')" class="px-4 py-2 rounded-lg text-slate-600 hover:bg-slate-100 transition">Cancel</button>
+                            <button type="button" onclick="restoreBook()" class="px-4 py-2 rounded-lg bg-green-600 text-white hover:bg-green-700 transition shadow-md">Restore</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Archive Modal -->
+                <div id="archive-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black/50 backdrop-blur-sm transition-opacity duration-300">
+                    <div class="bg-white rounded-xl shadow-2xl w-full max-w-sm p-6 text-center transform transition-all scale-100">
+                        <div class="w-12 h-12 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center mx-auto mb-4">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"></path></svg>
+                        </div>
+                        <h3 class="text-2xl font-cinzel text-slate-800 mb-2">Archive Book?</h3>
+                        <p class="text-slate-600 mb-6">Are you sure you want to archive <span class="font-semibold text-[#183B5B]" id="archive-book-title">this book</span>? It will be hidden from the public catalog.</p>
+                        <input type="hidden" id="archive-book-id">
+                        <div class="flex justify-center gap-3">
+                            <button type="button" onclick="closeModal('archive-modal')" class="px-4 py-2 rounded-lg text-slate-600 hover:bg-slate-100 transition">Cancel</button>
+                            <button type="button" onclick="archiveBook()" class="px-4 py-2 rounded-lg bg-amber-600 text-white hover:bg-amber-700 transition shadow-md">Archive</button>
                         </div>
                     </div>
                 </div>
@@ -278,6 +344,8 @@
         // Adjust path to point to root db_config.js using process.cwd() for reliability
         const { db } = require(path.join(process.cwd(), 'db_config.js'));
 
+        let isArchivedView = false;
+
         async function loadBooks() {
             const grid = document.getElementById('books-grid');
             const footerCount = document.getElementById('books-count');
@@ -286,7 +354,15 @@
             
             try {
                 // Fetch books from database
-                const query = `SELECT * FROM BOOK ORDER BY date_added DESC`;
+                let query;
+                if (isArchivedView) {
+                    query = "SELECT * FROM BOOK WHERE status = 'Archived' ORDER BY date_added DESC";
+                    document.getElementById('page-title').innerText = "Archived Books";
+                } else {
+                    query = "SELECT * FROM BOOK WHERE status != 'Archived' ORDER BY date_added DESC";
+                    document.getElementById('page-title').innerText = "Book Catalog";
+                }
+
                 const result = await db.execute(query);
                 const books = result.rows;
                 
@@ -345,13 +421,16 @@
                                 <span class="font-bold text-slate-700">${book.available_copies}</span> / ${book.total_copies} Copies
                             </div>
                             <div class="flex items-center gap-2">
-                                <button onclick='openDetailsModal(${safeBook})' 
+                                <button onclick='openBookDetails(${safeBook})' 
                                     class="text-xs font-bold text-[#183B5B] hover:text-[#2E5F87] bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-lg transition-colors">
                                     Details
                                 </button>
                                 <div class="h-4 w-px bg-slate-200 mx-1"></div>
-                                <button onclick='openEditModal(${safeBook})' class="text-slate-400 hover:text-blue-600 transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg></button>
-                                <button onclick="openDeleteModal(${book.book_id}, '${safeTitle}')" class="text-slate-400 hover:text-red-500 transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg></button>
+                                <button onclick='openBookEdit(${safeBook})' class="text-slate-400 hover:text-blue-600 transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg></button>
+                                ${isArchivedView 
+                                    ? `<button onclick="openRestoreModal(${book.book_id}, '${safeTitle}')" class="text-slate-400 hover:text-green-600 transition-colors" title="Restore Book"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg></button>`
+                                    : `<button onclick="openArchiveModal(${book.book_id}, '${safeTitle}')" class="text-slate-400 hover:text-amber-600 transition-colors" title="Archive Book"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"></path></svg></button>`
+                                }
                             </div>
                         </div>
                     `;
@@ -365,7 +444,7 @@
         }
         window.loadBooks = loadBooks;
 
-        function openEditModal(book) {
+        function openBookEdit(book) {
             document.getElementById('edit-book-id').value = book.book_id;
             document.getElementById('edit-title').value = book.title;
             document.getElementById('edit-author').value = book.author;
@@ -381,10 +460,13 @@
             document.getElementById('edit-total-copies').value = book.total_copies;
             document.getElementById('edit-avail-copies').value = book.available_copies;
             document.getElementById('edit-image').value = book.image_url || '';
+            document.getElementById('edit-category').value = book.book_category || 'Fiction';
+            document.getElementById('edit-source').value = book.book_source || 'Purchased';
+            document.getElementById('edit-condition').value = book.book_condition || 'New';
 
             document.getElementById('edit-modal').classList.remove('hidden');
         }
-        window.openEditModal = openEditModal;
+        window.openBookEdit = openBookEdit;
 
         async function saveBookChanges() {
             const id = document.getElementById('edit-book-id').value;
@@ -402,19 +484,23 @@
             const total = document.getElementById('edit-total-copies').value;
             const avail = document.getElementById('edit-avail-copies').value;
             const image = document.getElementById('edit-image').value;
+            const category = document.getElementById('edit-category').value;
+            const source = document.getElementById('edit-source').value;
+            const condition = document.getElementById('edit-condition').value;
 
             try {
                 const query = `
                     UPDATE BOOK SET 
                     title = ?, author = ?, isbn = ?, publisher = ?, publication_year = ?, 
                     genre = ?, dewey_decimal = ?, location = ?, status = ?, page_count = ?, 
-                    age_restriction = ?, total_copies = ?, available_copies = ?, image_url = ?
+                    age_restriction = ?, total_copies = ?, available_copies = ?, image_url = ?,
+                    book_category = ?, book_source = ?, book_condition = ?
                     WHERE book_id = ?
                 `;
                 
                 await db.execute({
                     sql: query,
-                    args: [title, author, isbn, publisher, year, genre, dewey, location, status, pages, age, total, avail, image, id]
+                    args: [title, author, isbn, publisher, year, genre, dewey, location, status, pages, age, total, avail, image, category, source, condition, id]
                 });
 
                 closeModal('edit-modal');
@@ -427,7 +513,7 @@
         window.saveBookChanges = saveBookChanges;
 
         // Modal Functions
-        function openDetailsModal(book) {
+        function openBookDetails(book) {
             document.getElementById('detail-title').innerText = book.title;
             document.getElementById('detail-book-id').innerText = book.book_id;
             document.getElementById('detail-material-id').innerText = book.material_id;
@@ -443,6 +529,23 @@
             document.getElementById('detail-age').innerText = book.age_restriction ? book.age_restriction + '+' : 'None';
             document.getElementById('detail-copies').innerText = `${book.available_copies} / ${book.total_copies}`;
             document.getElementById('detail-date').innerText = book.date_added;
+            document.getElementById('detail-category').innerText = book.book_category || 'N/A';
+            document.getElementById('detail-source').innerText = book.book_source || 'N/A';
+            document.getElementById('detail-condition').innerText = book.book_condition || 'N/A';
+
+            // Handle Image
+            const imgEl = document.getElementById('detail-image');
+            const placeholderEl = document.getElementById('detail-image-placeholder');
+            
+            if (book.image_url) {
+                imgEl.src = book.image_url;
+                imgEl.classList.remove('hidden');
+                placeholderEl.classList.add('hidden');
+            } else {
+                imgEl.src = '';
+                imgEl.classList.add('hidden');
+                placeholderEl.classList.remove('hidden');
+            }
             
             document.getElementById('details-modal').classList.remove('hidden');
         }
@@ -450,6 +553,66 @@
         function closeModal(modalId) {
             document.getElementById(modalId).classList.add('hidden');
         }
+
+        function openArchiveModal(id, title) {
+            document.getElementById('archive-book-id').value = id;
+            document.getElementById('archive-book-title').innerText = title;
+            document.getElementById('archive-modal').classList.remove('hidden');
+        }
+        window.openArchiveModal = openArchiveModal;
+
+        async function archiveBook() {
+            const id = document.getElementById('archive-book-id').value;
+            try {
+                await db.execute({
+                    sql: "UPDATE BOOK SET status = 'Archived' WHERE book_id = ?",
+                    args: [id]
+                });
+                closeModal('archive-modal');
+                loadBooks();
+            } catch (err) {
+                console.error("Error archiving book:", err);
+                alert("Failed to archive book: " + err.message);
+            }
+        }
+        window.archiveBook = archiveBook;
+
+        function toggleArchivedView() {
+            isArchivedView = !isArchivedView;
+            const btn = document.getElementById('archive-view-btn');
+            if (isArchivedView) {
+                btn.innerText = "View Active Books";
+                btn.classList.add('bg-amber-50', 'text-amber-700', 'border-amber-300');
+            } else {
+                btn.innerText = "View Archived Books";
+                btn.classList.remove('bg-amber-50', 'text-amber-700', 'border-amber-300');
+            }
+            loadBooks();
+        }
+        window.toggleArchivedView = toggleArchivedView;
+
+        function openRestoreModal(id, title) {
+            document.getElementById('restore-book-id').value = id;
+            document.getElementById('restore-book-title').innerText = title;
+            document.getElementById('restore-modal').classList.remove('hidden');
+        }
+        window.openRestoreModal = openRestoreModal;
+
+        async function restoreBook() {
+            const id = document.getElementById('restore-book-id').value;
+            try {
+                await db.execute({
+                    sql: "UPDATE BOOK SET status = 'Available' WHERE book_id = ?",
+                    args: [id]
+                });
+                closeModal('restore-modal');
+                loadBooks();
+            } catch (err) {
+                console.error("Error restoring book:", err);
+                alert("Failed to restore book: " + err.message);
+            }
+        }
+        window.restoreBook = restoreBook;
 
         // Initial Load
         loadBooks();

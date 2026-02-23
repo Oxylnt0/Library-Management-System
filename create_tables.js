@@ -68,27 +68,34 @@ async function createAllTables() {
             FOREIGN KEY (user_id) REFERENCES USER(user_id)
         );
 
-        -- 8. BOOK TABLE (Added image_url here)
-        CREATE TABLE IF NOT EXISTS BOOK (
-            book_id INTEGER PRIMARY KEY AUTOINCREMENT,
-            isbn VARCHAR(20),
-            title VARCHAR(255) NOT NULL,
-            material_id INT NOT NULL,
-            author VARCHAR(100) NOT NULL,
-            publisher VARCHAR(150),
-            publication_year INT,
-            dewey_decimal VARCHAR(20),
-            genre VARCHAR(100),
-            status VARCHAR(20) DEFAULT 'Available' CHECK (status IN ('Available', 'Archived')),
-            location VARCHAR(100),
-            page_count INT,
-            age_restriction INT,
-            available_copies INT DEFAULT 1,
-            total_copies INT DEFAULT 1,
-            image_url TEXT,
-            date_added DATE DEFAULT CURRENT_DATE, 
-            FOREIGN KEY (material_id) REFERENCES MATERIAL(material_id)
-        );
+        CREATE TABLE BOOK (
+                book_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                isbn VARCHAR(20),
+                title VARCHAR(255) NOT NULL,
+                material_id INT NOT NULL,
+                author VARCHAR(100) NOT NULL,
+                publisher VARCHAR(150),
+                publication_year INT,
+                dewey_decimal VARCHAR(20),
+                genre VARCHAR(100),
+                
+                /* NEW COLUMNS ADDED HERE */
+                book_category VARCHAR(50) NOT NULL CHECK (book_category IN ('Fiction', 'Non-Fiction', 'Reference', 'Textbook')),
+                book_source VARCHAR(50) NOT NULL CHECK (book_source IN ('Purchased', 'Donated')),
+                book_condition VARCHAR(50) DEFAULT 'New' CHECK (book_condition IN ('New', 'Good', 'Damaged', 'Outdated', 'Obsolete')),
+                
+                /* STATUS CLEANED UP */
+                status VARCHAR(20) DEFAULT 'Available' CHECK (status IN ('Available', 'Borrowed', 'Archived')),
+                
+                location VARCHAR(100),
+                page_count INT,
+                age_restriction INT,
+                available_copies INT DEFAULT 1,
+                total_copies INT DEFAULT 1,
+                image_url TEXT,
+                date_added DATE DEFAULT CURRENT_DATE, 
+                FOREIGN KEY (material_id) REFERENCES MATERIAL(material_id)
+            );
 
         -- 9. PERIODICAL TABLE
         CREATE TABLE IF NOT EXISTS PERIODICAL (

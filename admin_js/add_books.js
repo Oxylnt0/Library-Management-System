@@ -16,6 +16,9 @@ const inpGenre = document.getElementById('inp-genre');
 const inpDewey = document.getElementById('inp-dewey');
 const inpLocation = document.getElementById('inp-location');
 const inpAge = document.getElementById('inp-age');
+const inpCategory = document.getElementById('inp-category');
+const inpSource = document.getElementById('inp-source');
+const inpCondition = document.getElementById('inp-condition');
 
 // 4. Inventory
 const inpType = document.getElementById('inp-type');
@@ -98,6 +101,9 @@ btnSave.addEventListener('click', async () => {
             dewey: inpDewey.value,
             location: inpLocation.value,
             age: inpAge.value ? parseInt(inpAge.value) : 0,
+            category: inpCategory.value,
+            source: inpSource.value,
+            condition: inpCondition.value,
             type: inpType.value,
             copies: parseInt(inpCopies.value) || 1,
             image: inpImage.value,
@@ -120,13 +126,15 @@ btnSave.addEventListener('click', async () => {
                 title, author, isbn, material_id, 
                 publisher, publication_year, page_count, 
                 genre, dewey_decimal, location, age_restriction, 
-                status, image_url, available_copies, total_copies
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                status, image_url, available_copies, total_copies,
+                book_category, book_source, book_condition
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
             args: [
                 data.title, data.author, data.isbn, materialId,
                 data.publisher, data.year, data.pages,
                 data.genre, data.dewey, data.location, data.age,
-                data.status, data.image, data.copies, data.copies
+                data.status, data.image, data.copies, data.copies,
+                data.category, data.source, data.condition
             ]
         });
 

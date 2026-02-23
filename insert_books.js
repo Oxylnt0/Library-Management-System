@@ -1,77 +1,77 @@
 import { db } from "./db_config.js";
 
-const booksToInsert = [
+const newBooksToInsert = [
   {
-    isbn: "9780143039641", title: "Noli Me Tangere", author: "Jose Rizal",
-    publisher: "Penguin Classics", publication_year: 2006, dewey_decimal: "899.21", genre: "Historical Fiction",
-    location: "Filipiniana Section, Shelf A", page_count: 444, age_restriction: 12, available_copies: 5, total_copies: 5,
-    image_url: "https://covers.openlibrary.org/b/isbn/9780143039641-L.jpg"
+    isbn: "9780156012195", title: "The Little Prince", author: "Antoine de Saint-Exupéry",
+    publisher: "Harcourt", publication_year: 2000, dewey_decimal: "843.912", genre: "Children's Fiction",
+    location: "Children's Section, Shelf A", page_count: 96, age_restriction: 0, available_copies: 4, total_copies: 4,
+    image_url: "https://covers.openlibrary.org/b/isbn/9780156012195-L.jpg"
   },
   {
-    isbn: "9780143106395", title: "El Filibusterismo", author: "Jose Rizal",
-    publisher: "Penguin Classics", publication_year: 2011, dewey_decimal: "899.21", genre: "Historical Fiction",
-    location: "Filipiniana Section, Shelf A", page_count: 352, age_restriction: 12, available_copies: 4, total_copies: 4,
-    image_url: "https://covers.openlibrary.org/b/isbn/9780143106395-L.jpg"
+    isbn: "9780061122415", title: "The Alchemist", author: "Paulo Coelho",
+    publisher: "HarperOne", publication_year: 2014, dewey_decimal: "869.342", genre: "Philosophical Fiction",
+    location: "Fiction Section, Shelf E", page_count: 208, age_restriction: 12, available_copies: 6, total_copies: 6,
+    image_url: "https://covers.openlibrary.org/b/isbn/9780061122415-L.jpg"
   },
   {
-    isbn: "9780451524935", title: "1984", author: "George Orwell",
-    publisher: "Signet Classic", publication_year: 1961, dewey_decimal: "823.912", genre: "Dystopian",
-    location: "Fiction Section, Shelf B", page_count: 328, age_restriction: 14, available_copies: 3, total_copies: 3,
-    image_url: "https://covers.openlibrary.org/b/isbn/9780451524935-L.jpg"
+    isbn: "9789710843685", title: "Florante at Laura", author: "Francisco Balagtas",
+    publisher: "National Book Store", publication_year: 1999, dewey_decimal: "899.211", genre: "Epic Poetry",
+    location: "Filipiniana Section, Shelf A", page_count: 88, age_restriction: 10, available_copies: 5, total_copies: 5,
+    // Using a reliable Wikimedia Commons image for classic PH literature
+    image_url: "https://upload.wikimedia.org/wikipedia/commons/3/36/Florante_at_Laura_original_cover.jpg"
   },
   {
-    isbn: "9780060935467", title: "To Kill a Mockingbird", author: "Harper Lee",
-    publisher: "Harper Perennial", publication_year: 2002, dewey_decimal: "813.54", genre: "Classic Fiction",
-    location: "Fiction Section, Shelf C", page_count: 324, age_restriction: 12, available_copies: 2, total_copies: 2,
-    image_url: "https://covers.openlibrary.org/b/isbn/9780060935467-L.jpg"
+    isbn: "9780345339683", title: "The Hobbit", author: "J.R.R. Tolkien",
+    publisher: "Del Rey", publication_year: 1986, dewey_decimal: "823.912", genre: "Fantasy",
+    location: "Fantasy Section, Shelf A", page_count: 305, age_restriction: 10, available_copies: 3, total_copies: 3,
+    image_url: "https://covers.openlibrary.org/b/isbn/9780345339683-L.jpg"
   },
   {
-    isbn: "9780743273565", title: "The Great Gatsby", author: "F. Scott Fitzgerald",
-    publisher: "Scribner", publication_year: 2004, dewey_decimal: "813.52", genre: "Classic Fiction",
-    location: "Fiction Section, Shelf C", page_count: 180, age_restriction: 13, available_copies: 6, total_copies: 6,
-    image_url: "https://covers.openlibrary.org/b/isbn/9780743273565-L.jpg"
+    isbn: "9780439064873", title: "Harry Potter and the Chamber of Secrets", author: "J.K. Rowling",
+    publisher: "Scholastic", publication_year: 2000, dewey_decimal: "823.914", genre: "Fantasy",
+    location: "Young Adult Section, Shelf B", page_count: 341, age_restriction: 8, available_copies: 5, total_copies: 5,
+    image_url: "https://covers.openlibrary.org/b/isbn/9780439064873-L.jpg"
   },
   {
-    isbn: "9780141439518", title: "Pride and Prejudice", author: "Jane Austen",
-    publisher: "Penguin Classics", publication_year: 2002, dewey_decimal: "823.7", genre: "Romance",
-    location: "Romance Section, Shelf A", page_count: 480, age_restriction: 10, available_copies: 3, total_copies: 3,
-    image_url: "https://covers.openlibrary.org/b/isbn/9780141439518-L.jpg"
+    isbn: "9780486406510", title: "A Tale of Two Cities", author: "Charles Dickens",
+    publisher: "Dover Publications", publication_year: 1999, dewey_decimal: "823.8", genre: "Historical Fiction",
+    location: "Classic Literature, Shelf B", page_count: 400, age_restriction: 13, available_copies: 2, total_copies: 2,
+    image_url: "https://covers.openlibrary.org/b/isbn/9780486406510-L.jpg"
   },
   {
-    isbn: "9780316769488", title: "The Catcher in the Rye", author: "J.D. Salinger",
-    publisher: "Little, Brown and Company", publication_year: 2001, dewey_decimal: "813.54", genre: "Coming-of-age",
-    location: "Fiction Section, Shelf D", page_count: 277, age_restriction: 14, available_copies: 2, total_copies: 2,
-    image_url: "https://covers.openlibrary.org/b/isbn/9780316769488-L.jpg"
+    isbn: "9780553296983", title: "The Diary of a Young Girl", author: "Anne Frank",
+    publisher: "Bantam", publication_year: 1993, dewey_decimal: "940.53", genre: "Biography / Memoir",
+    location: "Biography Section, Shelf A", page_count: 304, age_restriction: 11, available_copies: 3, total_copies: 3,
+    image_url: "https://covers.openlibrary.org/b/isbn/9780553296983-L.jpg"
   },
   {
-    isbn: "9781451673319", title: "Fahrenheit 451", author: "Ray Bradbury",
-    publisher: "Simon & Schuster", publication_year: 2012, dewey_decimal: "813.54", genre: "Sci-Fi",
-    location: "Sci-Fi Section, Shelf A", page_count: 249, age_restriction: 13, available_copies: 4, total_copies: 4,
-    image_url: "https://covers.openlibrary.org/b/isbn/9781451673319-L.jpg"
+    isbn: "9780451526342", title: "Animal Farm", author: "George Orwell",
+    publisher: "Signet Classic", publication_year: 1996, dewey_decimal: "823.912", genre: "Political Satire",
+    location: "Fiction Section, Shelf B", page_count: 144, age_restriction: 12, available_copies: 4, total_copies: 4,
+    image_url: "https://covers.openlibrary.org/b/isbn/9780451526342-L.jpg"
   },
   {
-    isbn: "9780544003415", title: "The Lord of the Rings: The Fellowship of the Ring", author: "J.R.R. Tolkien",
-    publisher: "Mariner Books", publication_year: 2012, dewey_decimal: "823.912", genre: "Fantasy",
-    location: "Fantasy Section, Shelf A", page_count: 432, age_restriction: 10, available_copies: 3, total_copies: 3,
-    image_url: "https://covers.openlibrary.org/b/isbn/9780544003415-L.jpg"
+    isbn: "9781594631931", title: "The Kite Runner", author: "Khaled Hosseini",
+    publisher: "Riverhead Books", publication_year: 2003, dewey_decimal: "813.6", genre: "Historical Fiction",
+    location: "Fiction Section, Shelf F", page_count: 371, age_restriction: 15, available_copies: 4, total_copies: 4,
+    image_url: "https://covers.openlibrary.org/b/isbn/9781594631931-L.jpg"
   },
   {
-    isbn: "9780590353427", title: "Harry Potter and the Sorcerer's Stone", author: "J.K. Rowling",
-    publisher: "Scholastic", publication_year: 1998, dewey_decimal: "823.914", genre: "Fantasy",
-    location: "Young Adult Section, Shelf B", page_count: 309, age_restriction: 8, available_copies: 7, total_copies: 7,
-    image_url: "https://covers.openlibrary.org/b/isbn/9780590353427-L.jpg"
+    isbn: "9780544336261", title: "The Giver", author: "Lois Lowry",
+    publisher: "HMH Books for Young Readers", publication_year: 2014, dewey_decimal: "813.54", genre: "Dystopian",
+    location: "Young Adult Section, Shelf C", page_count: 240, age_restriction: 11, available_copies: 5, total_copies: 5,
+    image_url: "https://covers.openlibrary.org/b/isbn/9780544336261-L.jpg"
   }
 ];
 
-async function seedBooks() {
+async function seedMoreBooks() {
   console.log("📚 Starting Two-Step Book Insertion Process...\n");
 
   try {
     let successCount = 0;
 
-    for (const book of booksToInsert) {
+    for (const book of newBooksToInsert) {
       // --- STEP 1: Insert into MATERIAL ---
-      // We use RETURNING material_id to instantly grab the ID of the new row.
       const materialResult = await db.execute({
         sql: `
           INSERT INTO MATERIAL (title, material_type, dewey_decimal, publication_year, status) 
@@ -84,7 +84,6 @@ async function seedBooks() {
       const newMaterialId = materialResult.rows[0].material_id;
 
       // --- STEP 2: Insert into BOOK ---
-      // We pass the newMaterialId into the material_id column here.
       await db.execute({
         sql: `
           INSERT INTO BOOK (
@@ -105,11 +104,11 @@ async function seedBooks() {
       successCount++;
     }
 
-    console.log(`\n🎉 Successfully inserted ${successCount} books into both tables!`);
+    console.log(`\n🎉 Successfully inserted ${successCount} new books!`);
 
   } catch (error) {
     console.error("❌ ERROR inserting books:", error.message);
   }
 }
 
-seedBooks();
+seedMoreBooks();
