@@ -22,6 +22,22 @@ async function registerUser(userData) {
         });
 
         const userId = result.rows[0].user_id;
+
+        // Insert Security Questions
+        if (userData.securityQuestions && userData.securityQuestions.length === 3) {
+            await db.execute({
+                sql: `INSERT INTO SECURITY_QUESTIONS (
+                    user_id, question_1, answer_1, question_2, answer_2, question_3, answer_3
+                ) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+                args: [
+                    userId,
+                    userData.securityQuestions[0].question, userData.securityQuestions[0].answer,
+                    userData.securityQuestions[1].question, userData.securityQuestions[1].answer,
+                    userData.securityQuestions[2].question, userData.securityQuestions[2].answer
+                ]
+            });
+        }
+
         await sendLibraryCard(userData.email, userId, userData.firstName);
 
         return { success: true, message: "User registered successfully!" };
@@ -52,6 +68,21 @@ async function registerGuardian(guardianData, childData) {
         });
         
         const guardianId = guardianResult.rows[0].guardian_id;
+
+        // Insert Security Questions
+        if (guardianData.securityQuestions && guardianData.securityQuestions.length === 3) {
+            await db.execute({
+                sql: `INSERT INTO SECURITY_QUESTIONS (
+                    guardian_id, question_1, answer_1, question_2, answer_2, question_3, answer_3
+                ) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+                args: [
+                    guardianId,
+                    guardianData.securityQuestions[0].question, guardianData.securityQuestions[0].answer,
+                    guardianData.securityQuestions[1].question, guardianData.securityQuestions[1].answer,
+                    guardianData.securityQuestions[2].question, guardianData.securityQuestions[2].answer
+                ]
+            });
+        }
 
         const childResult = await db.execute({
             sql: `INSERT INTO USER (

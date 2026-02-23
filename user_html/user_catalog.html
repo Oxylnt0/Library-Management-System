@@ -55,7 +55,7 @@
             class="w-72 bg-white/60 backdrop-blur-md border-r border-white/20 flex-shrink-0 hidden md:flex flex-col h-full overflow-y-auto p-6 z-30">
             <div class="flex items-center justify-between mb-6">
                 <h2 class="font-bold text-[#183B5B] text-lg font-cinzel">Advanced Filters</h2>
-                <button class="text-xs text-[#2E5F87] font-medium hover:underline">Reset</button>
+                <button id="clear-filters-btn" class="text-xs text-[#2E5F87] font-medium hover:underline">Reset</button>
             </div>
 
             <!-- Category Filter -->
@@ -63,33 +63,33 @@
                 <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">Category</h3>
                 <div class="space-y-3">
                     <label class="flex items-center gap-3 text-sm text-slate-600 cursor-pointer group">
-                        <input type="checkbox"
-                            class="rounded text-blue-600 focus:ring-blue-500 border-slate-300 w-4 h-4">
+                        <input type="checkbox" value="000"
+                            class="category-filter rounded text-blue-600 focus:ring-blue-500 border-slate-300 w-4 h-4">
                         <span class="group-hover:text-slate-900 transition-colors">000 - Generalities</span>
                     </label>
                     <label class="flex items-center gap-3 text-sm text-slate-600 cursor-pointer group">
-                        <input type="checkbox"
-                            class="rounded text-blue-600 focus:ring-blue-500 border-slate-300 w-4 h-4">
+                        <input type="checkbox" value="100"
+                            class="category-filter rounded text-blue-600 focus:ring-blue-500 border-slate-300 w-4 h-4">
                         <span class="group-hover:text-slate-900 transition-colors">100 - Philosophy</span>
                     </label>
                     <label class="flex items-center gap-3 text-sm text-slate-600 cursor-pointer group">
-                        <input type="checkbox"
-                            class="rounded text-blue-600 focus:ring-blue-500 border-slate-300 w-4 h-4">
+                        <input type="checkbox" value="200"
+                            class="category-filter rounded text-blue-600 focus:ring-blue-500 border-slate-300 w-4 h-4">
                         <span class="group-hover:text-slate-900 transition-colors">200 - Religion</span>
                     </label>
                     <label class="flex items-center gap-3 text-sm text-slate-600 cursor-pointer group">
-                        <input type="checkbox"
-                            class="rounded text-blue-600 focus:ring-blue-500 border-slate-300 w-4 h-4">
+                        <input type="checkbox" value="300"
+                            class="category-filter rounded text-blue-600 focus:ring-blue-500 border-slate-300 w-4 h-4">
                         <span class="group-hover:text-slate-900 transition-colors">300 - Social Sciences</span>
                     </label>
                     <label class="flex items-center gap-3 text-sm text-slate-600 cursor-pointer group">
-                        <input type="checkbox"
-                            class="rounded text-blue-600 focus:ring-blue-500 border-slate-300 w-4 h-4">
+                        <input type="checkbox" value="400"
+                            class="category-filter rounded text-blue-600 focus:ring-blue-500 border-slate-300 w-4 h-4">
                         <span class="group-hover:text-slate-900 transition-colors">400 - Language</span>
                     </label>
                     <label class="flex items-center gap-3 text-sm text-slate-600 cursor-pointer group">
-                        <input type="checkbox"
-                            class="rounded text-blue-600 focus:ring-blue-500 border-slate-300 w-4 h-4">
+                        <input type="checkbox" value="500"
+                            class="category-filter rounded text-blue-600 focus:ring-blue-500 border-slate-300 w-4 h-4">
                         <span class="group-hover:text-slate-900 transition-colors">500 - Science</span>
                     </label>
                 </div>
@@ -100,17 +100,17 @@
                 <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">Availability</h3>
                 <div class="space-y-3">
                     <label class="flex items-center gap-3 text-sm text-slate-600 cursor-pointer group">
-                        <input type="radio" name="status"
+                        <input type="radio" name="status" value="All"
                             class="text-blue-600 focus:ring-blue-500 border-slate-300 w-4 h-4" checked>
                         <span class="group-hover:text-slate-900 transition-colors">All Books</span>
                     </label>
                     <label class="flex items-center gap-3 text-sm text-slate-600 cursor-pointer group">
-                        <input type="radio" name="status"
+                        <input type="radio" name="status" value="Available"
                             class="text-blue-600 focus:ring-blue-500 border-slate-300 w-4 h-4">
                         <span class="group-hover:text-slate-900 transition-colors">Available Now</span>
                     </label>
                     <label class="flex items-center gap-3 text-sm text-slate-600 cursor-pointer group">
-                        <input type="radio" name="status"
+                        <input type="radio" name="status" value="Borrowed"
                             class="text-blue-600 focus:ring-blue-500 border-slate-300 w-4 h-4">
                         <span class="group-hover:text-slate-900 transition-colors">Borrowed</span>
                     </label>
@@ -122,12 +122,12 @@
                 <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">Publication Year</h3>
                 <div class="flex items-center gap-3">
                     <div class="relative flex-1">
-                        <input type="number" placeholder="From"
+                        <input type="number" id="year-from" placeholder="From"
                             class="w-full pl-3 pr-2 py-2 bg-white border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-sm">
                     </div>
                     <span class="text-slate-400 font-medium">-</span>
                     <div class="relative flex-1">
-                        <input type="number" placeholder="To"
+                        <input type="number" id="year-to" placeholder="To"
                             class="w-full pl-3 pr-2 py-2 bg-white border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-sm">
                     </div>
                 </div>
@@ -159,9 +159,9 @@
                                     d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                             </svg>
                         </div>
-                        <input type="text" placeholder="Search by title, author, or ISBN..."
+                        <input type="text" id="search-input" placeholder="Search by title, author, or ISBN..."
                             class="w-full pl-10 pr-14 py-3 bg-white/80 border border-white/30 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-[#D6A84A]/50 focus:border-[#D6A84A] transition-all shadow-inner text-[#1A202C]">
-                        <button
+                        <button id="search-btn"
                             class="absolute right-1.5 top-1.5 bottom-1.5 px-4 bg-[#D6A84A] text-white text-xs font-bold rounded-full hover:brightness-110 transition-colors shadow-sm">
                             Search
                         </button>
@@ -170,11 +170,10 @@
 
                 <!-- View Toggles & Sort -->
                 <div class="flex items-center justify-between">
-                    <p class="text-sm font-medium text-[#2E5F87]">Showing <span class="text-[#1A202C]">1-12</span> of
-                        <span class="text-[#1A202C]">124</span> results</p>
+                    <p class="text-sm font-medium text-[#2E5F87]">Found <span id="result-count" class="text-[#1A202C]">0</span> results</p>
 
                     <div class="flex items-center gap-4">
-                        <select
+                        <select id="sort-select"
                             class="text-sm border-none bg-transparent text-slate-600 font-medium focus:ring-0 cursor-pointer hover:text-slate-900">
                             <option>Sort by: Relevance</option>
                             <option>Newest Arrivals</option>
@@ -204,208 +203,12 @@
 
             <!-- Book Grid -->
             <div class="flex-1 overflow-y-auto p-8 scroll-smooth">
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-8 pb-10">
-
-                    <!-- Book Card 1 -->
-                    <div
-                        class="group bg-white/70 backdrop-blur-md rounded-2xl overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-300 border border-white/20 flex flex-col">
-                        <div class="aspect-[2/3] bg-slate-200 relative overflow-hidden">
-                            <!-- Placeholder Cover -->
-                            <div class="absolute inset-0 flex items-center justify-center text-slate-400 bg-slate-100">
-                                <svg class="w-12 h-12 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                                        d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253">
-                                    </path>
-                                </svg>
-                            </div>
-                            <!-- Gradient Overlay on Hover -->
-                            <div
-                                class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-4">
-                                <button
-                                    class="w-full py-2 bg-[#183B5B] text-white text-xs font-bold rounded-lg shadow-lg hover:bg-[#2E5F87] transition-colors">View
-                                    Details</button>
-                            </div>
-                        </div>
-                        <div class="p-5 flex-1 flex flex-col">
-                            <div class="mb-2 flex items-center justify-between">
-                                <span
-                                    class="text-[10px] font-bold text-blue-600 uppercase tracking-wider bg-blue-50 px-2 py-1 rounded-md">Fiction</span>
-                            </div>
-                            <h3
-                                class="font-bold text-slate-800 mb-1 leading-tight group-hover:text-blue-600 transition-colors">
-                                Noli Me Tangere</h3>
-                            <p class="text-sm text-slate-500 mb-4">Jose Rizal</p>
-
-                            <div class="mt-auto pt-4 border-t border-slate-50 flex items-center justify-between">
-                                <span
-                                    class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-100">
-                                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                                    Available
-                                </span>
-                                <span class="text-xs text-slate-400 font-medium">1887</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Book Card 2 -->
-                    <div
-                        class="group bg-white rounded-2xl overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-300 border border-slate-100 flex flex-col">
-                        <div class="aspect-[2/3] bg-slate-200 relative overflow-hidden">
-                            <div class="absolute inset-0 flex items-center justify-center text-slate-400 bg-slate-100">
-                                <svg class="w-12 h-12 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                                        d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253">
-                                    </path>
-                                </svg>
-                            </div>
-                            <div
-                                class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-4">
-                                <button
-                                    class="w-full py-2 bg-[#183B5B] text-white text-xs font-bold rounded-lg shadow-lg hover:bg-[#2E5F87] transition-colors">View
-                                    Details</button>
-                            </div>
-                        </div>
-                        <div class="p-5 flex-1 flex flex-col">
-                            <div class="mb-2 flex items-center justify-between">
-                                <span
-                                    class="text-[10px] font-bold text-purple-600 uppercase tracking-wider bg-purple-50 px-2 py-1 rounded-md">Tech</span>
-                            </div>
-                            <h3
-                                class="font-bold text-slate-800 mb-1 leading-tight group-hover:text-blue-600 transition-colors">
-                                Clean Code</h3>
-                            <p class="text-sm text-slate-500 mb-4">Robert C. Martin</p>
-
-                            <div class="mt-auto pt-4 border-t border-slate-50 flex items-center justify-between">
-                                <span
-                                    class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-50 text-amber-700 border border-amber-100">
-                                    <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
-                                    Borrowed
-                                </span>
-                                <span class="text-xs text-slate-400 font-medium">2008</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Book Card 3 -->
-                    <div
-                        class="group bg-white rounded-2xl overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-300 border border-slate-100 flex flex-col">
-                        <div class="aspect-[2/3] bg-slate-200 relative overflow-hidden">
-                            <div class="absolute inset-0 flex items-center justify-center text-slate-400 bg-slate-100">
-                                <svg class="w-12 h-12 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                                        d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253">
-                                    </path>
-                                </svg>
-                            </div>
-                            <div
-                                class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-4">
-                                <button
-                                    class="w-full py-2 bg-[#183B5B] text-white text-xs font-bold rounded-lg shadow-lg hover:bg-[#2E5F87] transition-colors">View
-                                    Details</button>
-                            </div>
-                        </div>
-                        <div class="p-5 flex-1 flex flex-col">
-                            <div class="mb-2 flex items-center justify-between">
-                                <span
-                                    class="text-[10px] font-bold text-indigo-600 uppercase tracking-wider bg-indigo-50 px-2 py-1 rounded-md">Self-Help</span>
-                            </div>
-                            <h3
-                                class="font-bold text-slate-800 mb-1 leading-tight group-hover:text-blue-600 transition-colors">
-                                Atomic Habits</h3>
-                            <p class="text-sm text-slate-500 mb-4">James Clear</p>
-
-                            <div class="mt-auto pt-4 border-t border-slate-50 flex items-center justify-between">
-                                <span
-                                    class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-100">
-                                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                                    Available
-                                </span>
-                                <span class="text-xs text-slate-400 font-medium">2018</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Book Card 4 -->
-                    <div
-                        class="group bg-white rounded-2xl overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-300 border border-slate-100 flex flex-col">
-                        <div class="aspect-[2/3] bg-slate-200 relative overflow-hidden">
-                            <div class="absolute inset-0 flex items-center justify-center text-slate-400 bg-slate-100">
-                                <svg class="w-12 h-12 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                                        d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253">
-                                    </path>
-                                </svg>
-                            </div>
-                            <div
-                                class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-4">
-                                <button
-                                    class="w-full py-2 bg-[#183B5B] text-white text-xs font-bold rounded-lg shadow-lg hover:bg-[#2E5F87] transition-colors">View
-                                    Details</button>
-                            </div>
-                        </div>
-                        <div class="p-5 flex-1 flex flex-col">
-                            <div class="mb-2 flex items-center justify-between">
-                                <span
-                                    class="text-[10px] font-bold text-pink-600 uppercase tracking-wider bg-pink-50 px-2 py-1 rounded-md">Design</span>
-                            </div>
-                            <h3
-                                class="font-bold text-slate-800 mb-1 leading-tight group-hover:text-blue-600 transition-colors">
-                                Design Patterns</h3>
-                            <p class="text-sm text-slate-500 mb-4">Erich Gamma</p>
-
-                            <div class="mt-auto pt-4 border-t border-slate-50 flex items-center justify-between">
-                                <span
-                                    class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-100">
-                                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                                    Available
-                                </span>
-                                <span class="text-xs text-slate-400 font-medium">1994</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Book Card 5 -->
-                    <div
-                        class="group bg-white rounded-2xl overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-300 border border-slate-100 flex flex-col">
-                        <div class="aspect-[2/3] bg-slate-200 relative overflow-hidden">
-                            <div class="absolute inset-0 flex items-center justify-center text-slate-400 bg-slate-100">
-                                <svg class="w-12 h-12 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                                        d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253">
-                                    </path>
-                                </svg>
-                            </div>
-                            <div
-                                class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-4">
-                                <button
-                                    class="w-full py-2 bg-[#183B5B] text-white text-xs font-bold rounded-lg shadow-lg hover:bg-[#2E5F87] transition-colors">View
-                                    Details</button>
-                            </div>
-                        </div>
-                        <div class="p-5 flex-1 flex flex-col">
-                            <div class="mb-2 flex items-center justify-between">
-                                <span
-                                    class="text-[10px] font-bold text-orange-600 uppercase tracking-wider bg-orange-50 px-2 py-1 rounded-md">History</span>
-                            </div>
-                            <h3
-                                class="font-bold text-[#1A202C] mb-1 leading-tight group-hover:text-[#D6A84A] transition-colors">
-                                Sapiens</h3>
-                            <p class="text-sm text-[#2E5F87] mb-4">Yuval Noah Harari</p>
-
-                            <div class="mt-auto pt-4 border-t border-white/20 flex items-center justify-between">
-                                <span
-                                    class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-50 text-amber-700 border border-amber-100">
-                                    <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
-                                    Borrowed
-                                </span>
-                                <span class="text-xs text-[#2E5F87] font-medium">2011</span>
-                            </div>
-                        </div>
-                    </div>
-
+                <div id="book-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-8 pb-10">
+                    <!-- Books will be loaded here dynamically -->
                 </div>
             </div>
                 </main>
+                <script src="../user_js/user_catalog.js"></script>
             </div>
         </div>
 

@@ -197,7 +197,7 @@ async function createAllTables() {
             (user_id IS NOT NULL AND guardian_id IS NULL) OR 
             (user_id IS NULL AND guardian_id IS NOT NULL)
         )
-    `;
+    );`;
 
     try {
         const statements = schema.split(';').filter(stmt => stmt.trim() !== '');
