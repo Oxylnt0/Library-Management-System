@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Puerto Palabra - Browse Books</title>
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' https: data:; connect-src 'self' http://localhost:3000;">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -173,6 +174,13 @@
                     <p class="text-sm font-medium text-[#2E5F87]">Found <span id="result-count" class="text-[#1A202C]">0</span> results</p>
 
                     <div class="flex items-center gap-4">
+                        <!-- Refresh Button -->
+                        <button id="refresh-btn" class="p-2 text-[#2E5F87] hover:text-[#183B5B] transition-colors rounded-full hover:bg-slate-100" title="Refresh Database">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                            </svg>
+                        </button>
+
                         <select id="sort-select"
                             class="text-sm border-none bg-transparent text-slate-600 font-medium focus:ring-0 cursor-pointer hover:text-slate-900">
                             <option>Sort by: Relevance</option>
@@ -208,6 +216,68 @@
                 </div>
             </div>
                 </main>
+
+    <!-- Book Details Modal -->
+    <div id="book-modal" class="fixed inset-0 z-50 hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+        <!-- Backdrop -->
+        <div class="fixed inset-0 bg-gray-900/75 transition-opacity backdrop-blur-sm" onclick="closeModal()"></div>
+
+        <div class="fixed inset-0 z-10 overflow-y-auto">
+            <div class="flex min-h-full items-center justify-center p-4 text-center sm:p-0">
+                <!-- Modal Panel -->
+                <div class="relative transform overflow-hidden rounded-xl bg-white text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-4xl border border-white/20">
+                    
+                    <!-- Close Button -->
+                    <div class="absolute top-4 right-4 z-10">
+                        <button type="button" onclick="closeModal()" class="rounded-full bg-white/80 p-1 text-gray-400 hover:text-gray-600 hover:bg-white transition-colors">
+                            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
+
+                    <div class="bg-white px-4 pb-4 pt-5 sm:p-8">
+                        <div class="sm:flex sm:items-start gap-8">
+                            <!-- Book Cover -->
+                            <div class="mx-auto flex-shrink-0 sm:mx-0 sm:w-1/3">
+                                <img id="modal-image" src="" alt="Book Cover" class="w-full rounded-lg shadow-lg object-cover aspect-[2/3] ring-1 ring-gray-900/5">
+                                <div class="mt-4 text-center">
+                                    <span id="modal-status-badge" class="inline-flex items-center rounded-full px-3 py-1 text-sm font-medium ring-1 ring-inset">
+                                        Available
+                                    </span>
+                                </div>
+                            </div>
+
+                            <!-- Book Details -->
+                            <div class="mt-6 text-center sm:ml-4 sm:mt-0 sm:text-left flex-1">
+                                <h3 class="text-3xl font-bold leading-tight text-[#183B5B] font-cinzel" id="modal-title">Book Title</h3>
+                                <p class="text-xl text-[#D6A84A] font-medium mt-2" id="modal-author">Author Name</p>
+                                
+                                <div class="mt-8 grid grid-cols-2 gap-x-6 gap-y-4 text-sm text-slate-600">
+                                    <div class="flex flex-col"><span class="text-xs font-bold text-slate-400 uppercase tracking-wider">ISBN</span><span id="modal-isbn" class="font-medium text-slate-800"></span></div>
+                                    <div class="flex flex-col"><span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Publisher</span><span id="modal-publisher" class="font-medium text-slate-800"></span></div>
+                                    <div class="flex flex-col"><span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Year</span><span id="modal-year" class="font-medium text-slate-800"></span></div>
+                                    <div class="flex flex-col"><span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Genre</span><span id="modal-genre" class="font-medium text-slate-800"></span></div>
+                                    <div class="flex flex-col"><span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Category</span><span id="modal-category" class="font-medium text-slate-800"></span></div>
+                                    <div class="flex flex-col"><span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Location</span><span id="modal-location" class="font-medium text-slate-800"></span></div>
+                                    <div class="flex flex-col"><span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Dewey Decimal</span><span id="modal-dewey" class="font-medium text-slate-800"></span></div>
+                                    <div class="flex flex-col"><span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Pages</span><span id="modal-pages" class="font-medium text-slate-800"></span></div>
+                                </div>
+
+                                <div class="mt-8 pt-6 border-t border-slate-100">
+                                    <h4 class="text-sm font-bold text-slate-800 mb-2">Description</h4>
+                                    <p class="text-sm text-slate-600 leading-relaxed" id="modal-description">
+                                        No description available for this title.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
                 <script src="../user_js/user_catalog.js"></script>
             </div>
         </div>
