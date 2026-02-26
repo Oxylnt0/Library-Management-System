@@ -76,88 +76,6 @@
             </select>
         </section>
 
-        <!-- Book Grid -->
-        <section>
-            <h2 class="text-xl font-semibold mb-4 text-[#1A202C] font-cinzel">Available for Reservation</h2>
-
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-
-                <!-- Book Card -->
-                <div class="bg-white/70 backdrop-blur-md rounded-xl shadow-lg border border-white/20 p-5 flex flex-col">
-                    <div class="flex gap-4 mb-4">
-                        <div
-                            class="w-20 h-28 bg-gray-200 rounded-md flex items-center justify-center text-sm text-gray-500">
-                            Cover
-                        </div>
-
-                        <div class="flex-1">
-                            <h3 class="font-semibold text-lg text-[#1A202C]">The Lighthouse Mystery</h3>
-                            <p class="text-sm text-[#2E5F87]">A. Collins</p>
-                            <p class="text-sm text-[#2E5F87] mt-1">Dewey: 823.91</p>
-
-                            <span
-                                class="inline-block mt-2 px-3 py-1 text-xs rounded-full bg-yellow-100 text-yellow-800">
-                                Borrowed
-                            </span>
-                        </div>
-                    </div>
-
-                    <button onclick="openReservePanel()" class="mt-auto bg-[#183B5B] text-white py-2 rounded-lg hover:bg-[#2E5F87] transition">
-                        Reserve Book
-                    </button>
-                </div>
-
-                <!-- Book Card (Already Reserved) -->
-                <div class="bg-white/70 backdrop-blur-md rounded-xl shadow-lg border border-white/20 p-5 flex flex-col">
-                    <div class="flex gap-4 mb-4">
-                        <div
-                            class="w-20 h-28 bg-gray-200 rounded-md flex items-center justify-center text-sm text-gray-500">
-                            Cover
-                        </div>
-
-                        <div class="flex-1">
-                            <h3 class="font-semibold text-lg text-[#1A202C]">Marine Biology</h3>
-                            <p class="text-sm text-[#2E5F87]">S. Rivera</p>
-                            <p class="text-sm text-[#2E5F87] mt-1">Dewey: 578.77</p>
-
-                            <span class="inline-block mt-2 px-3 py-1 text-xs rounded-full bg-[#C05640]/10 text-[#C05640]">
-                                Reserved
-                            </span>
-                        </div>
-                    </div>
-
-                    <button disabled class="mt-auto bg-slate-200 text-slate-500 py-2 rounded-lg cursor-not-allowed">
-                        Already Reserved
-                    </button>
-                </div>
-
-                <!-- Book Card (Available Now) -->
-                <div class="bg-white/70 backdrop-blur-md rounded-xl shadow-lg border border-white/20 p-5 flex flex-col">
-                    <div class="flex gap-4 mb-4">
-                        <div
-                            class="w-20 h-28 bg-gray-200 rounded-md flex items-center justify-center text-sm text-gray-500">
-                            Cover
-                        </div>
-
-                        <div class="flex-1">
-                            <h3 class="font-semibold text-lg text-[#1A202C]">Ocean Adventures</h3>
-                            <p class="text-sm text-[#2E5F87]">J. Harrison</p>
-                            <p class="text-sm text-[#2E5F87] mt-1">Dewey: 910.45</p>
-
-                            <span class="inline-block mt-2 px-3 py-1 text-xs rounded-full bg-[#5B8C5A]/10 text-[#5B8C5A]">
-                                Available
-                            </span>
-                        </div>
-                    </div>
-
-                    <button onclick="openBorrowPanel()" class="mt-auto bg-[#5B8C5A] text-white py-2 rounded-lg hover:bg-[#5B8C5A]/80 transition">
-                        Borrow Now
-                    </button>
-                </div>
-
-            </div>
-        </section>
-
         <!-- Active Reservations -->
         <section class="mt-14">
             <h2 class="text-xl font-semibold mb-4 text-[#1A202C] font-cinzel">My Active Reservations</h2>
@@ -170,19 +88,11 @@
                             <th class="text-left px-5 py-3">Author</th>
                             <th class="text-left px-5 py-3">Reserved On</th>
                             <th class="text-left px-5 py-3">Status</th>
+                            <th class="text-center px-5 py-3">Actions</th>
                         </tr>
                     </thead>
-                    <tbody>
-                        <tr class="border-t border-white/20">
-                            <td class="px-5 py-4 text-[#1A202C]">The Lighthouse Mystery</td>
-                            <td class="px-5 py-4 text-[#2E5F87]">A. Collins</td>
-                            <td class="px-5 py-4 text-[#2E5F87]">03/02/2024</td>
-                            <td class="px-5 py-4">
-                                <span class="px-3 py-1 text-xs rounded-full bg-yellow-100 text-yellow-800">
-                                    Waiting for Return
-                                </span>
-                            </td>
-                        </tr>
+                    <tbody id="reservations-tbody">
+                        <!-- Dynamic content will be loaded here -->
                     </tbody>
                 </table>
             </div>
@@ -203,21 +113,6 @@
         </div>
     </div>
 
-    <!-- Borrow Panel (Modal) -->
-    <div id="user_borrow_panel" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden items-center justify-center z-50 transition-opacity duration-300">
-        <div class="bg-white rounded-xl shadow-2xl w-full max-w-md p-6 transform transition-all scale-100">
-            <h3 class="text-2xl font-cinzel text-[#5B8C5A] mb-4">Confirm Borrow</h3>
-            <p class="text-slate-600 mb-6">
-                You are about to borrow <span class="font-semibold text-[#183B5B]">Ocean Adventures</span>.
-                Due date will be calculated from today.
-            </p>
-            <div class="flex justify-end gap-3">
-                <button onclick="closeBorrowPanel()" class="px-4 py-2 rounded-lg text-slate-600 hover:bg-slate-100 transition">Cancel</button>
-                <button onclick="closeBorrowPanel()" class="px-4 py-2 rounded-lg bg-[#5B8C5A] text-white hover:bg-[#5B8C5A]/80 transition shadow-md">Confirm Borrow</button>
-            </div>
-        </div>
-    </div>
-
     <script>
         function openReservePanel() {
             const panel = document.getElementById('user_reserve_panel');
@@ -229,16 +124,67 @@
             panel.classList.add('hidden');
             panel.classList.remove('flex');
         }
-        function openBorrowPanel() {
-            const panel = document.getElementById('user_borrow_panel');
-            panel.classList.remove('hidden');
-            panel.classList.add('flex');
+    </script>
+
+    <script>
+      {
+        const path = require('path');
+        const { db } = require(path.join(process.cwd(), 'db_config.js'));
+
+        function getCurrentUserId() {
+            const stored = localStorage.getItem('userId');
+            return stored ? parseInt(stored) : null;
         }
-        function closeBorrowPanel() {
-            const panel = document.getElementById('user_borrow_panel');
-            panel.classList.add('hidden');
-            panel.classList.remove('flex');
+
+        async function loadReservations() {
+            const userId = getCurrentUserId();
+            const tbody = document.getElementById('reservations-tbody');
+            tbody.innerHTML = '<tr><td colspan="5" class="px-5 py-4 text-center text-slate-500">Loading reservations...</td></tr>';
+
+            if (!userId) {
+                tbody.innerHTML = '<tr><td colspan="5" class="px-5 py-4 text-center text-red-500">Please log in to view your reservations.</td></tr>';
+                return;
+            }
+
+            try {
+                const query = `
+                    SELECT
+                        r.reservation_id, b.title, b.author, r.reservation_date, r.status
+                    FROM RESERVATION r
+                    JOIN BOOK b ON r.book_id = b.book_id
+                    WHERE r.user_id = ? AND r.status = 'Pending'
+                    ORDER BY r.reservation_date DESC
+                `;
+                const result = await db.execute({ sql: query, args: [userId] });
+                const reservations = result.rows;
+                
+                tbody.innerHTML = '';
+
+                if (reservations.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5" class="px-5 py-4 text-center text-slate-500">You have no pending reservations.</td></tr>';
+                    return;
+                }
+
+                reservations.forEach(res => {
+                    const reservedDate = new Date(res.reservation_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+                    const statusHtml = `<span class="px-3 py-1 text-xs rounded-full bg-yellow-100 text-yellow-800 font-semibold">${res.status}</span>`;
+                    const row = `
+                        <tr class="border-t border-white/20 hover:bg-white/20">
+                            <td class="px-5 py-4 text-[#1A202C] font-semibold">${res.title}</td>
+                            <td class="px-5 py-4 text-[#2E5F87]">${res.author}</td>
+                            <td class="px-5 py-4 text-[#2E5F87]">${reservedDate}</td>
+                            <td class="px-5 py-4">${statusHtml}</td>
+                            <td class="px-5 py-4 text-center"><button class="text-xs text-red-600 hover:text-red-800 font-bold">Cancel</button></td>
+                        </tr>`;
+                    tbody.insertAdjacentHTML('beforeend', row);
+                });
+            } catch (error) {
+                console.error("Error loading reservations:", error);
+                tbody.innerHTML = `<tr><td colspan="5" class="px-5 py-4 text-center text-red-500">Error loading data: ${error.message}</td></tr>`;
+            }
         }
+        loadReservations();
+      }
     </script>
 
                 </main>

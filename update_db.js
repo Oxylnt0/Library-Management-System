@@ -1,48 +1,46 @@
-import { db } from "./db_config.js";
+const { db } = require('./db_config.js');
 
-async function createCirculationTables() {
-  console.log("🛠️ Creating Circulation and Reservation tables...");
+async function addDonationTable() {
+    console.log("🛠️ Updating database schema...");
 
-  try {
-    // 1. The RESERVATION Table (From your ERD)
-    await db.execute(`
-      CREATE TABLE IF NOT EXISTS RESERVATION (
-        reservation_id INTEGER PRIMARY KEY AUTOINCREMENT,
-        user_id INT NOT NULL,
-        book_id INT NOT NULL,
-        reservation_date DATETIME DEFAULT CURRENT_TIMESTAMP,
-        expiration_date DATETIME,
-        status VARCHAR(20) DEFAULT 'Pending' CHECK (status IN ('Pending', 'Approved', 'Fulfilled', 'Cancelled', 'Expired')),
-        priority_no INT DEFAULT 1,
-        FOREIGN KEY (user_id) REFERENCES USER(user_id) ON DELETE CASCADE,
-        FOREIGN KEY (book_id) REFERENCES BOOK(book_id) ON DELETE CASCADE
-      );
-    `);
-    console.log("✅ SUCCESS: RESERVATION table created.");
+    const createDonationTableSQL = `
+        CREATE TABLE IF NOT EXISTS DONATION (
+            donation_id INTEGER PRIMARY KEY AUTOINCREMENT,
+            donation_type VARCHAR(20) NOT NULL CHECK (donation_type IN ('Inbound', 'Outbound')),
+            
+            -- INBOUND FIELDS
+            user_id INT,
+            donor_name VARCHAR(150),
+            
+            -- OUTBOUND FIELDS
+            recipient_organization VARCHAR(200),
+            book_id INT,
+            
+            -- BOOK DETAILS
+            book_title VARCHAR(255),
+            category VARCHAR(50),
+            quantity INT DEFAULT 1,
+            
+            donation_date DATE DEFAULT CURRENT_DATE,
+            FOREIGN KEY (user_id) REFERENCES USER(user_id) ON DELETE SET NULL,
+            FOREIGN KEY (book_id) REFERENCES BOOK(book_id) ON DELETE SET NULL
+        );
+    `;
 
-    // 2. Your BORROW_TRANSACTION Table 
-    await db.execute(`
-      CREATE TABLE IF NOT EXISTS BORROW_TRANSACTION (
-        borrow_id INTEGER PRIMARY KEY AUTOINCREMENT,
-        user_id INT NOT NULL,
-        book_id INT,
-        material_id INT,
-        borrow_date DATE DEFAULT CURRENT_DATE,
-        due_date DATE,
-        return_date DATE,
-        borrow_type VARCHAR(20) CHECK (borrow_type IN ('Inside Library', 'Outside Library')),
-        status VARCHAR(20) DEFAULT 'Borrowed' CHECK (status IN ('Borrowed', 'Returned', 'Overdue', 'Lost')),
-        extension_count INT DEFAULT 0,
-        FOREIGN KEY (user_id) REFERENCES USER(user_id),
-        FOREIGN KEY (book_id) REFERENCES BOOK(book_id),
-        FOREIGN KEY (material_id) REFERENCES MATERIAL(material_id)
-      );
-    `);
-    console.log("✅ SUCCESS: BORROW_TRANSACTION table verified/created.");
+    try {
+        // Execute the creation query
+        await db.execute(createDonationTableSQL);
+        console.log("✅ SUCCESS: DONATION table has been added to the database!");
 
-  } catch (error) {
-    console.error("❌ CREATE FAILED:", error.message);
-  }
+        // Verify the table exists
+        const check = await db.execute("SELECT name FROM sqlite_schema WHERE type='table' AND name = 'DONATION'");
+        if (check.rows.length > 0) {
+            console.log("📋 Verified: DONATION table is now live and ready to use.");
+        }
+
+    } catch (error) {
+        console.error("❌ ERROR adding DONATION table:", error);
+    }
 }
 
-createCirculationTables();
+addDonationTable();

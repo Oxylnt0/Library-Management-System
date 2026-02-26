@@ -340,6 +340,7 @@
                 </div>
 
     <script>
+      {
         const path = require('path');
         // Adjust path to point to root db_config.js using process.cwd() for reliability
         const { db } = require(path.join(process.cwd(), 'db_config.js'));
@@ -616,6 +617,7 @@
 
         // Initial Load
         loadBooks();
+      }
     </script>
 
             </div>

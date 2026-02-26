@@ -94,10 +94,6 @@
                             <h2 class="text-3xl font-bold mb-2 font-cinzel text-[#D6A84A]">Welcome to Puerto Palabra</h2>
                             <p class="text-blue-100 mb-6">Your port for discovery. What will you read today, Simoun?</p>
 
-                            <div class="relative">
-                                <input type="text" placeholder="Search by title, author, or genre..." class="w-full pl-6 pr-32 py-4 rounded-full text-[#1A202C] bg-white/90 focus:outline-none focus:ring-4 focus:ring-[#D6A84A]/50 shadow-inner border border-white/30">
-                                <button class="absolute right-2 top-2 bottom-2 px-6 rounded-full bg-[#D6A84A] text-white font-bold hover:brightness-110 transition-all">Search</button>
-                            </div>
                         </div>
                     </div>
 
@@ -108,50 +104,8 @@
                                 All</a>
                         </div>
 
-                        <div class="grid grid-cols-2 gap-4">
-                            <div
-                                class="bg-[#fffaf0]/80 backdrop-blur-sm border border-[#D6A84A]/20 p-4 rounded-2xl shadow-md flex gap-4 hover:shadow-lg hover:-translate-y-1 transition-all group">
-                                <div
-                                    class="w-24 h-36 bg-slate-200 rounded-lg flex-shrink-0 bg-[url('https://covers.openlibrary.org/b/id/12547191-M.jpg')] bg-cover bg-center">
-                                </div>
-                                <div class="flex flex-col justify-between flex-1">
-                                    <div>
-                                        <h4 class="font-bold text-[#1A202C]">Noli Me Tangere</h4>
-                                        <p class="text-sm text-[#2E5F87]">Jose Rizal</p>
-                                    </div>
-                                    <div>
-                                        <div class="flex justify-between text-xs font-bold mb-1">
-                                            <span class="text-[#2E5F87]">Due in 3 days</span>
-                                            <span class="text-[#C05640]">Feb 06</span>
-                                        </div>
-                                        <div class="w-full bg-slate-100 rounded-full h-2">
-                                            <div class="bg-[#C05640] h-2 rounded-full" style="width: 70%"></div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div
-                                class="bg-[#fffaf0]/80 backdrop-blur-sm border border-[#D6A84A]/20 p-4 rounded-2xl shadow-md flex gap-4 hover:shadow-lg hover:-translate-y-1 transition-all group">
-                                <div
-                                    class="w-24 h-36 bg-slate-200 rounded-lg flex-shrink-0 bg-[url('https://covers.openlibrary.org/b/id/10603706-M.jpg')] bg-cover bg-center">
-                                </div>
-                                <div class="flex flex-col justify-between flex-1">
-                                    <div>
-                                        <h4 class="font-bold text-[#1A202C]">Clean Code</h4>
-                                        <p class="text-sm text-[#2E5F87]">Robert C. Martin</p>
-                                    </div>
-                                    <div>
-                                        <div class="flex justify-between text-xs font-bold mb-1">
-                                            <span class="text-[#2E5F87]">Due in 7 days</span>
-                                            <span class="text-[#5B8C5A]">Feb 10</span>
-                                        </div>
-                                        <div class="w-full bg-slate-100 rounded-full h-2">
-                                            <div class="bg-[#5B8C5A] h-2 rounded-full" style="width: 20%"></div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                        <div class="grid grid-cols-2 gap-4" id="currently-reading-container">
+                            <!-- Dynamic Content -->
                         </div>
                     </div>
 
@@ -175,53 +129,8 @@
 
                     <div>
                         <h3 class="font-bold text-[#1A202C] text-lg mb-3 font-cinzel">New Arrivals</h3>
-                        <div class="grid grid-cols-6 gap-3">
-                            <div class="group cursor-pointer">
-                                <div
-                                    class="aspect-[2/3] bg-slate-200 rounded-xl mb-3 overflow-hidden shadow-md group-hover:shadow-xl group-hover:-translate-y-1.5 transition-all relative">
-                                    <div
-                                        class="absolute inset-0 bg-[url('https://covers.openlibrary.org/b/id/8259443-L.jpg')] bg-cover bg-center transition-transform group-hover:scale-105">
-                                    </div>
-                                    <div
-                                        class="absolute top-2 right-2 bg-[#D6A84A] text-white text-[10px] font-bold px-2 py-1 rounded">
-                                        NEW</div>
-                                </div>
-                                <h4 class="font-bold text-sm text-[#1A202C] truncate">The Pragmatic Programmer</h4>
-                                <p class="text-xs text-[#2E5F87]">David Thomas</p>
-                            </div>
-
-                            <div class="group cursor-pointer">
-                                <div
-                                    class="aspect-[2/3] bg-slate-200 rounded-xl mb-3 overflow-hidden shadow-md group-hover:shadow-xl group-hover:-translate-y-1.5 transition-all relative">
-                                    <div
-                                        class="absolute inset-0 bg-[url('https://covers.openlibrary.org/b/id/12658936-L.jpg')] bg-cover bg-center transition-transform group-hover:scale-105">
-                                    </div>
-                                </div>
-                                <h4 class="font-bold text-sm text-[#1A202C] truncate">El Filibusterismo</h4>
-                                <p class="text-xs text-[#2E5F87]">Jose Rizal</p>
-                            </div>
-
-                            <div class="group cursor-pointer">
-                                <div
-                                    class="aspect-[2/3] bg-slate-200 rounded-xl mb-3 overflow-hidden shadow-md group-hover:shadow-xl group-hover:-translate-y-1.5 transition-all relative">
-                                    <div
-                                        class="absolute inset-0 bg-[url('https://covers.openlibrary.org/b/id/8380234-L.jpg')] bg-cover bg-center transition-transform group-hover:scale-105">
-                                    </div>
-                                </div>
-                                <h4 class="font-bold text-sm text-[#1A202C] truncate">Atomic Habits</h4>
-                                <p class="text-xs text-[#2E5F87]">James Clear</p>
-                            </div>
-
-                            <div class="group cursor-pointer">
-                                <div
-                                    class="aspect-[2/3] bg-slate-200 rounded-xl mb-3 overflow-hidden shadow-md group-hover:shadow-xl group-hover:-translate-y-1.5 transition-all relative">
-                                    <div
-                                        class="absolute inset-0 bg-[url('https://covers.openlibrary.org/b/id/14553106-L.jpg')] bg-cover bg-center transition-transform group-hover:scale-105">
-                                    </div>
-                                </div>
-                                <h4 class="font-bold text-sm text-[#1A202C] truncate">Design Patterns</h4>
-                                <p class="text-xs text-[#2E5F87]">Erich Gamma</p>
-                            </div>
+                        <div class="grid grid-cols-6 gap-3" id="new-arrivals-container">
+                            <!-- Dynamic Content -->
                         </div>
                     </div>
 
@@ -231,16 +140,8 @@
 
                     <div class="mb-8">
                         <h3 class="font-bold text-[#1A202C] mb-4 font-cinzel">Notifications</h3>
-                        <div class="space-y-3">
-                            <div class="bg-[#fff8e1]/90 backdrop-blur-sm border border-amber-200 p-3 rounded-lg shadow-sm">
-                                <p class="text-xs font-bold text-[#C05640] uppercase mb-1">Due Soon</p>
-                                <p class="text-sm text-[#1A202C]">"Noli Me Tangere" is due on <strong>Feb 06</strong>.
-                                </p>
-                            </div>
-                            <div class="bg-[#e3f2fd]/90 backdrop-blur-sm border border-blue-200 p-3 rounded-lg shadow-sm">
-                                <p class="text-xs font-bold text-[#2E5F87] uppercase mb-1">Reservation Ready</p>
-                                <p class="text-sm text-[#1A202C]">"History of Cavite" is ready for pickup.</p>
-                            </div>
+                        <div class="space-y-3" id="notifications-container">
+                            <!-- Dynamic Content -->
                         </div>
                     </div>
 
@@ -253,8 +154,8 @@
                             class="bg-gradient-to-br from-[#183B5B] to-[#0f2438] text-white rounded-xl p-5 text-center shadow-lg relative overflow-hidden border border-[#D6A84A]/30">
                             <div class="relative z-10">
                                 <p class="text-xs text-blue-200 uppercase tracking-widest">Total Outstanding</p>
-                                <h2 class="text-3xl font-bold mt-1 text-[#5B8C5A]">₱0.00</h2>
-                                <p class="text-xs text-blue-200 mt-2">Good job! No fines.</p>
+                                <h2 class="text-3xl font-bold mt-1 text-[#5B8C5A]" id="total-fines-amount">₱0.00</h2>
+                                <p class="text-xs text-blue-200 mt-2" id="fines-status-text">Good job! No fines.</p>
                             </div>
                         </div>
                     </div>
@@ -274,6 +175,240 @@
                 </aside>
 
                 </main>
+    <script>
+      {
+        const path = require('path');
+        const { db } = require(path.join(process.cwd(), 'db_config.js'));
+
+        async function loadUserDashboard() {
+            const userId = localStorage.getItem('userId');
+            
+            // 1. Load New Arrivals (Public)
+            await loadNewArrivals();
+
+            if (!userId) {
+                // Handle guest view for user-specific sections
+                document.getElementById('currently-reading-container').innerHTML = '<p class="col-span-2 text-slate-500 text-sm">Please log in to see your reading list.</p>';
+                document.getElementById('notifications-container').innerHTML = '<p class="text-slate-500 text-sm">Log in to see notifications.</p>';
+                return;
+            }
+
+            // 2. Load Currently Reading
+            await loadCurrentlyReading(userId);
+
+            // 3. Load Notifications
+            await loadNotifications(userId);
+            
+            // 4. Load Fines
+            await loadFines(userId);
+        }
+
+        async function loadNewArrivals() {
+            try {
+                const res = await db.execute("SELECT * FROM BOOK ORDER BY date_added DESC LIMIT 6");
+                const container = document.getElementById('new-arrivals-container');
+                container.innerHTML = '';
+                
+                res.rows.forEach(book => {
+                    const imgUrl = book.image_url || 'https://via.placeholder.com/150x220?text=No+Cover';
+                    const html = `
+                        <div class="group cursor-pointer" onclick="window.location.href='user_catalog.html'">
+                            <div class="aspect-[2/3] bg-slate-200 rounded-xl mb-3 overflow-hidden shadow-md group-hover:shadow-xl group-hover:-translate-y-1.5 transition-all relative">
+                                <img src="${imgUrl}" class="w-full h-full object-cover transition-transform group-hover:scale-105" alt="${book.title}">
+                                <div class="absolute top-2 right-2 bg-[#D6A84A] text-white text-[10px] font-bold px-2 py-1 rounded">NEW</div>
+                            </div>
+                            <h4 class="font-bold text-sm text-[#1A202C] truncate" title="${book.title}">${book.title}</h4>
+                            <p class="text-xs text-[#2E5F87] truncate">${book.author}</p>
+                        </div>
+                    `;
+                    container.insertAdjacentHTML('beforeend', html);
+                });
+            } catch (e) {
+                console.error("New Arrivals Error:", e);
+            }
+        }
+
+        async function loadCurrentlyReading(userId) {
+            try {
+                const query = `
+                    SELECT bt.*, b.title, b.author, b.image_url 
+                    FROM BORROW_TRANSACTION bt
+                    JOIN BOOK b ON bt.book_id = b.book_id
+                    WHERE bt.user_id = ? AND bt.status IN ('Borrowed', 'Overdue')
+                    ORDER BY bt.due_date ASC
+                    LIMIT 2
+                `;
+                const res = await db.execute({ sql: query, args: [userId] });
+                const container = document.getElementById('currently-reading-container');
+                container.innerHTML = '';
+
+                if (res.rows.length === 0) {
+                    container.innerHTML = '<div class="col-span-2 p-4 bg-white/50 rounded-xl border border-dashed border-slate-300 text-center text-slate-500 text-sm">You are not reading any books currently.</div>';
+                    return;
+                }
+
+                res.rows.forEach(loan => {
+                    const dueDate = new Date(loan.due_date);
+                    const today = new Date();
+                    const borrowDate = new Date(loan.borrow_date);
+                    
+                    // Calculate progress
+                    const totalDuration = dueDate - borrowDate;
+                    const elapsed = today - borrowDate;
+                    let percent = 0;
+                    if (totalDuration > 0) {
+                        percent = Math.min(100, Math.max(0, (elapsed / totalDuration) * 100));
+                    }
+                    
+                    // Days remaining
+                    const diffTime = dueDate - today;
+                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                    
+                    let statusText = '';
+                    let statusColor = '';
+                    let barColor = '';
+
+                    if (diffDays < 0) {
+                        statusText = `Overdue by ${Math.abs(diffDays)} days`;
+                        statusColor = 'text-[#C05640]';
+                        barColor = 'bg-[#C05640]';
+                        percent = 100;
+                    } else if (diffDays === 0) {
+                        statusText = 'Due today';
+                        statusColor = 'text-[#C05640]';
+                        barColor = 'bg-[#C05640]';
+                    } else {
+                        statusText = `Due in ${diffDays} days`;
+                        statusColor = diffDays <= 3 ? 'text-[#C05640]' : 'text-[#5B8C5A]';
+                        barColor = diffDays <= 3 ? 'bg-[#C05640]' : 'bg-[#5B8C5A]';
+                    }
+
+                    const dateStr = dueDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                    const imgUrl = loan.image_url || 'https://via.placeholder.com/150x220?text=No+Cover';
+
+                    const html = `
+                        <div class="bg-[#fffaf0]/80 backdrop-blur-sm border border-[#D6A84A]/20 p-4 rounded-2xl shadow-md flex gap-4 hover:shadow-lg hover:-translate-y-1 transition-all group">
+                            <div class="w-24 h-36 bg-slate-200 rounded-lg flex-shrink-0 overflow-hidden">
+                                <img src="${imgUrl}" class="w-full h-full object-cover" alt="Cover">
+                            </div>
+                            <div class="flex flex-col justify-between flex-1">
+                                <div>
+                                    <h4 class="font-bold text-[#1A202C] line-clamp-2 text-sm sm:text-base">${loan.title}</h4>
+                                    <p class="text-sm text-[#2E5F87]">${loan.author}</p>
+                                </div>
+                                <div>
+                                    <div class="flex justify-between text-xs font-bold mb-1">
+                                        <span class="${statusColor}">${statusText}</span>
+                                        <span class="${statusColor}">${dateStr}</span>
+                                    </div>
+                                    <div class="w-full bg-slate-200 rounded-full h-2">
+                                        <div class="${barColor} h-2 rounded-full" style="width: ${percent}%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    container.insertAdjacentHTML('beforeend', html);
+                });
+            } catch (e) {
+                console.error("Currently Reading Error:", e);
+            }
+        }
+
+        async function loadNotifications(userId) {
+            const container = document.getElementById('notifications-container');
+            container.innerHTML = '';
+            let hasNotifs = false;
+
+            try {
+                // 1. Due Soon (<= 3 days)
+                const dueQuery = `
+                    SELECT b.title, bt.due_date 
+                    FROM BORROW_TRANSACTION bt 
+                    JOIN BOOK b ON bt.book_id = b.book_id 
+                    WHERE bt.user_id = ? 
+                    AND bt.status = 'Borrowed' 
+                    AND bt.due_date <= date('now', '+3 days')
+                `;
+                const dueRes = await db.execute({ sql: dueQuery, args: [userId] });
+                
+                dueRes.rows.forEach(row => {
+                    hasNotifs = true;
+                    const dueDate = new Date(row.due_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                    const html = `
+                        <div class="bg-[#fff8e1]/90 backdrop-blur-sm border border-amber-200 p-3 rounded-lg shadow-sm">
+                            <p class="text-xs font-bold text-[#C05640] uppercase mb-1">Due Soon</p>
+                            <p class="text-sm text-[#1A202C]">"${row.title}" is due on <strong>${dueDate}</strong>.</p>
+                        </div>
+                    `;
+                    container.insertAdjacentHTML('beforeend', html);
+                });
+
+                // 2. Reservations Ready (Status = 'Approved')
+                const resQuery = `
+                    SELECT b.title 
+                    FROM RESERVATION r 
+                    JOIN BOOK b ON r.book_id = b.book_id 
+                    WHERE r.user_id = ? 
+                    AND r.status = 'Approved'
+                `;
+                const resResult = await db.execute({ sql: resQuery, args: [userId] });
+
+                resResult.rows.forEach(row => {
+                    hasNotifs = true;
+                    const html = `
+                        <div class="bg-[#e3f2fd]/90 backdrop-blur-sm border border-blue-200 p-3 rounded-lg shadow-sm">
+                            <p class="text-xs font-bold text-[#2E5F87] uppercase mb-1">Reservation Ready</p>
+                            <p class="text-sm text-[#1A202C]">"${row.title}" is ready for pickup.</p>
+                        </div>
+                    `;
+                    container.insertAdjacentHTML('beforeend', html);
+                });
+
+                if (!hasNotifs) {
+                    container.innerHTML = '<p class="text-xs text-slate-500 italic">No new notifications.</p>';
+                }
+
+            } catch (e) {
+                console.error("Notifications Error:", e);
+            }
+        }
+
+        async function loadFines(userId) {
+            try {
+                const query = `
+                    SELECT SUM(f.amount) as total 
+                    FROM FINE f 
+                    JOIN BORROW_TRANSACTION bt ON f.borrow_id = bt.borrow_id 
+                    WHERE bt.user_id = ? AND f.status = 'Unpaid'
+                `;
+                const res = await db.execute({ sql: query, args: [userId] });
+                const total = res.rows[0].total || 0;
+                
+                const amountEl = document.getElementById('total-fines-amount');
+                const statusEl = document.getElementById('fines-status-text');
+                
+                if (amountEl) amountEl.innerText = `₱${total.toFixed(2)}`;
+                
+                if (statusEl) {
+                    if (total > 0) {
+                        statusEl.innerText = "Please settle your balance.";
+                        statusEl.className = "text-xs text-red-300 mt-2";
+                        amountEl.className = "text-3xl font-bold mt-1 text-red-400";
+                    } else {
+                        statusEl.innerText = "Good job! No fines.";
+                        statusEl.className = "text-xs text-blue-200 mt-2";
+                        amountEl.className = "text-3xl font-bold mt-1 text-[#5B8C5A]";
+                    }
+                }
+            } catch (e) {
+                console.error("Fines Error:", e);
+            }
+        }
+
+        loadUserDashboard();
+      }
+    </script>
             </div>
         </div>
     </div>

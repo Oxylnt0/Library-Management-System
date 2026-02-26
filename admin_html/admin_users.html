@@ -75,62 +75,7 @@
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y divide-slate-100 text-sm">
-                                    <tr class="hover:bg-slate-50 transition-colors">
-                                        <td class="p-4">
-                                            <div class="flex items-center gap-3">
-                                                <div
-                                                    class="w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold">
-                                                    JD</div>
-                                                <div>
-                                                    <div class="font-bold text-slate-800">User6</div>
-                                                    <div class="text-xs text-slate-500 font-mono">ID: 2024-0088</div>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td class="p-4"><span
-                                                class="bg-blue-50 text-blue-700 px-2 py-1 rounded text-xs font-semibold">Student</span>
-                                        </td>
-                                        <td class="p-4 text-slate-600">
-                                            <div>juan.dc@student.lib</div>
-                                            <div class="text-xs text-slate-400">BS Computer Science</div>
-                                        </td>
-                                        <td class="p-4 text-slate-600">Jan 10, 2024</td>
-                                        <td class="p-4"><span
-                                                class="bg-green-100 text-green-700 px-2 py-1 rounded-full text-xs font-bold">Active</span>
-                                        </td>
-                                        <td class="p-4 text-right">
-                                            <button class="text-slate-400 hover:text-blue-600 p-1">Edit</button>
-                                            <button class="text-slate-400 hover:text-red-500 p-1 ml-2">Delete</button>
-                                        </td>
-                                    </tr>
-                                    <tr class="hover:bg-slate-50 transition-colors">
-                                        <td class="p-4">
-                                            <div class="flex items-center gap-3">
-                                                <div
-                                                    class="w-10 h-10 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center font-bold">
-                                                    MC</div>
-                                                <div>
-                                                    <div class="font-bold text-slate-800">User7</div>
-                                                    <div class="text-xs text-slate-500 font-mono">ID: FAC-002</div>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td class="p-4"><span
-                                                class="bg-amber-50 text-amber-700 px-2 py-1 rounded text-xs font-semibold">Faculty</span>
-                                        </td>
-                                        <td class="p-4 text-slate-600">
-                                            <div>maria.clara@faculty.lib</div>
-                                            <div class="text-xs text-slate-400">History Dept.</div>
-                                        </td>
-                                        <td class="p-4 text-slate-600">Dec 05, 2023</td>
-                                        <td class="p-4"><span
-                                                class="bg-green-100 text-green-700 px-2 py-1 rounded-full text-xs font-bold">Active</span>
-                                        </td>
-                                        <td class="p-4 text-right">
-                                            <button class="text-slate-400 hover:text-blue-600 p-1">Edit</button>
-                                            <button class="text-slate-400 hover:text-red-500 p-1 ml-2">Delete</button>
-                                        </td>
-                                    </tr>
+                                    <!-- Rows loaded via JS -->
                                 </tbody>
                             </table>
                         </div>
@@ -154,7 +99,7 @@
                                 <span class="text-xs font-bold text-blue-600 uppercase">Total Users</span>
                                 <span class="text-lg"></span>
                             </div>
-                            <div class="text-2xl font-bold text-slate-800">450</div>
+                            <div class="text-2xl font-bold text-slate-800" id="stat-total-users">0</div>
                             <div class="text-xs text-slate-500 mt-1">+12 this month</div>
                         </div>
 
@@ -163,32 +108,15 @@
                                 <span class="text-xs font-bold text-red-600 uppercase">Suspended</span>
                                 <span class="text-lg"></span>
                             </div>
-                            <div class="text-2xl font-bold text-slate-800">3</div>
+                            <div class="text-2xl font-bold text-slate-800" id="stat-suspended">0</div>
                             <div class="text-xs text-slate-500 mt-1">Unpaid fines</div>
                         </div>
                     </div>
 
                     <div class="mt-8 flex-1">
                         <h4 class="font-bold text-slate-700 text-sm mb-4">New Registrations</h4>
-                        <div class="space-y-4">
-                            <div class="flex items-center">
-                                <div
-                                    class="w-8 h-8 rounded-full bg-slate-100 mr-3 flex items-center justify-center text-xs">
-                                </div>
-                                <div>
-                                    <div class="text-sm font-bold text-slate-800">Simoun</div>
-                                    <div class="text-xs text-slate-500">Student • 2 mins ago</div>
-                                </div>
-                            </div>
-                            <div class="flex items-center">
-                                <div
-                                    class="w-8 h-8 rounded-full bg-slate-100 mr-3 flex items-center justify-center text-xs">
-                                </div>
-                                <div>
-                                    <div class="text-sm font-bold text-slate-800">Andreo</div>
-                                    <div class="text-xs text-slate-500">Student • 1 hour ago</div>
-                                </div>
-                            </div>
+                        <div class="space-y-4" id="new-registrations-list">
+                            <!-- Dynamic List -->
                         </div>
                     </div>
 
@@ -204,6 +132,120 @@
         </div>
     </div>
 
+    <script>
+      {
+        const path = require('path');
+        const { db } = require(path.join(process.cwd(), 'db_config.js'));
+
+        async function loadUsers() {
+            const tbody = document.querySelector('tbody');
+            tbody.innerHTML = '<tr><td colspan="6" class="p-4 text-center">Loading users...</td></tr>';
+
+            try {
+                // Fetch users with ban status check
+                // Using a subquery to check for active bans
+                const query = `
+                    SELECT u.*, 
+                        (SELECT COUNT(*) FROM BAN_TERMINATION b WHERE b.user_id = u.user_id AND (b.end_date IS NULL OR b.end_date > DATE('now'))) as is_banned
+                    FROM USER u
+                    ORDER BY u.user_id DESC
+                `;
+                
+                const result = await db.execute(query);
+                const users = result.rows;
+
+                tbody.innerHTML = '';
+
+                if (users.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6" class="p-4 text-center">No users found.</td></tr>';
+                    updateStats(0, 0);
+                    return;
+                }
+
+                let suspendedCount = 0;
+
+                users.forEach(user => {
+                    const isBanned = user.is_banned > 0;
+                    if (isBanned) suspendedCount++;
+
+                    const statusHtml = isBanned 
+                        ? '<span class="bg-red-100 text-red-700 px-2 py-1 rounded-full text-xs font-bold">Suspended</span>'
+                        : '<span class="bg-green-100 text-green-700 px-2 py-1 rounded-full text-xs font-bold">Active</span>';
+
+                    const role = user.guardian_id ? 'Child' : 'Patron';
+                    const roleClass = user.guardian_id ? 'bg-purple-50 text-purple-700' : 'bg-blue-50 text-blue-700';
+                    const initials = ((user.first_name?.[0] || '') + (user.last_name?.[0] || '')).toUpperCase();
+                    
+                    const row = `
+                        <tr class="hover:bg-slate-50 transition-colors">
+                            <td class="p-4">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center font-bold">${initials}</div>
+                                    <div>
+                                        <div class="font-bold text-slate-800">${user.first_name} ${user.last_name}</div>
+                                        <div class="text-xs text-slate-500 font-mono">ID: ${user.user_id}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="p-4"><span class="${roleClass} px-2 py-1 rounded text-xs font-semibold">${role}</span></td>
+                            <td class="p-4 text-slate-600">
+                                <div>${user.email || 'No Email'}</div>
+                                <div class="text-xs text-slate-400">${user.contact_number || 'No Contact'}</div>
+                            </td>
+                            <td class="p-4 text-slate-600">N/A</td>
+                            <td class="p-4">${statusHtml}</td>
+                            <td class="p-4 text-right">
+                                <button class="text-slate-400 hover:text-blue-600 p-1">Edit</button>
+                                <button class="text-slate-400 hover:text-red-500 p-1 ml-2">Delete</button>
+                            </td>
+                        </tr>
+                    `;
+                    tbody.insertAdjacentHTML('beforeend', row);
+                });
+
+                updateStats(users.length, suspendedCount);
+                updateNewRegistrations(users.slice(0, 3));
+
+            } catch (err) {
+                console.error(err);
+                tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-red-500">Error: ${err.message}</td></tr>`;
+            }
+        }
+
+        function updateStats(total, suspended) {
+            document.getElementById('stat-total-users').innerText = total;
+            document.getElementById('stat-suspended').innerText = suspended;
+            
+            const showingEl = document.querySelector('.bg-slate-50 span');
+            if(showingEl) showingEl.innerText = `Showing ${total} users`;
+        }
+
+        function updateNewRegistrations(newUsers) {
+            const container = document.getElementById('new-registrations-list');
+            if (!container) return;
+            
+            container.innerHTML = '';
+            
+            newUsers.forEach(user => {
+                const initials = ((user.first_name?.[0] || '') + (user.last_name?.[0] || '')).toUpperCase();
+                const html = `
+                    <div class="flex items-center">
+                        <div class="w-8 h-8 rounded-full bg-slate-100 mr-3 flex items-center justify-center text-xs font-bold text-slate-600">
+                            ${initials}
+                        </div>
+                        <div>
+                            <div class="text-sm font-bold text-slate-800">${user.first_name}</div>
+                            <div class="text-xs text-slate-500">ID: ${user.user_id}</div>
+                        </div>
+                    </div>
+                `;
+                container.insertAdjacentHTML('beforeend', html);
+            });
+        }
+
+        loadUsers();
+      }
+    </script>
     <script src="../admin_js/dashboard_loader.js"></script>
     <script src="../admin_js/admin_renderer.js"></script>
 </body>
