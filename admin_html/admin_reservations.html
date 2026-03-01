@@ -35,22 +35,26 @@
 
                 <div class="flex-1 flex flex-col overflow-hidden p-6">
 
-                    <div class="flex justify-between items-center mb-6 shrink-0">
-                        <div>
-                            <h2 class="text-2xl font-bold text-slate-800">Reservations Desk</h2>
-                            <p class="text-sm text-slate-500">Approve or decline book requests</p>
+                    <div class="flex flex-col gap-4 mb-6 shrink-0">
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <h2 class="text-2xl font-bold text-slate-800">Reservations Desk</h2>
+                                <p class="text-sm text-slate-500">Approve or decline book requests</p>
+                            </div>
                         </div>
 
                         <div class="flex gap-3">
-                            <div class="relative">
-                                <input type="text" placeholder="Search request..."
-                                    class="pl-10 pr-4 py-2 rounded-lg border border-slate-300 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 w-64 shadow-sm">
-                                <span class="absolute left-3 top-2.5 text-slate-400"></span>
+                            <div class="relative max-w-md">
+                                <input type="text" oninput="searchReservations(this.value)" placeholder="Search request..."
+                                    class="w-full pl-10 pr-4 py-2 rounded-full border border-slate-300 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 shadow-sm">
+                                <span class="absolute left-3 top-2.5 text-slate-400">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                                </span>
                             </div>
 
-                            <button
-                                class="bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 px-4 py-2 rounded-lg font-medium shadow-sm flex items-center gap-2 transition-colors">
-                                <span></span> Filter Date
+                            <button class="bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 px-4 py-2 rounded-full font-medium shadow-sm flex items-center gap-2 transition-colors">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path></svg>
+                                <span>Filter Date</span>
                             </button>
                         </div>
                     </div>
@@ -74,88 +78,8 @@
                                             Actions</th>
                                     </tr>
                                 </thead>
-                                <tbody class="divide-y divide-slate-100 text-sm">
-
-                                    <tr class="hover:bg-slate-50 transition-colors">
-                                        <td class="p-4">
-                                            <div class="font-bold text-slate-800">Noli Me Tangere</div>
-                                            <div class="text-xs text-slate-500">ISBN: 978-1234567890</div>
-                                        </td>
-                                        <td class="p-4">
-                                            <div class="flex items-center gap-2">
-                                                <div
-                                                    class="w-6 h-6 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-xs font-bold">
-                                                    JD</div>
-                                                <span class="font-medium">Elaine</span>
-                                            </div>
-                                        </td>
-                                        <td class="p-4 text-slate-600">Oct 24, 2025 <span
-                                                class="text-xs text-slate-400">(2 hrs ago)</span></td>
-                                        <td class="p-4 text-slate-600">Oct 26, 2025</td>
-                                        <td class="p-4">
-                                            <span
-                                                class="bg-blue-100 text-blue-700 px-2 py-1 rounded-full text-xs font-bold">Pending</span>
-                                        </td>
-                                        <td class="p-4 text-right flex justify-end gap-2">
-                                            <button
-                                                class="bg-green-100 hover:bg-green-200 text-green-700 p-1.5 rounded-lg transition-colors"
-                                                title="Approve">Approve</button>
-                                            <button
-                                                class="bg-red-100 hover:bg-red-200 text-red-700 p-1.5 rounded-lg transition-colors"
-                                                title="Decline">Decline</button>
-                                        </td>
-                                    </tr>
-
-                                    <tr class="hover:bg-slate-50 transition-colors">
-                                        <td class="p-4">
-                                            <div class="font-bold text-slate-800">El Filibusterismo</div>
-                                            <div class="text-xs text-slate-500">ISBN: 978-0987654321</div>
-                                        </td>
-                                        <td class="p-4">
-                                            <div class="flex items-center gap-2">
-                                                <div
-                                                    class="w-6 h-6 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center text-xs font-bold">
-                                                    CI</div>
-                                                <span class="font-medium">Renne</span>
-                                            </div>
-                                        </td>
-                                        <td class="p-4 text-slate-600">Oct 23, 2025</td>
-                                        <td class="p-4 text-slate-600">Oct 25, 2025</td>
-                                        <td class="p-4">
-                                            <span
-                                                class="bg-green-100 text-green-700 px-2 py-1 rounded-full text-xs font-bold">Ready
-                                                for Pickup</span>
-                                        </td>
-                                        <td class="p-4 text-right">
-                                            <button class="text-blue-600 hover:text-blue-800 font-bold text-xs">Mark as
-                                                Picked Up</button>
-                                        </td>
-                                    </tr>
-
-                                    <tr class="hover:bg-slate-50 transition-colors opacity-60">
-                                        <td class="p-4">
-                                            <div class="font-bold text-slate-800">Florante at Laura</div>
-                                            <div class="text-xs text-slate-500">ISBN: 978-5555555555</div>
-                                        </td>
-                                        <td class="p-4">
-                                            <div class="flex items-center gap-2">
-                                                <div
-                                                    class="w-6 h-6 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center text-xs font-bold">
-                                                    MC</div>
-                                                <span class="font-medium">Lloyd</span>
-                                            </div>
-                                        </td>
-                                        <td class="p-4 text-slate-600">Oct 20, 2025</td>
-                                        <td class="p-4 text-red-500 font-bold">Oct 22, 2025</td>
-                                        <td class="p-4">
-                                            <span
-                                                class="bg-red-100 text-red-700 px-2 py-1 rounded-full text-xs font-bold">Expired</span>
-                                        </td>
-                                        <td class="p-4 text-right">
-                                            <span class="text-xs text-slate-400">Cancelled</span>
-                                        </td>
-                                    </tr>
-
+                                <tbody id="reservations-list" class="divide-y divide-slate-100 text-sm">
+                                    <!-- Rows injected by JS -->
                                 </tbody>
                             </table>
                         </div>
@@ -181,41 +105,155 @@
                                 <span class="text-xs font-bold text-blue-600 uppercase">Pending</span>
                                 <span class="text-lg"></span>
                             </div>
-                            <div class="text-2xl font-bold text-slate-800">12</div>
+                            <div id="stat-pending" class="text-2xl font-bold text-slate-800">...</div>
                             <div class="text-xs text-slate-500 mt-1">Requires action</div>
                         </div>
 
                         <div class="grid grid-cols-2 gap-4">
                             <div class="p-4 rounded-xl border border-green-100 shadow-sm bg-green-50">
                                 <div class="text-xs font-bold text-green-700 mb-1">Approved</div>
-                                <div class="text-xl font-bold text-slate-800">45</div>
+                                <div id="stat-approved" class="text-xl font-bold text-slate-800">...</div>
                             </div>
                             <div class="p-4 rounded-xl border border-slate-100 shadow-sm bg-white">
                                 <div class="text-xs font-bold text-slate-400 mb-1">Rejected</div>
-                                <div class="text-xl font-bold text-slate-800">3</div>
+                                <div id="stat-rejected" class="text-xl font-bold text-slate-800">...</div>
                             </div>
                         </div>
                     </div>
 
-                    <div class="mt-8 flex-1">
-                        <h4 class="font-bold text-slate-700 text-sm mb-4">Urgent Actions</h4>
-                        <div class="bg-amber-50 border border-amber-100 rounded-xl p-4">
-                            <p class="text-xs text-amber-800 font-bold mb-2">Expiring Soon</p>
-                            <p class="text-sm text-slate-700 mb-1"><strong>Noli Me Tangere</strong> reserved by Andre
-                                needs pickup by 5:00 PM.</p>
-                            <button class="mt-2 text-xs font-bold text-amber-600 hover:text-amber-800">Send
-                                Reminder</button>
-                        </div>
-                    </div>
-
-                    <button
-                        class="w-full mt-6 bg-[#183B5B] hover:bg-[#2E5F87] text-white font-bold py-3 rounded-xl shadow-md transition-colors text-sm">
-                        Print Pick-up List
-                    </button>
                 </aside>
 
                 </main>
 
+    <script>
+      {
+        const path = require('path');
+        const { db } = require(path.join(process.cwd(), 'db_config.js'));
+
+        let currentSearchTerm = '';
+
+        window.searchReservations = function(term) {
+            currentSearchTerm = term.trim();
+            fetchReservations();
+        }
+
+        async function fetchReservations() {
+            try {
+                let sql = `
+                    SELECT r.reservation_id, r.reservation_date, r.status, r.user_id, r.book_id,
+                           b.title, b.isbn,
+                           u.first_name, u.last_name
+                    FROM RESERVATION r
+                    JOIN BOOK b ON r.book_id = b.book_id
+                    JOIN USER u ON r.user_id = u.user_id
+                `;
+                
+                const args = [];
+                if (currentSearchTerm) {
+                    sql += " WHERE (b.title LIKE ? OR u.first_name LIKE ? OR u.last_name LIKE ?)";
+                    const term = `%${currentSearchTerm}%`;
+                    args.push(term, term, term);
+                }
+
+                sql += " ORDER BY r.reservation_date DESC";
+
+                const result = await db.execute({ sql, args });
+                const list = document.getElementById('reservations-list');
+                
+                if (!list) return;
+                list.innerHTML = '';
+
+                if (result.rows.length === 0) {
+                    list.innerHTML = '<tr><td colspan="6" class="p-4 text-center text-slate-500">No reservations found.</td></tr>';
+                    return;
+                }
+
+                result.rows.forEach(res => {
+                    const initials = ((res.first_name?.[0] || '') + (res.last_name?.[0] || '')).toUpperCase();
+                    
+                    // Calculate Pickup Deadline (Reservation Date + 3 Days)
+                    const resDate = new Date(res.reservation_date);
+                    const deadline = new Date(resDate);
+                    deadline.setDate(deadline.getDate() + 3);
+
+                    let statusBadge = '';
+                    let actions = '';
+
+                    if (res.status === 'Pending') {
+                        statusBadge = '<span class="bg-blue-100 text-blue-700 px-2 py-1 rounded-full text-xs font-bold">Pending</span>';
+                        actions = `
+                            <button onclick="declineReservation(${res.reservation_id})" class="bg-red-100 hover:bg-red-200 text-red-700 p-1.5 rounded-lg transition-colors" title="Decline">Decline</button>
+                        `;
+                    } else if (res.status === 'Fulfilled') {
+                        statusBadge = '<span class="bg-green-100 text-green-700 px-2 py-1 rounded-full text-xs font-bold">Approved</span>';
+                        actions = '<span class="text-xs text-slate-400">Completed</span>';
+                    } else if (res.status === 'Cancelled') {
+                        statusBadge = '<span class="bg-red-100 text-red-700 px-2 py-1 rounded-full text-xs font-bold">Rejected</span>';
+                        actions = '<span class="text-xs text-slate-400">Cancelled</span>';
+                    }
+
+                    const row = `
+                        <tr class="hover:bg-slate-50 transition-colors">
+                            <td class="p-4">
+                                <div class="font-bold text-slate-800">${res.title}</div>
+                                <div class="text-xs text-slate-500">ISBN: ${res.isbn || 'N/A'}</div>
+                            </td>
+                            <td class="p-4">
+                                <div class="flex items-center gap-2">
+                                    <div class="w-6 h-6 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-xs font-bold">${initials}</div>
+                                    <span class="font-medium">${res.first_name} ${res.last_name}</span>
+                                </div>
+                            </td>
+                            <td class="p-4 text-slate-600">${resDate.toLocaleDateString()}</td>
+                            <td class="p-4 text-slate-600">${deadline.toLocaleDateString()}</td>
+                            <td class="p-4">${statusBadge}</td>
+                            <td class="p-4 text-right flex justify-end gap-2">${actions}</td>
+                        </tr>
+                    `;
+                    list.insertAdjacentHTML('beforeend', row);
+                });
+
+            } catch (error) {
+                console.error("Error fetching reservations:", error);
+            }
+        }
+
+        async function fetchStats() {
+            try {
+                const pending = await db.execute("SELECT COUNT(*) as count FROM RESERVATION WHERE status = 'Pending'");
+                const approved = await db.execute("SELECT COUNT(*) as count FROM RESERVATION WHERE status = 'Fulfilled'");
+                const rejected = await db.execute("SELECT COUNT(*) as count FROM RESERVATION WHERE status = 'Cancelled'");
+
+                document.getElementById('stat-pending').innerText = pending.rows[0].count;
+                document.getElementById('stat-approved').innerText = approved.rows[0].count;
+                document.getElementById('stat-rejected').innerText = rejected.rows[0].count;
+            } catch (error) {
+                console.error("Error fetching stats:", error);
+            }
+        }
+
+        window.approveReservation = async function(reservationId, userId, bookId) {
+            if(!confirm("Approve this reservation? This will mark it as borrowed.")) return;
+            try {
+                await db.execute({ sql: "UPDATE RESERVATION SET status = 'Fulfilled' WHERE reservation_id = ?", args: [reservationId] });
+                await db.execute({ sql: "INSERT INTO BORROW_TRANSACTION (user_id, book_id, borrow_date, due_date, status, borrow_type) VALUES (?, ?, DATE('now'), DATE('now', '+7 days'), 'Borrowed', 'Outside Library')", args: [userId, bookId] });
+                await db.execute({ sql: "UPDATE BOOK SET status = 'Borrowed' WHERE book_id = ?", args: [bookId] });
+                fetchReservations(); fetchStats();
+            } catch(e) { alert("Error: " + e.message); }
+        }
+
+        window.declineReservation = async function(reservationId) {
+            if(!confirm("Decline this reservation?")) return;
+            try {
+                await db.execute({ sql: "UPDATE RESERVATION SET status = 'Cancelled' WHERE reservation_id = ?", args: [reservationId] });
+                fetchReservations(); fetchStats();
+            } catch(e) { alert("Error: " + e.message); }
+        }
+
+        fetchReservations();
+        fetchStats();
+      }
+    </script>
             </div>
         </div>
     </div>

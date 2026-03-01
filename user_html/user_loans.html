@@ -75,6 +75,7 @@
                                     <th class="px-6 py-4 whitespace-nowrap">Dewey No.</th>
                                     <th class="px-6 py-4 whitespace-nowrap">Borrowed On</th>
                                     <th class="px-6 py-4 whitespace-nowrap">Due Date</th>
+                                    <th class="px-6 py-4 whitespace-nowrap">Return Date</th>
                                     <th class="px-6 py-4 whitespace-nowrap text-center">Status</th>
                                     <th class="px-6 py-4 whitespace-nowrap text-center">Actions</th>
                                 </tr>
@@ -242,10 +243,10 @@
             const tbody = document.querySelector('tbody');
             
             // Show loading state
-            tbody.innerHTML = '<tr><td colspan="8" class="px-6 py-4 text-center text-slate-500">Loading your loans...</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="9" class="px-6 py-4 text-center text-slate-500">Loading your loans...</td></tr>';
 
             if (!userId) {
-                tbody.innerHTML = '<tr><td colspan="8" class="px-6 py-4 text-center text-red-500">Please log in to view your loans.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="9" class="px-6 py-4 text-center text-red-500">Please log in to view your loans.</td></tr>';
                 return;
             }
 
@@ -255,6 +256,7 @@
                         bt.borrow_id,
                         bt.borrow_date,
                         bt.due_date,
+                        bt.return_date,
                         bt.status,
                         b.title,
                         b.author,
@@ -262,8 +264,8 @@
                         b.image_url
                     FROM BORROW_TRANSACTION bt
                     JOIN BOOK b ON bt.book_id = b.book_id
-                    WHERE bt.user_id = ? AND bt.status IN ('Borrowed', 'Overdue')
-                    ORDER BY bt.due_date ASC
+                    WHERE bt.user_id = ? AND bt.status IN ('Borrowed', 'Overdue', 'Returned')
+                    ORDER BY bt.borrow_date DESC
                 `;
 
                 const result = await db.execute({
@@ -275,7 +277,7 @@
                 tbody.innerHTML = '';
 
                 if (loans.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="8" class="px-6 py-4 text-center text-slate-500">You have no active loans.</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="9" class="px-6 py-4 text-center text-slate-500">You have no loan history.</td></tr>';
                     return;
                 }
 
@@ -287,14 +289,18 @@
                     today.setHours(0,0,0,0);
                     dueDate.setHours(0,0,0,0);
                     
-                    const isOverdue = loan.status === 'Overdue' || today > dueDate;
-                    const isDueSoon = !isOverdue && ((dueDate - today) / (1000 * 60 * 60 * 24) <= 3);
+                    const isOverdue = loan.status === 'Overdue' || (loan.status !== 'Returned' && today > dueDate);
+                    const isDueSoon = !isOverdue && loan.status !== 'Returned' && ((dueDate - today) / (1000 * 60 * 60 * 24) <= 3);
                     
                     let statusLabel = 'On Time';
                     let statusClasses = 'bg-[#5B8C5A]/10 text-[#5B8C5A] border-[#5B8C5A]/20';
                     let dueDateClass = 'text-[#1A202C]';
 
-                    if (isOverdue) {
+                    if (loan.status === 'Returned') {
+                        statusLabel = 'Returned';
+                        statusClasses = 'bg-slate-100 text-slate-600 border-slate-200';
+                        dueDateClass = 'text-slate-400';
+                    } else if (isOverdue) {
                         statusLabel = 'Overdue';
                         statusClasses = 'bg-[#C05640]/10 text-[#C05640] border-[#C05640]/20';
                         dueDateClass = 'text-[#C05640]';
@@ -307,6 +313,7 @@
                     // Format dates
                     const borrowDateStr = new Date(loan.borrow_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
                     const dueDateStr = new Date(loan.due_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+                    const returnDateStr = loan.return_date ? new Date(loan.return_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '-';
 
                     // Image handling
                     const imgHtml = loan.image_url 
@@ -319,6 +326,17 @@
                     const safeTitle = loan.title.replace(/'/g, "\\'");
                     const safeAuthor = loan.author.replace(/'/g, "\\'");
 
+                    // Actions
+                    let actionButtons = `<button onclick="openLoanDetailsPanel('${safeTitle}', '${safeAuthor}', '${borrowDateStr}', '${dueDateStr}', '${statusLabel}')" class="px-3 py-1.5 bg-[#183B5B] text-white text-xs font-semibold rounded-lg hover:bg-[#2E5F87] transition-colors shadow-sm">View Details</button>`;
+                    
+                    if (loan.status !== 'Returned') {
+                        if (!isOverdue) {
+                            actionButtons += `<button onclick="openExtensionPanel('${safeTitle}', '${dueDateStr}')" class="px-3 py-1.5 bg-white/80 border border-white/30 text-[#1A202C] text-xs font-semibold rounded-lg hover:bg-white hover:text-[#183B5B] transition-colors shadow-sm ml-3">Request Extension</button>`;
+                        } else {
+                            actionButtons += `<button class="px-3 py-1.5 bg-white/50 border border-white/20 text-slate-400 text-xs font-semibold rounded-lg cursor-not-allowed ml-3" disabled>Request Extension</button>`;
+                        }
+                    }
+
                     const row = `
                         <tr class="hover:bg-white/40 transition-colors group">
                             <td class="px-6 py-4"><div class="w-12 h-16 bg-slate-200 rounded overflow-hidden relative shadow-sm group-hover:shadow-md transition-all">${imgHtml}</div></td>
@@ -327,8 +345,9 @@
                             <td class="px-6 py-4 text-[#2E5F87] font-mono text-xs bg-white/50 px-2 py-1 rounded w-fit">${loan.dewey_decimal || 'N/A'}</td>
                             <td class="px-6 py-4 text-[#1A202C]">${borrowDateStr}</td>
                             <td class="px-6 py-4 ${dueDateClass} font-medium">${dueDateStr}</td>
+                            <td class="px-6 py-4 text-[#1A202C]">${returnDateStr}</td>
                             <td class="px-6 py-4 text-center"><span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold border ${statusClasses}">${statusLabel}</span></td>
-                            <td class="px-6 py-4"><div class="flex items-center justify-center gap-3"><button onclick="openLoanDetailsPanel('${safeTitle}', '${safeAuthor}', '${borrowDateStr}', '${dueDateStr}', '${statusLabel}')" class="px-3 py-1.5 bg-[#183B5B] text-white text-xs font-semibold rounded-lg hover:bg-[#2E5F87] transition-colors shadow-sm">View Details</button>${!isOverdue ? `<button onclick="openExtensionPanel('${safeTitle}', '${dueDateStr}')" class="px-3 py-1.5 bg-white/80 border border-white/30 text-[#1A202C] text-xs font-semibold rounded-lg hover:bg-white hover:text-[#183B5B] transition-colors shadow-sm">Request Extension</button>` : `<button class="px-3 py-1.5 bg-white/50 border border-white/20 text-slate-400 text-xs font-semibold rounded-lg cursor-not-allowed" disabled>Request Extension</button>`}</div></td>
+                            <td class="px-6 py-4"><div class="flex items-center justify-center">${actionButtons}</div></td>
                         </tr>`;
                     tbody.insertAdjacentHTML('beforeend', row);
                 });
@@ -336,7 +355,7 @@
                 if(paginationText) paginationText.innerText = `Showing ${loans.length} records`;
             } catch (error) {
                 console.error("Error loading user loans:", error);
-                tbody.innerHTML = `<tr><td colspan="8" class="px-6 py-4 text-center text-red-500">Error loading data: ${error.message}</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="9" class="px-6 py-4 text-center text-red-500">Error loading data: ${error.message}</td></tr>`;
             }
         }
         loadUserLoans();

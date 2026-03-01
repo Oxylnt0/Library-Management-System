@@ -39,19 +39,14 @@
                 <main class="flex-1 overflow-hidden p-6 flex flex-col">
 
                 <!-- HEADER -->
-                <div class="flex justify-between items-center mb-6">
-                    <div>
-                        <h2 class="text-2xl font-bold text-slate-800" id="page-title">Book Catalog</h2>
-                        <p class="text-sm text-slate-500">Manage your library's collection</p>
-                    </div>
-
-                    <div class="flex gap-3">
-                        <div class="relative">
-                            <input type="text" placeholder="Search title, author, ISBN..."
-                                class="pl-10 pr-4 py-2 rounded-lg border border-slate-300 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 w-64 shadow-sm">
-                            <span class="absolute left-3 top-2.5 text-slate-400"></span>
+                <div class="flex flex-col gap-4 mb-6">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <h2 class="text-2xl font-bold text-slate-800" id="page-title">Book Catalog</h2>
+                            <p class="text-sm text-slate-500">Manage your library's collection</p>
                         </div>
-
+    
+                        <div class="flex gap-3">
                         <button onclick="loadBooks()" class="bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 px-3 py-2 rounded-lg font-medium shadow-sm transition-colors" title="Refresh Catalog">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
                         </button>
@@ -65,6 +60,15 @@
                             <span>+</span>
                             Add New Book
                         </a>
+                    </div>
+                    </div>
+
+                    <div class="relative max-w-md">
+                        <input type="text" oninput="searchBooks(this.value)" placeholder="Search title, author, ISBN..."
+                            class="w-full pl-10 pr-4 py-2 rounded-full border border-slate-300 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 shadow-sm">
+                        <span class="absolute left-3 top-2.5 text-slate-400">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                        </span>
                     </div>
                 </div>
 
@@ -346,6 +350,13 @@
         const { db } = require(path.join(process.cwd(), 'db_config.js'));
 
         let isArchivedView = false;
+        let currentSearchTerm = '';
+
+        function searchBooks(term) {
+            currentSearchTerm = term.trim();
+            loadBooks();
+        }
+        window.searchBooks = searchBooks;
 
         async function loadBooks() {
             const grid = document.getElementById('books-grid');
@@ -355,16 +366,26 @@
             
             try {
                 // Fetch books from database
-                let query;
+                let sql = "SELECT * FROM BOOK WHERE ";
+                const args = [];
+
                 if (isArchivedView) {
-                    query = "SELECT * FROM BOOK WHERE status = 'Archived' ORDER BY date_added DESC";
+                    sql += "status = 'Archived'";
                     document.getElementById('page-title').innerText = "Archived Books";
                 } else {
-                    query = "SELECT * FROM BOOK WHERE status != 'Archived' ORDER BY date_added DESC";
+                    sql += "status != 'Archived'";
                     document.getElementById('page-title').innerText = "Book Catalog";
                 }
 
-                const result = await db.execute(query);
+                if (currentSearchTerm) {
+                    sql += " AND (title LIKE ? OR author LIKE ? OR isbn LIKE ?)";
+                    const term = `%${currentSearchTerm}%`;
+                    args.push(term, term, term);
+                }
+
+                sql += " ORDER BY date_added DESC";
+
+                const result = await db.execute({ sql, args });
                 const books = result.rows;
                 
                 grid.innerHTML = '';

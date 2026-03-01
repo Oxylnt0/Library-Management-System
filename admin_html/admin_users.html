@@ -35,25 +35,50 @@
 
                 <div class="flex-1 flex flex-col overflow-hidden p-6">
 
-                    <div class="flex justify-between items-center mb-6 shrink-0">
-                        <div>
+                    <div class="flex flex-col gap-4 mb-6 shrink-0">
+                        <div class="flex justify-between items-center">
                             <h2 class="text-2xl font-bold text-slate-800">User Directory</h2>
+                            <a href="admin_add_users.html"
+                                class="bg-[#183B5B] hover:bg-[#2E5F87] text-white px-4 py-2 rounded-lg font-medium shadow-md flex items-center gap-2 transition-colors">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                                <span>Add User</span>
+                            </a>
                         </div>
 
                         <div class="flex gap-3">
-                            <div class="relative">
-                                <input type="text" placeholder="Search name, ID..."
-                                    class="pl-10 pr-4 py-2 rounded-lg border border-slate-300 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 w-64 shadow-sm">
-                                <span class="absolute left-3 top-2.5 text-slate-400"></span>
+                            <div class="relative flex-1 max-w-md">
+                                <input type="text" oninput="searchUsers(this.value)" placeholder="Search name, ID..."
+                                    class="w-full pl-10 pr-4 py-2 rounded-full border border-slate-300 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 shadow-sm">
+                                <span class="absolute left-3 top-2.5 text-slate-400">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                                </span>
                             </div>
-                            <button
-                                class="bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 px-4 py-2 rounded-lg font-medium shadow-sm flex items-center gap-2 transition-colors">
-                                <span></span> Filter
-                            </button>
-                            <a href="admin_add_users.html"
-                                class="bg-[#183B5B] hover:bg-[#2E5F87] text-white px-4 py-2 rounded-lg font-medium shadow-md flex items-center gap-2 transition-colors">
-                                <span></span> Add User
-                            </a>
+                            <div class="relative">
+                                <button onclick="toggleFilterMenu()"
+                                    class="bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 px-4 py-2 rounded-full font-medium shadow-sm flex items-center gap-2 transition-colors">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path></svg>
+                                    <span>Filter</span>
+                                </button>
+                                <div id="filter-menu" class="hidden absolute right-0 top-full mt-2 w-48 bg-white rounded-xl shadow-xl border border-slate-200 z-50 overflow-hidden">
+                                    <button onclick="setFilter('all')" class="w-full text-left px-4 py-3 hover:bg-slate-50 text-sm text-slate-700 border-b border-slate-50">All Users</button>
+                                    <button onclick="setFilter('child')" class="w-full text-left px-4 py-3 hover:bg-slate-50 text-sm text-slate-700 border-b border-slate-50">Children Only</button>
+                                    <button onclick="setFilter('active')" class="w-full text-left px-4 py-3 hover:bg-slate-50 text-sm text-green-700 border-b border-slate-50">Active Status</button>
+                                    <button onclick="setFilter('suspended')" class="w-full text-left px-4 py-3 hover:bg-slate-50 text-sm text-red-700">Suspended</button>
+                                </div>
+                            </div>
+                            <div class="relative">
+                                <button onclick="toggleSortMenu()"
+                                    class="bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 px-4 py-2 rounded-full font-medium shadow-sm flex items-center gap-2 transition-colors">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12"></path></svg>
+                                    <span>Sort</span>
+                                </button>
+                                <div id="sort-menu" class="hidden absolute right-0 top-full mt-2 w-48 bg-white rounded-xl shadow-xl border border-slate-200 z-50 overflow-hidden">
+                                    <button onclick="setSort('newest')" class="w-full text-left px-4 py-3 hover:bg-slate-50 text-sm text-slate-700 border-b border-slate-50">Newest First</button>
+                                    <button onclick="setSort('oldest')" class="w-full text-left px-4 py-3 hover:bg-slate-50 text-sm text-slate-700 border-b border-slate-50">Oldest First</button>
+                                    <button onclick="setSort('name_asc')" class="w-full text-left px-4 py-3 hover:bg-slate-50 text-sm text-slate-700 border-b border-slate-50">Name (A-Z)</button>
+                                    <button onclick="setSort('name_desc')" class="w-full text-left px-4 py-3 hover:bg-slate-50 text-sm text-slate-700">Name (Z-A)</button>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -65,13 +90,9 @@
                                     <tr>
                                         <th class="p-4 text-xs font-bold text-slate-500 uppercase border-b">User Profile
                                         </th>
-                                        <th class="p-4 text-xs font-bold text-slate-500 uppercase border-b">Role</th>
-                                        <th class="p-4 text-xs font-bold text-slate-500 uppercase border-b">Contact Info
-                                        </th>
-                                        <th class="p-4 text-xs font-bold text-slate-500 uppercase border-b">Joined</th>
+                                        <th class="p-4 text-xs font-bold text-slate-500 uppercase border-b">Email</th>
+                                        <th class="p-4 text-xs font-bold text-slate-500 uppercase border-b">Contact Number</th>
                                         <th class="p-4 text-xs font-bold text-slate-500 uppercase border-b">Status</th>
-                                        <th class="p-4 text-xs font-bold text-slate-500 uppercase border-b text-right">
-                                            Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y divide-slate-100 text-sm">
@@ -100,7 +121,6 @@
                                 <span class="text-lg"></span>
                             </div>
                             <div class="text-2xl font-bold text-slate-800" id="stat-total-users">0</div>
-                            <div class="text-xs text-slate-500 mt-1">+12 this month</div>
                         </div>
 
                         <div class="p-4 rounded-xl border border-red-100 shadow-sm bg-red-50">
@@ -121,43 +141,101 @@
                     </div>
 
                     <button
-                        class="w-full mt-6 bg-slate-800 hover:bg-slate-900 text-white font-bold py-3 rounded-xl shadow-md transition-colors text-sm">
+                        onclick="exportUserData()" class="w-full mt-6 bg-slate-800 hover:bg-slate-900 text-white font-bold py-3 rounded-xl shadow-md transition-colors text-sm">
                         Export User Data
                     </button>
                 </aside>
 
                 </main>
 
-            </div>
-        </div>
-    </div>
-
     <script>
       {
         const path = require('path');
         const { db } = require(path.join(process.cwd(), 'db_config.js'));
 
+        let currentSearchTerm = '';
+        let currentFilter = 'all';
+        let currentSort = 'newest';
+
+        function toggleFilterMenu() {
+            document.getElementById('filter-menu').classList.toggle('hidden');
+            document.getElementById('sort-menu').classList.add('hidden');
+        }
+
+        function toggleSortMenu() {
+            document.getElementById('sort-menu').classList.toggle('hidden');
+            document.getElementById('filter-menu').classList.add('hidden');
+        }
+
+        function setFilter(filter) {
+            currentFilter = filter;
+            toggleFilterMenu();
+            loadUsers();
+        }
+
+        function setSort(sort) {
+            currentSort = sort;
+            toggleSortMenu();
+            loadUsers();
+        }
+
+        function searchUsers(term) {
+            currentSearchTerm = term.trim();
+            loadUsers();
+        }
+        window.searchUsers = searchUsers;
+
         async function loadUsers() {
             const tbody = document.querySelector('tbody');
-            tbody.innerHTML = '<tr><td colspan="6" class="p-4 text-center">Loading users...</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="4" class="p-4 text-center">Loading users...</td></tr>';
 
             try {
                 // Fetch users with ban status check
                 // Using a subquery to check for active bans
-                const query = `
+                let sql = `
                     SELECT u.*, 
                         (SELECT COUNT(*) FROM BAN_TERMINATION b WHERE b.user_id = u.user_id AND (b.end_date IS NULL OR b.end_date > DATE('now'))) as is_banned
                     FROM USER u
-                    ORDER BY u.user_id DESC
                 `;
                 
-                const result = await db.execute(query);
+                const args = [];
+                const conditions = [];
+
+                if (currentSearchTerm) {
+                    conditions.push("(u.first_name LIKE ? OR u.last_name LIKE ? OR CAST(u.user_id AS TEXT) LIKE ?)");
+                    const term = `%${currentSearchTerm}%`;
+                    args.push(term, term, term);
+                }
+
+                if (currentFilter === 'child') {
+                    conditions.push("u.guardian_id IS NOT NULL");
+                } else if (currentFilter === 'active') {
+                    conditions.push("(SELECT COUNT(*) FROM BAN_TERMINATION b WHERE b.user_id = u.user_id AND (b.end_date IS NULL OR b.end_date > DATE('now'))) = 0");
+                } else if (currentFilter === 'suspended') {
+                    conditions.push("(SELECT COUNT(*) FROM BAN_TERMINATION b WHERE b.user_id = u.user_id AND (b.end_date IS NULL OR b.end_date > DATE('now'))) > 0");
+                }
+
+                if (conditions.length > 0) {
+                    sql += " WHERE " + conditions.join(" AND ");
+                }
+
+                if (currentSort === 'newest') {
+                    sql += " ORDER BY u.user_id DESC";
+                } else if (currentSort === 'oldest') {
+                    sql += " ORDER BY u.user_id ASC";
+                } else if (currentSort === 'name_asc') {
+                    sql += " ORDER BY u.last_name ASC, u.first_name ASC";
+                } else if (currentSort === 'name_desc') {
+                    sql += " ORDER BY u.last_name DESC, u.first_name DESC";
+                }
+                
+                const result = await db.execute({ sql, args });
                 const users = result.rows;
 
                 tbody.innerHTML = '';
 
                 if (users.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="6" class="p-4 text-center">No users found.</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="4" class="p-4 text-center">No users found.</td></tr>';
                     updateStats(0, 0);
                     return;
                 }
@@ -172,8 +250,6 @@
                         ? '<span class="bg-red-100 text-red-700 px-2 py-1 rounded-full text-xs font-bold">Suspended</span>'
                         : '<span class="bg-green-100 text-green-700 px-2 py-1 rounded-full text-xs font-bold">Active</span>';
 
-                    const role = user.guardian_id ? 'Child' : 'Patron';
-                    const roleClass = user.guardian_id ? 'bg-purple-50 text-purple-700' : 'bg-blue-50 text-blue-700';
                     const initials = ((user.first_name?.[0] || '') + (user.last_name?.[0] || '')).toUpperCase();
                     
                     const row = `
@@ -187,17 +263,9 @@
                                     </div>
                                 </div>
                             </td>
-                            <td class="p-4"><span class="${roleClass} px-2 py-1 rounded text-xs font-semibold">${role}</span></td>
-                            <td class="p-4 text-slate-600">
-                                <div>${user.email || 'No Email'}</div>
-                                <div class="text-xs text-slate-400">${user.contact_number || 'No Contact'}</div>
-                            </td>
-                            <td class="p-4 text-slate-600">N/A</td>
+                            <td class="p-4 text-slate-600">${user.email || 'No Email'}</td>
+                            <td class="p-4 text-slate-600">${user.contact_number || 'No Contact'}</td>
                             <td class="p-4">${statusHtml}</td>
-                            <td class="p-4 text-right">
-                                <button class="text-slate-400 hover:text-blue-600 p-1">Edit</button>
-                                <button class="text-slate-400 hover:text-red-500 p-1 ml-2">Delete</button>
-                            </td>
                         </tr>
                     `;
                     tbody.insertAdjacentHTML('beforeend', row);
@@ -208,7 +276,7 @@
 
             } catch (err) {
                 console.error(err);
-                tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-red-500">Error: ${err.message}</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-red-500">Error: ${err.message}</td></tr>`;
             }
         }
 
@@ -243,9 +311,71 @@
             });
         }
 
+        async function exportUserData() {
+            try {
+                const result = await db.execute({
+                    sql: `SELECT u.user_id, u.first_name, u.last_name, u.email, u.contact_number, 
+                          CASE WHEN u.guardian_id IS NOT NULL THEN 'Child' ELSE 'Patron' END as role,
+                          (SELECT COUNT(*) FROM BAN_TERMINATION b WHERE b.user_id = u.user_id AND (b.end_date IS NULL OR b.end_date > DATE('now'))) as is_banned
+                          FROM USER u ORDER BY u.user_id ASC`
+                });
+                
+                const users = result.rows;
+                
+                if (users.length === 0) {
+                    alert("No users to export.");
+                    return;
+                }
+
+                const header = ["User ID", "First Name", "Last Name", "Email", "Contact Number", "Role", "Status"];
+                const rows = users.map(user => {
+                    const status = user.is_banned > 0 ? 'Suspended' : 'Active';
+                    
+                    // Helper to escape CSV fields
+                    const escape = (field) => {
+                        if (field === null || field === undefined) return '';
+                        const stringField = String(field);
+                        if (stringField.includes(',') || stringField.includes('"') || stringField.includes('\n')) {
+                            return `"${stringField.replace(/"/g, '""')}"`;
+                        }
+                        return stringField;
+                    };
+
+                    return [
+                        user.user_id,
+                        escape(user.first_name),
+                        escape(user.last_name),
+                        escape(user.email),
+                        escape(user.contact_number),
+                        user.role,
+                        status
+                    ].join(",");
+                });
+
+                const csvContent = [header.join(","), ...rows].join("\n");
+                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement("a");
+                link.setAttribute("href", url);
+                link.setAttribute("download", "library_users_export.csv");
+                link.style.visibility = 'hidden';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            } catch (error) {
+                console.error("Export failed:", error);
+                alert("Failed to export data: " + error.message);
+            }
+        }
+        window.exportUserData = exportUserData;
+
         loadUsers();
       }
     </script>
+            </div>
+        </div>
+    </div>
+
     <script src="../admin_js/dashboard_loader.js"></script>
     <script src="../admin_js/admin_renderer.js"></script>
 </body>

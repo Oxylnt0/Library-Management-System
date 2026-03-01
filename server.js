@@ -66,6 +66,13 @@ app.post('/api/checkout', async (req, res) => {
     const { reservationId, userId, bookId } = req.body;
 
     try {
+        // Fetch material_id
+        const bookRes = await db.execute({
+            sql: "SELECT material_id FROM BOOK WHERE book_id = ?",
+            args: [bookId]
+        });
+        const materialId = bookRes.rows[0]?.material_id;
+
         // Step 1: Mark Reservation as Fulfilled
         await db.execute({
             sql: "UPDATE RESERVATION SET status = 'Fulfilled' WHERE reservation_id = ?",
@@ -76,9 +83,9 @@ app.post('/api/checkout', async (req, res) => {
         // Using SQLite's DATE('now') for current date and DATE('now', '+7 days') for due date
         await db.execute({
             sql: `INSERT INTO BORROW_TRANSACTION 
-                  (user_id, book_id, borrow_date, due_date, status, borrow_type) 
-                  VALUES (?, ?, DATE('now'), DATE('now', '+7 days'), 'Borrowed', 'Outside Library')`,
-            args: [userId, bookId]
+                  (user_id, book_id, material_id, borrow_date, due_date, status, borrow_type) 
+                  VALUES (?, ?, ?, DATE('now', '+8 hours'), DATE('now', '+8 hours', '+7 days'), 'Borrowed', 'Outside Library')`,
+            args: [userId, bookId, materialId]
         });
 
         // Step 3: Update Book Status
@@ -101,7 +108,7 @@ app.post('/api/donations/inbound', async (req, res) => {
     try {
         await db.execute({
             sql: `INSERT INTO DONATION (donation_type, user_id, donor_name, book_title, category, quantity, donation_date) 
-                  VALUES ('Inbound', ?, ?, ?, ?, ?, DATE('now'))`,
+                  VALUES ('Inbound', ?, ?, ?, ?, ?, DATE('now', '+8 hours'))`,
             args: [user_id || null, donor_name || null, book_title, category, quantity]
         });
 
@@ -119,7 +126,7 @@ app.get('/api/donations/eligible', async (req, res) => {
         const result = await db.execute({
             sql: `SELECT book_id, title, book_category, date_added 
                   FROM BOOK 
-                  WHERE date_added <= date('now', '-5 years') 
+                  WHERE date_added <= date('now', '+8 hours', '-5 years') 
                   AND status = 'Available'`
         });
 
@@ -144,7 +151,7 @@ app.post('/api/donations/outbound', async (req, res) => {
         // 2. Insert Donation Record
         await db.execute({
             sql: `INSERT INTO DONATION (donation_type, recipient_organization, book_id, book_title, category, quantity, donation_date) 
-                  VALUES ('Outbound', ?, ?, ?, ?, 1, DATE('now'))`,
+                  VALUES ('Outbound', ?, ?, ?, ?, 1, DATE('now', '+8 hours'))`,
             args: [recipient_organization, book_id, book_title, category]
         });
 
@@ -222,7 +229,7 @@ app.get('/api/donations/stats', async (req, res) => {
     try {
         // 1. Total Books Acquired This Year (Inbound)
         const totalRes = await db.execute({
-            sql: "SELECT SUM(quantity) as total FROM DONATION WHERE donation_type = 'Inbound' AND strftime('%Y', donation_date) = strftime('%Y', 'now')"
+            sql: "SELECT SUM(quantity) as total FROM DONATION WHERE donation_type = 'Inbound' AND strftime('%Y', donation_date) = strftime('%Y', 'now', '+8 hours')"
         });
         const totalBooks = totalRes.rows[0].total || 0;
 
@@ -240,6 +247,96 @@ app.get('/api/donations/stats', async (req, res) => {
         res.json({ success: true, totalBooks, pendingCount, topDonors: donorsRes.rows });
     } catch (error) {
         console.error("Donation Stats Error:", error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+// 10. POST /api/borrow/kiosk
+app.post('/api/borrow/kiosk', async (req, res) => {
+    const { book_id, user_id } = req.body;
+    
+    try {
+        // 1. Check availability
+        const bookRes = await db.execute({
+            sql: "SELECT available_copies, status, material_id FROM BOOK WHERE book_id = ?",
+            args: [book_id]
+        });
+
+        if (bookRes.rows.length === 0) return res.status(404).json({ success: false, message: "Book not found." });
+        
+        const book = bookRes.rows[0];
+        if (book.available_copies <= 0) return res.status(400).json({ success: false, message: "Book is currently unavailable." });
+
+        // 2. Create Pending Transaction (Hold expires in 30 mins)
+        await db.execute({
+            sql: `INSERT INTO BORROW_TRANSACTION (user_id, book_id, material_id, borrow_date, status, expires_at, borrow_type) 
+                  VALUES (?, ?, ?, DATE('now', '+8 hours'), 'Pending', DATETIME('now', '+8 hours', '+30 minutes'), 'Outside Library')`,
+            args: [user_id, book_id, book.material_id]
+        });
+
+        // 3. Update Book Inventory
+        const newStatus = (book.available_copies - 1 === 0) ? 'Borrowed' : 'Available';
+        await db.execute({
+            sql: "UPDATE BOOK SET available_copies = available_copies - 1, status = ? WHERE book_id = ?",
+            args: [newStatus, book_id]
+        });
+
+        res.json({ success: true, message: "Hold placed successfully." });
+    } catch (error) {
+        console.error("Kiosk Borrow Error:", error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+// 11. POST /api/waitlist
+app.post('/api/waitlist', async (req, res) => {
+    const { book_id, user_id } = req.body;
+
+    try {
+        // 1. Calculate Priority
+        const prioRes = await db.execute({
+            sql: "SELECT MAX(priority_no) as max_p FROM RESERVATION WHERE book_id = ?",
+            args: [book_id]
+        });
+        const nextPriority = (prioRes.rows[0]?.max_p || 0) + 1;
+
+        // 2. Insert Reservation
+        await db.execute({
+            sql: "INSERT INTO RESERVATION (user_id, book_id, status, priority_no) VALUES (?, ?, 'Pending', ?)",
+            args: [user_id, book_id, nextPriority]
+        });
+
+        res.json({ success: true, message: "Added to waitlist." });
+    } catch (error) {
+        console.error("Waitlist Error:", error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+// 12. GET /api/books (Catalog with User Context)
+app.get('/api/books', async (req, res) => {
+    const userId = req.query.user_id;
+
+    try {
+        let sql = "SELECT * FROM BOOK";
+        let args = [];
+
+        if (userId) {
+            sql = `
+                SELECT b.*,
+                (SELECT COUNT(*) FROM BORROW_TRANSACTION bt 
+                 WHERE bt.book_id = b.book_id 
+                 AND bt.user_id = ? 
+                 AND bt.status IN ('Pending', 'Borrowed')) as user_already_has_it
+                FROM BOOK b
+            `;
+            args = [userId];
+        }
+
+        const result = await db.execute({ sql, args });
+        res.json({ success: true, data: result.rows });
+    } catch (error) {
+        console.error("Fetch Books Error:", error);
         res.status(500).json({ success: false, message: error.message });
     }
 });

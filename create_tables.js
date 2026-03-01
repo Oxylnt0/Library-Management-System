@@ -6,6 +6,7 @@ async function createAllTables() {
     // STEP 1: DROP ALL EXISTING TABLES
     // We drop child tables first to avoid Foreign Key constraint errors
     const dropSchema = `
+        DROP TABLE IF EXISTS DONATION;
         DROP TABLE IF EXISTS RESERVATION;
         DROP TABLE IF EXISTS SECURITY_QUESTIONS;
         DROP TABLE IF EXISTS GUARDIAN_AUDIT_LOG;
@@ -62,7 +63,8 @@ async function createAllTables() {
             email VARCHAR(255),
             contact_number VARCHAR(20),
             address VARCHAR(255),
-            password VARCHAR(255)
+            password VARCHAR(255),
+            date_created DATETIME DEFAULT CURRENT_TIMESTAMP
         );
 
         CREATE TABLE USER (
@@ -76,6 +78,7 @@ async function createAllTables() {
             address VARCHAR(255),
             birth_date DATE,
             password VARCHAR(255),
+            date_created DATETIME DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (guardian_id) REFERENCES GUARDIAN_NAME(guardian_id)
         );
 
@@ -138,11 +141,12 @@ async function createAllTables() {
             user_id INT NOT NULL,
             book_id INT,
             material_id INT,
-            borrow_date DATE DEFAULT CURRENT_DATE,
+            borrow_date DATE,
             due_date DATE,
             return_date DATE,
+            expires_at DATETIME,
             borrow_type VARCHAR(20) CHECK (borrow_type IN ('Inside Library', 'Outside Library')),
-            status VARCHAR(20) DEFAULT 'Borrowed' CHECK (status IN ('Borrowed', 'Returned', 'Overdue', 'Lost')),
+            status VARCHAR(20) DEFAULT 'Pending' CHECK (status IN ('Pending', 'Borrowed', 'Returned', 'Overdue', 'Lost', 'Cancelled')),
             extension_count INT DEFAULT 0,
             FOREIGN KEY (user_id) REFERENCES USER(user_id),
             FOREIGN KEY (book_id) REFERENCES BOOK(book_id),
@@ -220,20 +224,13 @@ async function createAllTables() {
         CREATE TABLE IF NOT EXISTS DONATION (
             donation_id INTEGER PRIMARY KEY AUTOINCREMENT,
             donation_type VARCHAR(20) NOT NULL CHECK (donation_type IN ('Inbound', 'Outbound')),
-            
-            -- INBOUND FIELDS
             user_id INT,
             donor_name VARCHAR(150),
-            
-            -- OUTBOUND FIELDS
             recipient_organization VARCHAR(200),
             book_id INT,
-            
-            -- BOOK DETAILS
             book_title VARCHAR(255),
             category VARCHAR(50),
             quantity INT DEFAULT 1,
-            
             donation_date DATE DEFAULT CURRENT_DATE,
             FOREIGN KEY (user_id) REFERENCES USER(user_id) ON DELETE SET NULL,
             FOREIGN KEY (book_id) REFERENCES BOOK(book_id) ON DELETE SET NULL

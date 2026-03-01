@@ -1,9 +1,5 @@
-document.addEventListener('DOMContentLoaded', () => {
-    fetchPendingDonations();
-    fetchDonationStats();
-});
-
-async function fetchPendingDonations() {
+(() => {
+    async function fetchPendingDonations() {
     try {
         const response = await fetch('http://localhost:3000/api/donations/pending');
         const result = await response.json();
@@ -52,7 +48,7 @@ async function fetchPendingDonations() {
     }
 }
 
-async function fetchDonationStats() {
+    async function fetchDonationStats() {
     try {
         const response = await fetch('http://localhost:3000/api/donations/stats');
         const result = await response.json();
@@ -88,3 +84,10 @@ async function fetchDonationStats() {
         console.error("Error fetching donation stats:", error);
     }
 }
+
+    // Initialize with a small delay to ensure DOM elements are ready
+    setTimeout(() => {
+        fetchPendingDonations();
+        fetchDonationStats();
+    }, 100);
+})();

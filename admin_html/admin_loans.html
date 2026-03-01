@@ -39,48 +39,28 @@
                 
                 <!-- Scanners Row -->
                 <div class="flex gap-6 shrink-0">
-                    <!-- ========== BORROW A BOOK CARD ========== -->
-                    <div class="flex-1 bg-white rounded-xl shadow-md border border-slate-200 flex flex-col">
-                        <div class="p-6 border-b border-slate-100">
-                            <h3 class="text-lg font-bold text-slate-800">Borrow a Book</h3>
-                            <p class="text-sm text-slate-500 mt-1">Scan user QR code to start a new loan</p>
+                    <!-- ========== BORROW CARD ========== -->
+                    <div class="flex-1 bg-white rounded-xl shadow-md border border-slate-200 flex flex-col items-center justify-center p-6">
+                        <div class="text-center mb-4">
+                            <h3 class="text-lg font-bold text-slate-800">Borrow Book</h3>
+                            <p class="text-sm text-slate-500">Scan to view reservations</p>
                         </div>
-                        <div class="p-6 space-y-4">
-                            <div class="flex items-center justify-center py-6 rounded-xl bg-slate-50 border-2 border-dashed border-slate-200">
-                                <p class="text-slate-500 font-medium">Scan user QR code</p>
-                            </div>
-                            <div class="flex gap-3">
-                                <button type="button" onclick="openScanner('borrow')" class="flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 font-medium transition-colors">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 13v4a2 2 0 01-2 2H7a2 2 0 01-2-2v-4M14 9v4" /></svg>
-                                    Camera
-                                </button>
-                                <button type="button" class="flex-1 py-3 px-4 rounded-xl bg-[#183B5B] hover:bg-[#2E5F87] text-white font-medium transition-colors">
-                                    Borrow Book
-                                </button>
-                            </div>
-                        </div>
+                        <button onclick="openScanner('borrow')" class="w-32 h-32 bg-[#183B5B] hover:bg-[#2E5F87] text-white rounded-2xl shadow-lg flex flex-col items-center justify-center gap-2 transition-all transform hover:scale-105">
+                            <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"></path></svg>
+                            <span class="text-sm font-bold">Scan QR Code</span>
+                        </button>
                     </div>
 
-                    <!-- ========== RETURN BOOK CARD ========== -->
-                    <div class="flex-1 bg-white rounded-xl shadow-md border border-slate-200 flex flex-col">
-                        <div class="p-6 border-b border-slate-100">
+                    <!-- ========== RETURN CARD ========== -->
+                    <div class="flex-1 bg-white rounded-xl shadow-md border border-slate-200 flex flex-col items-center justify-center p-6">
+                        <div class="text-center mb-4">
                             <h3 class="text-lg font-bold text-slate-800">Return Book</h3>
-                            <p class="text-sm text-slate-500 mt-1">Scan user QR code to process return</p>
+                            <p class="text-sm text-slate-500">Scan to return books</p>
                         </div>
-                        <div class="p-6 space-y-4">
-                            <div class="flex items-center justify-center py-6 rounded-xl bg-slate-50 border-2 border-dashed border-slate-200">
-                                <p class="text-slate-500 font-medium">Scan user QR code</p>
-                            </div>
-                            <div class="flex gap-3">
-                                <button type="button" onclick="openScanner('return')" class="flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 font-medium transition-colors">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 13v4a2 2 0 01-2 2H7a2 2 0 01-2-2v-4M14 9v4" /></svg>
-                                    Camera
-                                </button>
-                                <button type="button" class="flex-1 py-3 px-4 rounded-xl bg-[#183B5B] hover:bg-[#2E5F87] text-white font-medium transition-colors">
-                                    Return Book
-                                </button>
-                            </div>
-                        </div>
+                        <button onclick="openScanner('return')" class="w-32 h-32 bg-amber-600 hover:bg-amber-700 text-white rounded-2xl shadow-lg flex flex-col items-center justify-center gap-2 transition-all transform hover:scale-105">
+                            <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg>
+                            <span class="text-sm font-bold">Scan QR Code</span>
+                        </button>
                     </div>
                 </div>
         
@@ -93,54 +73,36 @@
 
                     <div class="flex-1 relative">
                         <!-- Borrowed List -->
-                        <div id="list-borrowed" class="absolute inset-0 overflow-y-auto p-4 space-y-3">
-                            <div class="flex justify-between items-start gap-2 py-2 border-b border-slate-100">
-                                <div>
-                                    <p class="text-sm font-semibold text-slate-800">Maria Santos</p>
-                                    <p class="text-xs text-slate-500">Noli Me Tangere</p>
-                                </div>
-                                <span class="text-xs text-slate-500 shrink-0">Feb 5, 2026</span>
-                            </div>
-                            <div class="flex justify-between items-start gap-2 py-2 border-b border-slate-100">
-                                <div>
-                                    <p class="text-sm font-semibold text-slate-800">Juan Dela Cruz</p>
-                                    <p class="text-xs text-slate-500">El Filibusterismo</p>
-                                </div>
-                                <span class="text-xs text-slate-500 shrink-0">Feb 4, 2026</span>
-                            </div>
-                            <div class="flex justify-between items-start gap-2 py-2 border-b border-slate-100">
-                                <div>
-                                    <p class="text-sm font-semibold text-slate-800">Ana Reyes</p>
-                                    <p class="text-xs text-slate-500">Introduction to Algorithms</p>
-                                </div>
-                                <span class="text-xs text-slate-500 shrink-0">Feb 3, 2026</span>
-                            </div>
+                        <div id="list-borrowed" class="absolute inset-0 overflow-y-auto">
+                            <table class="w-full text-left border-collapse">
+                                <thead class="bg-slate-50 sticky top-0 z-10 shadow-sm">
+                                    <tr>
+                                        <th class="p-4 text-xs font-bold text-slate-500 uppercase border-b">Name</th>
+                                        <th class="p-4 text-xs font-bold text-slate-500 uppercase border-b">Book Title</th>
+                                        <th class="p-4 text-xs font-bold text-slate-500 uppercase border-b cursor-pointer hover:bg-slate-100 select-none" onclick="sortActivity('borrowed')">
+                                            Date Borrowed <span id="sort-icon-borrowed">▼</span>
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tbody-borrowed" class="divide-y divide-slate-100 text-sm"></tbody>
+                            </table>
                         </div>
 
                         <!-- Returned List -->
-                        <div id="list-returned" class="hidden absolute inset-0 overflow-y-auto p-4 space-y-3">
-                            <div class="flex justify-between items-start gap-2 py-2 border-b border-slate-100">
-                                    <div>
-                                        <p class="text-sm font-semibold text-slate-800">Pedro Garcia</p>
-                                        <p class="text-xs text-slate-500">Philippine History</p>
-                                    </div>
-                                    <span class="text-xs text-slate-500 shrink-0">Feb 7, 2026</span>
-                                </div>
-                                <div class="flex justify-between items-start gap-2 py-2 border-b border-slate-100">
-                                    <div>
-                                        <p class="text-sm font-semibold text-slate-800">Liza Mendoza</p>
-                                        <p class="text-xs text-slate-500">History of Cavite</p>
-                                    </div>
-                                    <span class="text-xs text-slate-500 shrink-0">Feb 6, 2026</span>
-                                </div>
-                                <div class="flex justify-between items-start gap-2 py-2 border-b border-slate-100">
-                                    <div>
-                                        <p class="text-sm font-semibold text-slate-800">User6</p>
-                                        <p class="text-xs text-slate-500">El Filibusterismo</p>
-                                    </div>
-                                    <span class="text-xs text-slate-500 shrink-0">Feb 5, 2026</span>
-                                </div>
-                            </div>
+                        <div id="list-returned" class="hidden absolute inset-0 overflow-y-auto">
+                            <table class="w-full text-left border-collapse">
+                                <thead class="bg-slate-50 sticky top-0 z-10 shadow-sm">
+                                    <tr>
+                                        <th class="p-4 text-xs font-bold text-slate-500 uppercase border-b">Name</th>
+                                        <th class="p-4 text-xs font-bold text-slate-500 uppercase border-b">Book Title</th>
+                                        <th class="p-4 text-xs font-bold text-slate-500 uppercase border-b cursor-pointer hover:bg-slate-100 select-none" onclick="sortActivity('returned')">
+                                            Date Returned <span id="sort-icon-returned">▼</span>
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tbody-returned" class="divide-y divide-slate-100 text-sm"></tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -152,15 +114,15 @@
                     <div class="space-y-4">
                         <div class="p-4 rounded-xl bg-blue-50 border border-blue-100">
                             <p class="text-xs font-medium text-slate-500">Books borrowed today</p>
-                            <p class="text-2xl font-bold text-slate-800 mt-1">12</p>
+                            <p id="stat-borrowed-today" class="text-2xl font-bold text-slate-800 mt-1">...</p>
                         </div>
                         <div class="p-4 rounded-xl bg-amber-50 border border-amber-100">
                             <p class="text-xs font-medium text-slate-500">Books overdue</p>
-                            <p class="text-2xl font-bold text-amber-700 mt-1">5</p>
+                            <p id="stat-overdue" class="text-2xl font-bold text-amber-700 mt-1">...</p>
                         </div>
                         <div class="p-4 rounded-xl bg-emerald-50 border border-emerald-100">
                             <p class="text-xs font-medium text-slate-500">Books returned today</p>
-                            <p class="text-2xl font-bold text-emerald-700 mt-1">8</p>
+                            <p id="stat-returned-today" class="text-2xl font-bold text-emerald-700 mt-1">...</p>
                         </div>
                     </div>
                 </div>
@@ -178,60 +140,20 @@
         </div>
     </div>
 
-    <!-- Reservations Modal -->
-    <div id="reservations-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black/50 backdrop-blur-sm">
-        <div class="bg-white rounded-xl shadow-2xl w-full max-w-2xl p-6 relative max-h-[80vh] flex flex-col">
-            <button onclick="closeReservationsModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600">
+    <!-- Unified User Loan Management Modal -->
+    <div id="loan-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black/50 backdrop-blur-sm">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-4xl p-6 relative max-h-[90vh] flex flex-col">
+            <button onclick="closeLoanModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
             </button>
-            <h3 class="text-xl font-bold text-[#183B5B] mb-2 font-cinzel">Pending Reservations</h3>
-            <p class="text-sm text-slate-500 mb-6">Select books to approve for checkout.</p>
             
-            <div class="flex-1 overflow-y-auto pr-2">
-                <table class="w-full text-left border-collapse">
-                    <thead>
-                        <tr class="text-xs font-bold text-slate-500 uppercase border-b border-slate-200">
-                            <th class="py-3">Book Title</th>
-                            <th class="py-3">Reserved Date</th>
-                            <th class="py-3 text-right">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="reservations-list" class="divide-y divide-slate-100 text-sm">
-                        <!-- Rows injected here -->
-                    </tbody>
-                </table>
-                <div id="no-reservations-msg" class="hidden text-center py-8 text-slate-500">
-                    No pending reservations found for this user.
-                </div>
+            <div class="mb-6">
+                <h3 class="text-2xl font-bold text-[#183B5B] font-cinzel" id="modal-user-name">User Name</h3>
+                <p class="text-sm text-slate-500" id="modal-user-id">User ID: ...</p>
             </div>
-        </div>
-    </div>
 
-    <!-- Returns Modal -->
-    <div id="returns-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black/50 backdrop-blur-sm">
-        <div class="bg-white rounded-xl shadow-2xl w-full max-w-2xl p-6 relative max-h-[80vh] flex flex-col">
-            <button onclick="closeReturnsModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-            </button>
-            <h3 class="text-xl font-bold text-[#183B5B] mb-2 font-cinzel">Active Loans</h3>
-            <p class="text-sm text-slate-500 mb-6">Select books to mark as returned.</p>
-            
-            <div class="flex-1 overflow-y-auto pr-2">
-                <table class="w-full text-left border-collapse">
-                    <thead>
-                        <tr class="text-xs font-bold text-slate-500 uppercase border-b border-slate-200">
-                            <th class="py-3">Book Title</th>
-                            <th class="py-3">Due Date</th>
-                            <th class="py-3 text-right">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="returns-list" class="divide-y divide-slate-100 text-sm">
-                        <!-- Rows injected here -->
-                    </tbody>
-                </table>
-                <div id="no-returns-msg" class="hidden text-center py-8 text-slate-500">
-                    No active loans found for this user.
-                </div>
+            <div id="modal-content" class="flex-1 overflow-y-auto">
+                <!-- Content injected by JS based on scan type -->
             </div>
         </div>
     </div>
@@ -292,7 +214,7 @@
                 // Parse the QR JSON (e.g., {"id": 1})
                 const data = JSON.parse(decodedText);
                 
-                if (data.id && (currentScanType === 'borrow' || currentScanType === 'return')) {
+                if (data.id) {
                     if (window.onUserQrScanned) {
                         window.onUserQrScanned(data.id, currentScanType);
                     } else {
@@ -300,7 +222,7 @@
                         alert("Error: Loan system not ready. Please refresh the page.");
                     }
                 } else {
-                    alert(`Scanned ID: ${data.id} (Action: ${currentScanType})`);
+                    alert(`Scanned ID: ${data.id}`);
                 }
             } catch (e) {
                 console.error("QR Parse Error", e);

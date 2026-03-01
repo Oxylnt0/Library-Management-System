@@ -1,7 +1,4 @@
 (() => {
-    const path = require('path');
-    const { db } = require(path.join(__dirname, '../db_config.js'));
-
     let allBooks = [];
 
     // Initialize
@@ -40,6 +37,12 @@
                 if (e.key === 'Enter') performSearch();
             });
         }
+
+        // Event Delegation for Dynamic Actions (Kiosk Mode)
+        const grid = document.getElementById('book-grid');
+        if (grid) {
+            grid.addEventListener('click', handleCatalogAction);
+        }
     }
 
     if (document.readyState === 'loading') {
@@ -50,9 +53,14 @@
 
     async function loadBooks() {
         try {
-            console.log("Fetching books from database...");
-            const result = await db.execute("SELECT * FROM BOOK");
-            allBooks = result.rows;
+            console.log("Fetching books from API...");
+            const userId = sessionStorage.getItem('userId') || localStorage.getItem('userId');
+            const response = await fetch(`http://localhost:3000/api/books?user_id=${userId}`);
+            const result = await response.json();
+            
+            if (!result.success) throw new Error(result.message);
+            
+            allBooks = result.data;
             console.log(`Loaded ${allBooks.length} books.`);
             
             renderBooks(allBooks);
@@ -95,15 +103,21 @@
             if (book.status === 'Borrowed') statusColor = 'bg-amber-100 text-amber-700 ring-amber-600/20';
             if (book.status === 'Lost' || book.status === 'Archived') statusColor = 'bg-slate-100 text-slate-600 ring-slate-500/10';
 
-            // Reserve Button Logic
-            const currentUserId = localStorage.getItem('userId');
-            let reserveBtn = '';
-            if (!currentUserId) {
-                reserveBtn = `<button onclick="alert('Please log in to reserve books.')" class="w-full mt-2 py-2.5 rounded-lg bg-slate-200 text-slate-500 text-sm font-semibold hover:bg-slate-300 transition-all shadow-sm">Login to Reserve</button>`;
-            } else if (book.status === 'Available') {
-                reserveBtn = `<button onclick="reserveBook('${currentUserId}', ${book.book_id}, '${book.status}')" class="w-full mt-2 py-2.5 rounded-lg bg-emerald-600 text-white text-sm font-semibold hover:bg-emerald-700 transition-all shadow-sm">Reserve Book</button>`;
-            } else if (book.status === 'Borrowed') {
-                reserveBtn = `<button onclick="reserveBook('${currentUserId}', ${book.book_id}, '${book.status}')" class="w-full mt-2 py-2.5 rounded-lg bg-amber-500 text-white text-sm font-semibold hover:bg-amber-600 transition-all shadow-sm">Join Waitlist</button>`;
+            // Dynamic Action Button Logic
+            const available = book.available_copies || 0;
+            const total = book.total_copies || 0;
+            const userHasIt = book.user_already_has_it > 0;
+            let btnHtml = '';
+
+            if (userHasIt) {
+                // STATE 1: User already has the book (Pending or Borrowed)
+                btnHtml = `<button class="w-full py-2.5 rounded-lg bg-slate-200 text-slate-500 text-sm font-semibold cursor-not-allowed shadow-sm" disabled>✅ Pending - Go to Desk</button>`;
+            } else if (available > 0) {
+                // STATE 2: Available to borrow
+                btnHtml = `<button class="dynamic-action-btn w-full py-2.5 rounded-lg bg-emerald-600 text-white text-sm font-semibold hover:bg-emerald-700 transition-all shadow-sm" data-action="borrow" data-id="${book.book_id}">Borrow (30 Min Hold)</button>`;
+            } else {
+                // STATE 3: Unavailable, join waitlist
+                btnHtml = `<button class="dynamic-action-btn w-full py-2.5 rounded-lg bg-amber-500 text-white text-sm font-semibold hover:bg-amber-600 transition-all shadow-sm" data-action="waitlist" data-id="${book.book_id}">Join Waitlist</button>`;
             }
 
             card.innerHTML = `
@@ -123,16 +137,16 @@
                         <h3 class="font-bold text-slate-800 leading-tight mb-1 line-clamp-2 font-cinzel text-lg">${book.title}</h3>
                         <p class="text-sm text-[#2E5F87] font-medium mb-2">${book.author}</p>
                         <div class="flex items-center gap-2 text-xs text-slate-500 mb-4">
-                            <span class="bg-slate-100 px-2 py-0.5 rounded">${book.publication_year}</span>
+                            <span class="bg-slate-100 px-2 py-0.5 rounded font-bold text-slate-600">${available} / ${total} Copies</span>
                             <span>•</span>
                             <span class="truncate max-w-[100px]">${book.genre}</span>
                         </div>
                     </div>
                     <button onclick="openBookDetails(${book.book_id})" 
-                            class="w-full py-2.5 rounded-lg border border-[#183B5B] text-[#183B5B] text-sm font-semibold hover:bg-[#183B5B] hover:text-white transition-all active:scale-95 shadow-sm">
+                            class="w-full mb-2 py-2.5 rounded-lg border border-[#183B5B] text-[#183B5B] text-sm font-semibold hover:bg-[#183B5B] hover:text-white transition-all active:scale-95 shadow-sm">
                         View Details
                     </button>
-                    ${reserveBtn}
+                    ${btnHtml}
                 </div>
             `;
             grid.appendChild(card);
@@ -220,34 +234,51 @@
         if (modal) modal.classList.add('hidden');
     }
 
-    // Reserve Book Function
-    window.reserveBook = async function(userId, bookId, bookStatus) {
+    // Handle Dynamic Actions (Borrow / Waitlist)
+    async function handleCatalogAction(e) {
+        if (!e.target.classList.contains('dynamic-action-btn')) return;
+
+        const btn = e.target;
+        const bookId = btn.dataset.id;
+        const action = btn.dataset.action;
+        const userId = sessionStorage.getItem('userId') || localStorage.getItem('userId');
+
+        if (!userId) {
+            alert("Please log in to perform this action.");
+            return;
+        }
+
+        // UI Feedback
+        const originalText = btn.innerText;
+        btn.innerText = "Processing...";
+        btn.disabled = true;
+        btn.classList.add('opacity-75', 'cursor-wait');
+
         try {
-            let priorityNo = 1;
-
-            // Logic: If borrowed, queue up (max + 1). If available, priority is 1.
-            if (bookStatus === 'Borrowed') {
-                const result = await db.execute({
-                    sql: "SELECT MAX(priority_no) as max_p FROM RESERVATION WHERE book_id = ?",
-                    args: [bookId]
-                });
-                const maxP = result.rows[0]?.max_p || 0;
-                priorityNo = maxP + 1;
-            }
-
-            await db.execute({
-                sql: "INSERT INTO RESERVATION (user_id, book_id, status, priority_no) VALUES (?, ?, 'Pending', ?)",
-                args: [userId, bookId, priorityNo]
+            const endpoint = action === 'borrow' ? '/api/borrow/kiosk' : '/api/waitlist';
+            const response = await fetch(`http://localhost:3000${endpoint}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ book_id: bookId, user_id: userId })
             });
-            
-            alert("Book successfully reserved! Please show your QR code to the librarian.");
-        } catch (error) {
-            console.error("Reservation error:", error);
-            if (error.message.includes("FOREIGN KEY constraint failed")) {
-                alert("Reservation Failed: User ID not found. Please log out and log in again.");
+
+            const result = await response.json();
+
+            if (result.success) {
+                const msg = action === 'borrow'
+                    ? "Hold placed! Please proceed to the front desk within 30 minutes." 
+                    : "You have been added to the waitlist.";
+                alert(msg);
+                loadBooks(); // Refresh UI
             } else {
-                alert("Reservation Failed: " + error.message);
+                throw new Error(result.message);
             }
+        } catch (error) {
+            console.error("Action error:", error);
+            alert("Action failed: " + error.message);
+            btn.innerText = originalText;
+            btn.disabled = false;
+            btn.classList.remove('opacity-75', 'cursor-wait');
         }
     }
 })();

@@ -35,28 +35,34 @@
 
                 <div class="flex-1 flex flex-col overflow-hidden p-6">
 
-                    <div class="flex justify-between items-center mb-6 shrink-0">
-                        <div>
-                            <h2 class="text-2xl font-bold text-slate-800">Donation Management</h2>
-                            <p class="text-sm text-slate-500">Track and catalog donated books</p>
-                        </div>
-
-                        <div class="flex gap-3">
-                            <div class="relative">
-                                <input type="text" placeholder="Search donor or book..."
-                                    class="pl-10 pr-4 py-2 rounded-lg border border-slate-300 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 w-64 shadow-sm">
-                                <span class="absolute left-3 top-2.5 text-slate-400"></span>
+                    <div class="flex flex-col gap-4 mb-6 shrink-0">
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <h2 class="text-2xl font-bold text-slate-800">Donation Management</h2>
+                                <p class="text-sm text-slate-500">Track and catalog donated books</p>
                             </div>
 
-                            <a href="inbound.html"
-                                class="bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 px-4 py-2 rounded-lg font-medium shadow-sm flex items-center gap-2 transition-colors">
-                                <span></span> Inbound
-                            </a>
+                            <div class="flex gap-3">
+                                <a href="inbound.html"
+                                    class="bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 px-4 py-2 rounded-lg font-medium shadow-sm flex items-center gap-2 transition-colors">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path></svg>
+                                    <span>Inbound</span>
+                                </a>
 
-                            <a href="outbound.html"
-                                class="bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 px-4 py-2 rounded-lg font-medium shadow-sm flex items-center gap-2 transition-colors">
-                                <span></span> Outbound
-                            </a>
+                                <a href="outbound.html"
+                                    class="bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 px-4 py-2 rounded-lg font-medium shadow-sm flex items-center gap-2 transition-colors">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"></path></svg>
+                                    <span>Outbound</span>
+                                </a>
+                            </div>
+                        </div>
+
+                        <div class="relative max-w-md">
+                            <input type="text" oninput="searchDonations(this.value)" placeholder="Search donor or book..."
+                                class="w-full pl-10 pr-4 py-2 rounded-full border border-slate-300 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 shadow-sm">
+                            <span class="absolute left-3 top-2.5 text-slate-400">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                            </span>
                         </div>
                     </div>
 
@@ -128,13 +134,144 @@
 
                 </main>
 
+                <script>
+                  {
+                    const path = require('path');
+                    const { db } = require(path.join(process.cwd(), 'db_config.js'));
+
+                    let currentSearchTerm = '';
+
+                    window.searchDonations = function(term) {
+                        currentSearchTerm = term.trim();
+                        fetchPendingDonations();
+                    }
+
+                    async function fetchPendingDonations() {
+                        try {
+                            let sql = `SELECT donation_id, donor_name, book_title, category, quantity, donation_date 
+                                      FROM DONATION 
+                                      WHERE donation_type = 'Inbound' AND book_id IS NULL`;
+                            
+                            const args = [];
+
+                            if (currentSearchTerm) {
+                                sql += " AND (donor_name LIKE ? OR book_title LIKE ?)";
+                                const term = `%${currentSearchTerm}%`;
+                                args.push(term, term);
+                            }
+
+                            sql += " ORDER BY donation_date DESC";
+
+                            const result = await db.execute({ sql, args });
+
+                            const list = document.getElementById('pending-donations-list');
+                            if (!list) return;
+
+                            list.innerHTML = '';
+
+                            if (result.rows.length > 0) {
+                                result.rows.forEach(donation => {
+                                    const row = document.createElement('tr');
+                                    row.className = 'hover:bg-slate-50 transition-colors';
+                                    
+                                    // Generate initials for avatar
+                                    const donorName = donation.donor_name || 'Anonymous';
+                                    const initials = donorName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+
+                                    row.innerHTML = `
+                                        <td class="p-4">
+                                            <div class="flex items-center gap-2">
+                                                <div class="w-8 h-8 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center text-xs font-bold">${initials}</div>
+                                                <div>
+                                                    <div class="font-bold text-slate-800">${donorName}</div>
+                                                    <div class="text-xs text-slate-500">ID: ${donation.donation_id}</div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="p-4">
+                                            <div class="font-medium text-slate-800">${donation.book_title}</div>
+                                            <div class="text-xs text-slate-500">${donation.category}</div>
+                                        </td>
+                                        <td class="p-4 text-slate-600">${new Date(donation.donation_date).toLocaleDateString()}</td>
+                                        <td class="p-4 text-right">
+                                            <button onclick="window.location.href='admin_add_books.html?donation_id=${donation.donation_id}&title=${encodeURIComponent(donation.book_title)}&category=${donation.category}&quantity=${donation.quantity}'" 
+                                                class="px-3 py-1.5 bg-[#183B5B] text-white text-xs font-bold rounded hover:bg-[#2E5F87] transition shadow-sm">
+                                                Catalog Item
+                                            </button>
+                                        </td>
+                                    `;
+                                    list.appendChild(row);
+                                });
+                            } else {
+                                list.innerHTML = '<tr><td colspan="4" class="p-4 text-center text-slate-500">No pending donations found.</td></tr>';
+                            }
+                        } catch (error) {
+                            console.error("Error fetching donations:", error);
+                        }
+                    }
+
+                    async function fetchDonationStats() {
+                        try {
+                            // 1. Total Books Acquired This Year (Inbound)
+                            const totalRes = await db.execute({
+                                sql: "SELECT SUM(quantity) as total FROM DONATION WHERE donation_type = 'Inbound' AND strftime('%Y', donation_date) = strftime('%Y', 'now')"
+                            });
+                            const totalBooks = totalRes.rows[0].total || 0;
+
+                            // 2. Pending Catalog Count
+                            const pendingRes = await db.execute({
+                                sql: "SELECT COUNT(*) as count FROM DONATION WHERE donation_type = 'Inbound' AND book_id IS NULL"
+                            });
+                            const pendingCount = pendingRes.rows[0].count || 0;
+
+                            // 3. Top 3 Donors
+                            const donorsRes = await db.execute({
+                                sql: "SELECT donor_name, SUM(quantity) as total_donated FROM DONATION WHERE donation_type = 'Inbound' AND donor_name IS NOT NULL GROUP BY donor_name ORDER BY total_donated DESC LIMIT 3"
+                            });
+
+                            // Update Counts
+                            const totalEl = document.getElementById('stat-total-donations');
+                            const pendingEl = document.getElementById('stat-pending-catalog');
+                            if(totalEl) totalEl.innerText = totalBooks;
+                            if(pendingEl) pendingEl.innerText = pendingCount;
+
+                            // Update Top Donors
+                            const donorsList = document.getElementById('top-donors-list');
+                            if (donorsList) {
+                                donorsList.innerHTML = '';
+                                donorsRes.rows.forEach((donor, index) => {
+                                    const row = `
+                                        <div class="flex items-center justify-between">
+                                            <div class="flex items-center">
+                                                <div class="w-6 h-6 bg-slate-100 rounded-full flex items-center justify-center text-[10px] mr-2 font-bold text-slate-600">
+                                                    ${index + 1}
+                                                </div>
+                                                <span class="text-sm font-medium text-slate-700 truncate max-w-[120px]" title="${donor.donor_name}">
+                                                    ${donor.donor_name}
+                                                </span>
+                                            </div>
+                                            <span class="text-xs font-bold text-blue-600">${donor.total_donated} Books</span>
+                                        </div>
+                                    `;
+                                    donorsList.insertAdjacentHTML('beforeend', row);
+                                });
+                            }
+                        } catch (error) {
+                            console.error("Error fetching donation stats:", error);
+                        }
+                    }
+
+                    // Execute immediately
+                    fetchPendingDonations();
+                    fetchDonationStats();
+                  }
+                </script>
             </div>
         </div>
     </div>
 
     <script src="../admin_js/dashboard_loader.js"></script>
     <script src="../admin_js/admin_renderer.js"></script>
-    <script src="../admin_js/admin_donations.js"></script>
 </body>
 
 </html>
