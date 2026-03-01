@@ -207,6 +207,35 @@
         </div>
     </div>
 
+    <!-- Returns Modal -->
+    <div id="returns-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black/50 backdrop-blur-sm">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-2xl p-6 relative max-h-[80vh] flex flex-col">
+            <button onclick="closeReturnsModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+            <h3 class="text-xl font-bold text-[#183B5B] mb-2 font-cinzel">Active Loans</h3>
+            <p class="text-sm text-slate-500 mb-6">Select books to mark as returned.</p>
+            
+            <div class="flex-1 overflow-y-auto pr-2">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="text-xs font-bold text-slate-500 uppercase border-b border-slate-200">
+                            <th class="py-3">Book Title</th>
+                            <th class="py-3">Due Date</th>
+                            <th class="py-3 text-right">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="returns-list" class="divide-y divide-slate-100 text-sm">
+                        <!-- Rows injected here -->
+                    </tbody>
+                </table>
+                <div id="no-returns-msg" class="hidden text-center py-8 text-slate-500">
+                    No active loans found for this user.
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
     <script>
         let html5QrCode;
@@ -263,9 +292,9 @@
                 // Parse the QR JSON (e.g., {"id": 1})
                 const data = JSON.parse(decodedText);
                 
-                if (data.id && currentScanType === 'borrow') {
+                if (data.id && (currentScanType === 'borrow' || currentScanType === 'return')) {
                     if (window.onUserQrScanned) {
-                        window.onUserQrScanned(data.id);
+                        window.onUserQrScanned(data.id, currentScanType);
                     } else {
                         console.error("onUserQrScanned is not defined");
                         alert("Error: Loan system not ready. Please refresh the page.");

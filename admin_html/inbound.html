@@ -46,46 +46,69 @@
                                 class="bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 px-4 py-2 rounded-lg font-medium shadow-sm flex items-center gap-2 transition-colors">
                                 <span>←</span> Back to Donations
                             </a>
-                            
-                            <button
-                                class="bg-[#183B5B] hover:bg-[#2E5F87] text-white px-4 py-2 rounded-lg font-medium shadow-md flex items-center gap-2 transition-colors">
-                                <span>+</span> Log New Entry
-                            </button>
                         </div>
                     </div>
 
-                    <div class="flex-1 bg-white rounded-xl shadow-md border border-slate-200 overflow-hidden flex flex-col">
-                        <div class="overflow-y-auto flex-1">
-                            <table class="w-full text-left border-collapse">
-                                <thead class="bg-slate-50 sticky top-0 z-10">
-                                    <tr>
-                                        <th class="p-4 text-xs font-bold text-slate-500 uppercase border-b">Donor Name</th>
-                                        <th class="p-4 text-xs font-bold text-slate-500 uppercase border-b">Book Title</th>
-                                        <th class="p-4 text-xs font-bold text-slate-500 uppercase border-b">Date Received</th>
-                                        <th class="p-4 text-xs font-bold text-slate-500 uppercase border-b">Condition</th>
-                                        <th class="p-4 text-xs font-bold text-slate-500 uppercase border-b text-right">Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody class="divide-y divide-slate-100 text-sm">
-                                    <tr class="hover:bg-slate-50 transition-colors">
-                                        <td class="p-4 font-bold text-slate-800">Alumni Batch 2010</td>
-                                        <td class="p-4">Encyclopedia Britannica (Set)</td>
-                                        <td class="p-4 text-slate-600">Oct 26, 2025</td>
-                                        <td class="p-4"><span class="bg-green-100 text-green-700 px-2 py-1 rounded text-xs font-semibold">Excellent</span></td>
-                                        <td class="p-4 text-right">
-                                            <button class="text-blue-600 hover:text-blue-800 font-bold text-xs">Details</button>
-                                        </td>
-                                    </tr>
-                                    <!-- More rows can be added here -->
-                                </tbody>
-                            </table>
-                        </div>
-                        <div class="bg-slate-50 p-4 border-t border-slate-200 flex justify-between items-center text-xs text-slate-500 shrink-0">
-                            <span>Showing 1 record</span>
-                            <div class="flex gap-2">
-                                <button class="px-3 py-1 bg-white border rounded hover:bg-slate-100">Previous</button>
-                                <button class="px-3 py-1 bg-white border rounded hover:bg-slate-100">Next</button>
-                            </div>
+                    <!-- Form Container (Replaces Table) -->
+                    <div class="flex-1 overflow-y-auto">
+                        <div class="max-w-2xl mx-auto bg-white rounded-xl shadow-md border border-slate-200 p-8">
+                            <h3 class="text-xl font-bold text-[#183B5B] mb-6">Log Inbound Donation</h3>
+                            
+                            <form id="inbound-form" class="space-y-6">
+                                <!-- Donor Type Toggle -->
+                                <div>
+                                    <label class="block text-sm font-medium text-slate-700 mb-2">Donor Type</label>
+                                    <div class="flex gap-4">
+                                        <label class="flex items-center gap-2 cursor-pointer">
+                                            <input type="radio" name="donor_type" value="registered" checked onchange="toggleDonorInput()" class="text-[#183B5B] focus:ring-[#183B5B]">
+                                            <span class="text-sm text-slate-600">Registered User</span>
+                                        </label>
+                                        <label class="flex items-center gap-2 cursor-pointer">
+                                            <input type="radio" name="donor_type" value="walkin" onchange="toggleDonorInput()" class="text-[#183B5B] focus:ring-[#183B5B]">
+                                            <span class="text-sm text-slate-600">Walk-in (Guest)</span>
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <!-- Conditional Inputs -->
+                                <div id="input-user-id">
+                                    <label class="block text-sm font-medium text-slate-700 mb-1">User ID / Library Card</label>
+                                    <input type="number" id="inp-user-id" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:border-[#183B5B]" placeholder="Scan or enter User ID">
+                                </div>
+
+                                <div id="input-donor-name" class="hidden">
+                                    <label class="block text-sm font-medium text-slate-700 mb-1">Donor Name</label>
+                                    <input type="text" id="inp-donor-name" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:border-[#183B5B]" placeholder="e.g. John Doe">
+                                </div>
+
+                                <!-- Book Details -->
+                                <div>
+                                    <label class="block text-sm font-medium text-slate-700 mb-1">Book Title <span class="text-red-500">*</span></label>
+                                    <input type="text" id="inp-book-title" required class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:border-[#183B5B]" placeholder="Title of the donated book">
+                                </div>
+
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="block text-sm font-medium text-slate-700 mb-1">Category</label>
+                                        <select id="inp-category" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:border-[#183B5B]">
+                                            <option value="Fiction">Fiction</option>
+                                            <option value="Non-Fiction">Non-Fiction</option>
+                                            <option value="Reference">Reference</option>
+                                            <option value="Textbook">Textbook</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-slate-700 mb-1">Quantity</label>
+                                        <input type="number" id="inp-quantity" value="1" min="1" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:border-[#183B5B]">
+                                    </div>
+                                </div>
+
+                                <div class="pt-4">
+                                    <button type="submit" class="w-full bg-[#183B5B] hover:bg-[#2E5F87] text-white font-bold py-3 px-4 rounded-lg transition-colors shadow-md">
+                                        Record Donation Intake
+                                    </button>
+                                </div>
+                            </form>
                         </div>
                     </div>
                 </div>
@@ -98,5 +121,6 @@
 
     <script src="../admin_js/dashboard_loader.js"></script>
     <script src="../admin_js/admin_renderer.js"></script>
+    <script src="../admin_js/inbound.js"></script>
 </body>
 </html>

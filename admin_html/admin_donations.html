@@ -57,16 +57,6 @@
                                 class="bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 px-4 py-2 rounded-lg font-medium shadow-sm flex items-center gap-2 transition-colors">
                                 <span></span> Outbound
                             </a>
-
-                            <button
-                                class="bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 px-4 py-2 rounded-lg font-medium shadow-sm flex items-center gap-2 transition-colors">
-                                <span></span> Print Labels
-                            </button>
-
-                            <button
-                                class="bg-[#183B5B] hover:bg-[#2E5F87] text-white px-4 py-2 rounded-lg font-medium shadow-md flex items-center gap-2 transition-colors">
-                                <span></span> Log Donation
-                            </button>
                         </div>
                     </div>
 
@@ -82,109 +72,12 @@
                                         </th>
                                         <th class="p-4 text-xs font-bold text-slate-500 uppercase border-b">Date
                                             Received</th>
-                                        <th class="p-4 text-xs font-bold text-slate-500 uppercase border-b">Condition
-                                        </th>
-                                        <th class="p-4 text-xs font-bold text-slate-500 uppercase border-b">Status</th>
                                         <th class="p-4 text-xs font-bold text-slate-500 uppercase border-b text-right">
                                             Actions</th>
                                     </tr>
                                 </thead>
-                                <tbody class="divide-y divide-slate-100 text-sm">
-
-                                    <tr class="hover:bg-slate-50 transition-colors">
-                                        <td class="p-4">
-                                            <div class="flex items-center gap-2">
-                                                <div
-                                                    class="w-8 h-8 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center text-xs font-bold">
-                                                    AL</div>
-                                                <div>
-                                                    <div class="font-bold text-slate-800">Alumni Batch 2010</div>
-                                                    <div class="text-xs text-slate-500">Group Donation</div>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td class="p-4">
-                                            <div class="font-medium text-slate-800">Encyclopedia Britannica (Set)</div>
-                                            <div class="text-xs text-slate-500">24 Volumes</div>
-                                        </td>
-                                        <td class="p-4 text-slate-600">Oct 26, 2025</td>
-                                        <td class="p-4">
-                                            <span
-                                                class="bg-green-100 text-green-700 px-2 py-1 rounded text-xs font-semibold">Excellent</span>
-                                        </td>
-                                        <td class="p-4">
-                                            <span
-                                                class="bg-amber-100 text-amber-700 px-2 py-1 rounded-full text-xs font-bold">Pending
-                                                Review</span>
-                                        </td>
-                                        <td class="p-4 text-right">
-                                            <button
-                                                class="text-blue-600 hover:text-blue-800 font-bold text-xs">Catalog</button>
-                                        </td>
-                                    </tr>
-
-                                    <tr class="hover:bg-slate-50 transition-colors">
-                                        <td class="p-4">
-                                            <div class="flex items-center gap-2">
-                                                <div
-                                                    class="w-8 h-8 rounded-full bg-slate-200 text-slate-600 flex items-center justify-center text-xs font-bold">
-                                                    JD</div>
-                                                <div>
-                                                    <div class="font-bold text-slate-800">Estelle Bright</div>
-                                                    <div class="text-xs text-slate-500">Student</div>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td class="p-4">
-                                            <div class="font-medium text-slate-800">Clean Code</div>
-                                            <div class="text-xs text-slate-500">Robert C. Martin</div>
-                                        </td>
-                                        <td class="p-4 text-slate-600">Oct 20, 2025</td>
-                                        <td class="p-4">
-                                            <span
-                                                class="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs font-semibold">Good</span>
-                                        </td>
-                                        <td class="p-4">
-                                            <span
-                                                class="bg-green-100 text-green-700 px-2 py-1 rounded-full text-xs font-bold">Added
-                                                to Shelf</span>
-                                        </td>
-                                        <td class="p-4 text-right">
-                                            <button
-                                                class="text-slate-400 hover:text-slate-600 font-medium text-xs">View</button>
-                                        </td>
-                                    </tr>
-
-                                    <tr class="hover:bg-slate-50 transition-colors opacity-60">
-                                        <td class="p-4">
-                                            <div class="flex items-center gap-2">
-                                                <div
-                                                    class="w-8 h-8 rounded-full bg-pink-100 text-pink-600 flex items-center justify-center text-xs font-bold">
-                                                    AN</div>
-                                                <div>
-                                                    <div class="font-bold text-slate-800">Anonymous</div>
-                                                    <div class="text-xs text-slate-500">Drop-off box</div>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td class="p-4">
-                                            <div class="font-medium text-slate-800">Old Magazines (2005)</div>
-                                            <div class="text-xs text-slate-500">Various</div>
-                                        </td>
-                                        <td class="p-4 text-slate-600">Oct 15, 2025</td>
-                                        <td class="p-4">
-                                            <span
-                                                class="bg-red-100 text-red-700 px-2 py-1 rounded text-xs font-semibold">Poor</span>
-                                        </td>
-                                        <td class="p-4">
-                                            <span
-                                                class="bg-slate-200 text-slate-600 px-2 py-1 rounded-full text-xs font-bold">Rejected</span>
-                                        </td>
-                                        <td class="p-4 text-right">
-                                            <span class="text-xs text-slate-400">Archived</span>
-                                        </td>
-                                    </tr>
-
+                                <tbody id="pending-donations-list" class="divide-y divide-slate-100 text-sm">
+                                    <!-- Rows injected by JS -->
                                 </tbody>
                             </table>
                         </div>
@@ -210,50 +103,24 @@
                                 <span class="text-xs font-bold text-green-700 uppercase">Total Books</span>
                                 <span class="text-lg"></span>
                             </div>
-                            <div class="text-2xl font-bold text-slate-800">312</div>
+                            <div id="stat-total-donations" class="text-2xl font-bold text-slate-800">...</div>
                             <div class="text-xs text-slate-500 mt-1">Acquired this year</div>
                         </div>
 
                         <div class="p-4 rounded-xl border border-amber-100 shadow-sm bg-amber-50">
                             <div class="flex items-center justify-between mb-2">
-                                <span class="text-xs font-bold text-amber-700 uppercase">Pending Review</span>
+                                <span class="text-xs font-bold text-amber-700 uppercase">Pending Catalog</span>
                                 <span class="text-lg"></span>
                             </div>
-                            <div class="text-2xl font-bold text-slate-800">15</div>
+                            <div id="stat-pending-catalog" class="text-2xl font-bold text-slate-800">...</div>
                             <div class="text-xs text-slate-500 mt-1">Needs sorting</div>
                         </div>
                     </div>
 
                     <div class="mt-8 flex-1">
                         <h4 class="font-bold text-slate-700 text-sm mb-4">Top Donors</h4>
-                        <div class="space-y-3">
-                            <div class="flex items-center justify-between">
-                                <div class="flex items-center">
-                                    <div
-                                        class="w-6 h-6 bg-slate-100 rounded-full flex items-center justify-center text-[10px] mr-2">
-                                        1</div>
-                                    <span class="text-sm font-medium text-slate-700">Mayor's Office</span>
-                                </div>
-                                <span class="text-xs font-bold text-blue-600">50 Books</span>
-                            </div>
-                            <div class="flex items-center justify-between">
-                                <div class="flex items-center">
-                                    <div
-                                        class="w-6 h-6 bg-slate-100 rounded-full flex items-center justify-center text-[10px] mr-2">
-                                        2</div>
-                                    <span class="text-sm font-medium text-slate-700">Rotary Club</span>
-                                </div>
-                                <span class="text-xs font-bold text-blue-600">35 Books</span>
-                            </div>
-                            <div class="flex items-center justify-between">
-                                <div class="flex items-center">
-                                    <div
-                                        class="w-6 h-6 bg-slate-100 rounded-full flex items-center justify-center text-[10px] mr-2">
-                                        3</div>
-                                    <span class="text-sm font-medium text-slate-700">Alumni Batch '98</span>
-                                </div>
-                                <span class="text-xs font-bold text-blue-600">20 Books</span>
-                            </div>
+                        <div id="top-donors-list" class="space-y-3">
+                            <!-- Injected by JS -->
                         </div>
                     </div>
 
@@ -267,6 +134,7 @@
 
     <script src="../admin_js/dashboard_loader.js"></script>
     <script src="../admin_js/admin_renderer.js"></script>
+    <script src="../admin_js/admin_donations.js"></script>
 </body>
 
 </html>
