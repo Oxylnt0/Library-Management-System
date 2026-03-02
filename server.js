@@ -341,6 +341,104 @@ app.get('/api/books', async (req, res) => {
     }
 });
 
+// 13. GET /api/fines
+app.get('/api/fines', async (req, res) => {
+    try {
+        const result = await db.execute({
+            sql: `
+                SELECT 
+                    f.fine_id,
+                    f.amount,
+                    f.status as fine_status,
+                    b.borrow_id,
+                    b.due_date,
+                    b.status as borrow_status,
+                    u.first_name,
+                    u.last_name,
+                    u.email,
+                    bk.title as book_title
+                FROM FINE f
+                JOIN BORROW_TRANSACTION b ON f.borrow_id = b.borrow_id
+                JOIN USER u ON b.user_id = u.user_id
+                LEFT JOIN BOOK bk ON b.book_id = bk.book_id
+                ORDER BY f.status DESC, b.due_date ASC
+            `
+        });
+        res.json({ success: true, data: result.rows });
+    } catch (error) {
+        console.error("Fetch Fines Error:", error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+// 14. POST /api/fines/pay
+app.post('/api/fines/pay', async (req, res) => {
+    const { fine_id, amount } = req.body;
+    try {
+        // 1. Get borrow_id associated with this fine
+        const fineRes = await db.execute({
+            sql: "SELECT borrow_id FROM FINE WHERE fine_id = ?",
+            args: [fine_id]
+        });
+        const borrowId = fineRes.rows[0]?.borrow_id;
+
+        // 2. Update Fine Status
+        await db.execute({
+            sql: "UPDATE FINE SET status = 'Paid' WHERE fine_id = ?",
+            args: [fine_id]
+        });
+
+        // 3. Insert into PAYMENT table for audit/daily stats
+        if (borrowId) {
+            await db.execute({
+                sql: `INSERT INTO PAYMENT (borrow_id, fine_id, fine_amount, payment_status, payment_date, payment_method) 
+                      VALUES (?, ?, ?, 'Paid', DATE('now', '+8 hours'), 'Cash')`,
+                args: [borrowId, fine_id, amount]
+            });
+        }
+
+        res.json({ success: true, message: "Fine paid successfully." });
+    } catch (error) {
+        console.error("Pay Fine Error:", error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+// 15. GET /api/fines/stats
+app.get('/api/fines/stats', async (req, res) => {
+    try {
+        // Unpaid Fines Total
+        const unpaidRes = await db.execute("SELECT SUM(amount) as total FROM FINE WHERE status = 'Unpaid'");
+        
+        // Unpaid Users Count
+        const usersRes = await db.execute("SELECT COUNT(DISTINCT b.user_id) as count FROM FINE f JOIN BORROW_TRANSACTION b ON f.borrow_id = b.borrow_id WHERE f.status = 'Unpaid'");
+        
+        // Collected Today
+        const collectedRes = await db.execute("SELECT SUM(fine_amount) as total, COUNT(*) as count FROM PAYMENT WHERE payment_date = DATE('now', '+8 hours')");
+        
+        // Recent Payments
+        const recentRes = await db.execute(`
+            SELECT p.fine_amount, u.first_name, u.last_name 
+            FROM PAYMENT p 
+            JOIN BORROW_TRANSACTION b ON p.borrow_id = b.borrow_id 
+            JOIN USER u ON b.user_id = u.user_id 
+            ORDER BY p.payment_id DESC LIMIT 3
+        `);
+
+        res.json({
+            success: true,
+            unpaidTotal: unpaidRes.rows[0].total || 0,
+            unpaidUsers: usersRes.rows[0].count || 0,
+            collectedToday: collectedRes.rows[0].total || 0,
+            collectedCount: collectedRes.rows[0].count || 0,
+            recentPayments: recentRes.rows
+        });
+    } catch (error) {
+        console.error("Fine Stats Error:", error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
 app.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`);
 });
