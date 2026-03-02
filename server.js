@@ -492,3 +492,21 @@ app.get('/api/books/public', async (req, res) => {
 app.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`);
 });
+
+// 18. GET /api/donations/user/:userId
+app.get('/api/donations/user/:userId', async (req, res) => {
+    const { userId } = req.params;
+    try {
+        const result = await db.execute({
+            sql: `SELECT book_title, category, quantity, donation_date 
+                  FROM DONATION 
+                  WHERE user_id = ? AND donation_type = 'Inbound'
+                  ORDER BY donation_date DESC`,
+            args: [userId]
+        });
+        res.json({ success: true, data: result.rows });
+    } catch (error) {
+        console.error("Fetch User Donations Error:", error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
