@@ -439,6 +439,56 @@ app.get('/api/fines/stats', async (req, res) => {
     }
 });
 
+// 16. GET /api/user/:id
+app.get('/api/user/:id', async (req, res) => {
+    const { id } = req.params;
+    try {
+        const result = await db.execute({
+            sql: "SELECT user_id, first_name, last_name FROM USER WHERE user_id = ?",
+            args: [id]
+        });
+
+        if (result.rows.length > 0) {
+            res.json({ success: true, data: result.rows[0] });
+        } else {
+            res.status(404).json({ success: false, message: "User not found." });
+        }
+    } catch (error) {
+        console.error("Fetch User Error:", error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+
+// 17. GET /api/books/public (For Landing Page)
+app.get('/api/books/public', async (req, res) => {
+    const { sort } = req.query; // 'latest' or 'popular'
+
+    try {
+        let sql = "";
+        
+        if (sort === 'popular') {
+            sql = `
+                SELECT b.book_id, b.title, b.image_url, COUNT(bt.borrow_id) as borrow_count
+                FROM BOOK b
+                LEFT JOIN BORROW_TRANSACTION bt ON b.book_id = bt.book_id
+                GROUP BY b.book_id
+                ORDER BY borrow_count DESC, b.title ASC
+                LIMIT 4
+            `;
+        } else {
+            // Default to latest
+            sql = "SELECT book_id, title, image_url, date_added FROM BOOK ORDER BY date_added DESC, book_id DESC LIMIT 4";
+        }
+
+        const result = await db.execute(sql);
+        res.json({ success: true, data: result.rows });
+    } catch (error) {
+        console.error("Fetch Public Books Error:", error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
 app.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`);
 });

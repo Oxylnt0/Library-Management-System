@@ -8,11 +8,118 @@
 
     <link href="../output.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&display=swap" rel="stylesheet">
 
     <style>
         body {
             font-family: 'Inter', sans-serif;
         }
+        .font-cinzel {
+            font-family: 'Cinzel', serif;
+        }
+
+        /* --- 3D BOOK STYLES --- */
+        .scene {
+            perspective: 2000px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+            width: 100%;
+            padding: 2rem;
+        }
+
+        .book-container {
+            position: relative;
+            width: 850px;
+            height: 600px;
+            transform-style: preserve-3d;
+        }
+
+        .book-cover {
+            position: absolute;
+            top: -15px; left: -15px; right: -15px; bottom: -15px;
+            background: linear-gradient(to right, #0f263d 0%, #183B5B 48%, #0f263d 52%, #183B5B 100%);
+            border-radius: 18px;
+            box-shadow: 0 35px 70px rgba(0, 0, 0, 0.6);
+            z-index: 0;
+        }
+
+        .book-cover::after {
+            content: '';
+            position: absolute;
+            top: 0; bottom: 0; left: 50%; width: 4px;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.2);
+            box-shadow: inset 1px 0 2px rgba(0, 0, 0, 0.3);
+        }
+
+        .paper {
+            position: absolute;
+            width: 50%;
+            height: 100%;
+            top: 0;
+            background-color: #fdfbf7;
+            background-image: repeating-linear-gradient(#fdfbf7 0px, #fdfbf7 24px, #e6e0d4 25px);
+            border: 1px solid #d4af37;
+            display: flex;
+            flex-direction: column;
+            padding: 2.5rem;
+        }
+
+        .paper.left-base {
+            left: 0;
+            border-radius: 12px 0 0 12px;
+            z-index: 1;
+            border-right: none;
+        }
+
+        .paper.right-base {
+            right: 0;
+            border-radius: 0 12px 12px 0;
+            z-index: 1;
+            border-left: 1px solid #e2e8f0;
+        }
+
+        /* Form Styles */
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: #183B5B;
+            margin-bottom: 0.2rem;
+            font-family: 'Cinzel', serif;
+        }
+
+        .form-input {
+            width: 100%;
+            background: transparent;
+            border: none;
+            border-bottom: 2px solid #D6A84A;
+            padding: 0.3rem 0;
+            font-family: 'Inter', sans-serif;
+            color: #1A202C;
+            outline: none;
+            transition: border-color 0.3s;
+            font-size: 0.95rem;
+        }
+
+        .form-input:focus {
+            border-bottom-color: #183B5B;
+        }
+        
+        /* Custom Scrollbar for Log */
+        #session-log::-webkit-scrollbar { width: 4px; }
+        #session-log::-webkit-scrollbar-track { background: transparent; }
+        #session-log::-webkit-scrollbar-thumb { background: #D6A84A; border-radius: 2px; }
+
+        /* Hide number input arrows */
+        input[type=number]::-webkit-inner-spin-button, 
+        input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
     </style>
 </head>
 
@@ -33,85 +140,108 @@
 
                 <main class="flex-1 flex overflow-hidden">
 
-                <div class="flex-1 flex flex-col overflow-hidden p-6">
-
-                    <div class="flex justify-between items-center mb-6 shrink-0">
-                        <div>
-                            <h2 class="text-2xl font-bold text-slate-800">Inbound Donations</h2>
-                            <p class="text-sm text-slate-500">Books received from donors</p>
-                        </div>
-
-                        <div class="flex gap-3">
-                            <a href="admin_donations.html"
-                                class="bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 px-4 py-2 rounded-lg font-medium shadow-sm flex items-center gap-2 transition-colors">
-                                <span>←</span> Back to Donations
-                            </a>
-                        </div>
-                    </div>
-
-                    <!-- Form Container (Replaces Table) -->
-                    <div class="flex-1 overflow-y-auto">
-                        <div class="max-w-2xl mx-auto bg-white rounded-xl shadow-md border border-slate-200 p-8">
-                            <h3 class="text-xl font-bold text-[#183B5B] mb-6">Log Inbound Donation</h3>
-                            
-                            <form id="inbound-form" class="space-y-6">
-                                <!-- Donor Type Toggle -->
-                                <div>
-                                    <label class="block text-sm font-medium text-slate-700 mb-2">Donor Type</label>
+                    <div class="scene">
+                        <div class="book-container">
+                            <div class="book-cover"></div>
+            
+                            <!-- Left Page: The Form -->
+                            <div class="paper left-base">
+                                <h3 class="text-xl font-bold text-[#183B5B] font-cinzel mb-4 border-b border-[#D6A84A] pb-2">Donation Entry</h3>
+                                
+                                <form id="entry-form" class="flex flex-col h-full">
+                                    <!-- Donor Section -->
+                                    <div>
+                                        <div class="flex gap-4 mb-3">
+                                            <label class="flex items-center gap-2 cursor-pointer">
+                                                <input type="radio" name="donor_type" value="registered" checked onchange="toggleDonorInput()" class="accent-[#183B5B]">
+                                                <span class="text-xs font-bold text-[#183B5B] font-cinzel">Registered User</span>
+                                            </label>
+                                            <label class="flex items-center gap-2 cursor-pointer">
+                                                <input type="radio" name="donor_type" value="walkin" onchange="toggleDonorInput()" class="accent-[#183B5B]">
+                                                <span class="text-xs font-bold text-[#183B5B] font-cinzel">Walk-in (Guest)</span>
+                                            </label>
+                                        </div>
+            
+                                        <div id="input-user-id" class="form-group relative">
+                                            <label class="form-label">Donor (Registered User)</label>
+                                            <div class="flex items-center gap-2">
+                                                <input type="text" id="inp-user-name" class="form-input bg-slate-100/70 cursor-default" placeholder="Scan QR to get name" readonly>
+                                                <input type="hidden" id="inp-user-id">
+                                                <button type="button" id="btn-scan-qr" class="shrink-0 px-3 py-2 bg-[#183B5B] text-white rounded-lg text-xs font-bold hover:bg-[#244D75] transition-colors shadow-sm">Scan QR</button>
+                                            </div>
+                                        </div>
+            
+                                        <div id="input-donor-name" class="form-group hidden">
+                                            <label class="form-label">Donor Name (Walk-in)</label>
+                                            <input type="text" id="inp-donor-name" class="form-input" placeholder="e.g. John Doe">
+                                        </div>
+                                    </div>
+            
+                                    <!-- Book Details -->
+                                    <div class="form-group">
+                                        <label class="form-label">Book Title <span class="text-red-500">*</span></label>
+                                        <input type="text" id="inp-book-title" required class="form-input" placeholder="Title of the book">
+                                    </div>
+            
                                     <div class="flex gap-4">
-                                        <label class="flex items-center gap-2 cursor-pointer">
-                                            <input type="radio" name="donor_type" value="registered" checked onchange="toggleDonorInput()" class="text-[#183B5B] focus:ring-[#183B5B]">
-                                            <span class="text-sm text-slate-600">Registered User</span>
-                                        </label>
-                                        <label class="flex items-center gap-2 cursor-pointer">
-                                            <input type="radio" name="donor_type" value="walkin" onchange="toggleDonorInput()" class="text-[#183B5B] focus:ring-[#183B5B]">
-                                            <span class="text-sm text-slate-600">Walk-in (Guest)</span>
-                                        </label>
+                                        <div class="form-group flex-1">
+                                            <label class="form-label">Category</label>
+                                            <select id="inp-category" class="form-input">
+                                                <option value="Fiction">Fiction</option>
+                                                <option value="Non-Fiction">Non-Fiction</option>
+                                                <option value="Reference">Reference</option>
+                                                <option value="Textbook">Textbook</option>
+                                            </select>
+                                        </div>
+                                        <div class="form-group w-20">
+                                            <label class="form-label">Qty</label>
+                                            <input type="number" id="inp-quantity" value="1" min="1" class="form-input text-center">
+                                        </div>
+                                    </div>
+            
+                                    <div class="mt-auto pt-4 flex flex-col gap-2">
+                                        <button type="submit" class="w-full bg-[#183B5B] hover:bg-[#244D75] text-white font-bold font-cinzel py-2 px-4 rounded shadow-sm transition-colors text-sm flex justify-between items-center group">
+                                            <span>Add to Donation Log</span>
+                                            <span class="group-hover:translate-x-1 transition-transform">→</span>
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+            
+                            <!-- Right Page: Info & Session Log -->
+                            <div class="paper right-base">
+                                <div class="h-full flex flex-col">
+                                    <div class="flex items-center gap-3 mb-4">
+                                        <img src="../assets/library_logo.jpg" class="w-14 h-14 rounded-full border-2 border-[#D6A84A] shadow-md">
+                                        <div>
+                                            <h2 class="text-2xl font-bold text-[#183B5B] font-cinzel leading-tight">Session<br>Logbook</h2>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="flex-1 flex flex-col overflow-hidden">
+                                        <h4 class="font-cinzel text-[#183B5B] font-bold text-sm mb-2 flex justify-between items-center">
+                                            <span>Items to Record</span>
+                                            <span id="session-count" class="bg-[#D6A84A] text-white text-[10px] px-2 py-0.5 rounded-full">0</span>
+                                        </h4>
+                                        <div class="flex-1 overflow-y-auto pr-2 border border-[#D6A84A]/20 rounded p-2 bg-white/50">
+                                            <ul id="session-log" class="text-xs text-slate-600 space-y-2">
+                                                <li id="empty-log-msg" class="italic text-slate-400 text-center mt-4">Log is empty...</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+            
+                                    <div class="mt-6 pt-4 border-t border-[#D6A84A]/30 flex flex-col gap-3">
+                                        <button id="btn-record-all" disabled class="w-full bg-[#D6A84A] hover:bg-[#F0C66B] disabled:bg-slate-300 disabled:text-slate-500 disabled:cursor-not-allowed text-[#183B5B] font-bold font-cinzel py-3 px-4 rounded shadow-sm transition-colors text-sm">
+                                            Record Donation
+                                        </button>
+                                        <a href="admin_donations.html" class="text-center text-[#183B5B] hover:text-[#D6A84A] font-bold font-cinzel transition-colors text-xs">
+                                            Cancel & Return
+                                        </a>
                                     </div>
                                 </div>
-
-                                <!-- Conditional Inputs -->
-                                <div id="input-user-id">
-                                    <label class="block text-sm font-medium text-slate-700 mb-1">User ID / Library Card</label>
-                                    <input type="number" id="inp-user-id" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:border-[#183B5B]" placeholder="Scan or enter User ID">
-                                </div>
-
-                                <div id="input-donor-name" class="hidden">
-                                    <label class="block text-sm font-medium text-slate-700 mb-1">Donor Name</label>
-                                    <input type="text" id="inp-donor-name" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:border-[#183B5B]" placeholder="e.g. John Doe">
-                                </div>
-
-                                <!-- Book Details -->
-                                <div>
-                                    <label class="block text-sm font-medium text-slate-700 mb-1">Book Title <span class="text-red-500">*</span></label>
-                                    <input type="text" id="inp-book-title" required class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:border-[#183B5B]" placeholder="Title of the donated book">
-                                </div>
-
-                                <div class="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <label class="block text-sm font-medium text-slate-700 mb-1">Category</label>
-                                        <select id="inp-category" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:border-[#183B5B]">
-                                            <option value="Fiction">Fiction</option>
-                                            <option value="Non-Fiction">Non-Fiction</option>
-                                            <option value="Reference">Reference</option>
-                                            <option value="Textbook">Textbook</option>
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <label class="block text-sm font-medium text-slate-700 mb-1">Quantity</label>
-                                        <input type="number" id="inp-quantity" value="1" min="1" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:border-[#183B5B]">
-                                    </div>
-                                </div>
-
-                                <div class="pt-4">
-                                    <button type="submit" class="w-full bg-[#183B5B] hover:bg-[#2E5F87] text-white font-bold py-3 px-4 rounded-lg transition-colors shadow-md">
-                                        Record Donation Intake
-                                    </button>
-                                </div>
-                            </form>
+                            </div>
                         </div>
                     </div>
-                </div>
 
                 </main>
 
@@ -119,6 +249,19 @@
         </div>
     </div>
 
+    <!-- QR Scanner Modal -->
+    <div id="qr-scanner-modal" class="fixed inset-0 z-[100] hidden flex items-center justify-center bg-black/80 backdrop-blur-sm" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-md p-6 relative">
+            <button id="btn-close-scanner" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+            <h3 id="modal-title" class="text-lg font-bold text-slate-800 mb-4">Scan User QR Code</h3>
+            <div id="qr-reader" class="w-full h-64 bg-slate-100 rounded-lg overflow-hidden"></div>
+            <p class="text-center text-sm text-slate-500 mt-4">Point camera at a QR code</p>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
     <script src="../admin_js/dashboard_loader.js"></script>
     <script src="../admin_js/admin_renderer.js"></script>
     <script src="../admin_js/inbound.js"></script>

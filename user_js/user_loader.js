@@ -91,7 +91,14 @@ async function navigateTo(url) {
                 scripts.forEach((script) => {
                     const newScript = document.createElement("script");
                     Array.from(script.attributes).forEach((attr) => newScript.setAttribute(attr.name, attr.value));
-                    newScript.appendChild(document.createTextNode(script.innerHTML));
+                    
+                    // Wrap inline scripts in an IIFE to prevent global scope pollution and redeclaration errors
+                    if (!script.src && script.innerHTML.trim()) {
+                        newScript.appendChild(document.createTextNode(`(() => { ${script.innerHTML} })();`));
+                    } else {
+                        newScript.appendChild(document.createTextNode(script.innerHTML));
+                    }
+                    
                     script.parentNode.replaceChild(newScript, script);
                 });
 

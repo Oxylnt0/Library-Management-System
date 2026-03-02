@@ -148,14 +148,23 @@
 
                     async function fetchPendingDonations() {
                         try {
-                            let sql = `SELECT donation_id, donor_name, book_title, category, quantity, donation_date 
-                                      FROM DONATION 
-                                      WHERE donation_type = 'Inbound' AND book_id IS NULL`;
+                            let sql = `
+                                SELECT 
+                                    d.donation_id, 
+                                    COALESCE(u.first_name || ' ' || u.last_name, d.donor_name) as final_donor_name,
+                                    d.book_title, 
+                                    d.category, 
+                                    d.quantity, 
+                                    d.donation_date 
+                                FROM DONATION d
+                                LEFT JOIN USER u ON d.user_id = u.user_id
+                                WHERE d.donation_type = 'Inbound' AND d.book_id IS NULL
+                            `;
                             
                             const args = [];
 
                             if (currentSearchTerm) {
-                                sql += " AND (donor_name LIKE ? OR book_title LIKE ?)";
+                                sql += " AND (COALESCE(u.first_name || ' ' || u.last_name, d.donor_name) LIKE ? OR d.book_title LIKE ?)";
                                 const term = `%${currentSearchTerm}%`;
                                 args.push(term, term);
                             }
@@ -175,7 +184,7 @@
                                     row.className = 'hover:bg-slate-50 transition-colors';
                                     
                                     // Generate initials for avatar
-                                    const donorName = donation.donor_name || 'Anonymous';
+                                    const donorName = donation.final_donor_name || 'Anonymous';
                                     const initials = donorName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
 
                                     row.innerHTML = `
@@ -226,7 +235,18 @@
 
                             // 3. Top 3 Donors
                             const donorsRes = await db.execute({
-                                sql: "SELECT donor_name, SUM(quantity) as total_donated FROM DONATION WHERE donation_type = 'Inbound' AND donor_name IS NOT NULL GROUP BY donor_name ORDER BY total_donated DESC LIMIT 3"
+                                sql: `
+                                    SELECT 
+                                        COALESCE(u.first_name || ' ' || u.last_name, d.donor_name) as final_donor_name, 
+                                        SUM(d.quantity) as total_donated 
+                                    FROM DONATION d
+                                    LEFT JOIN USER u ON d.user_id = u.user_id
+                                    WHERE d.donation_type = 'Inbound'
+                                    GROUP BY final_donor_name
+                                    HAVING final_donor_name IS NOT NULL
+                                    ORDER BY total_donated DESC 
+                                    LIMIT 3
+                                `
                             });
 
                             // Update Counts
@@ -242,12 +262,10 @@
                                 donorsRes.rows.forEach((donor, index) => {
                                     const row = `
                                         <div class="flex items-center justify-between">
-                                            <div class="flex items-center">
-                                                <div class="w-6 h-6 bg-slate-100 rounded-full flex items-center justify-center text-[10px] mr-2 font-bold text-slate-600">
-                                                    ${index + 1}
-                                                </div>
-                                                <span class="text-sm font-medium text-slate-700 truncate max-w-[120px]" title="${donor.donor_name}">
-                                                    ${donor.donor_name}
+                                            <div class="flex items-center min-w-0">
+                                                <div class="w-6 h-6 bg-slate-100 rounded-full flex items-center justify-center text-[10px] mr-2 font-bold text-slate-600 shrink-0">${index + 1}</div>
+                                                <span class="text-sm font-medium text-slate-700 truncate" title="${donor.final_donor_name}">
+                                                    ${donor.final_donor_name}
                                                 </span>
                                             </div>
                                             <span class="text-xs font-bold text-blue-600">${donor.total_donated} Books</span>
