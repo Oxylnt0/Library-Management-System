@@ -864,6 +864,13 @@ video {
   margin-top: auto;
 }
 
+.line-clamp-1 {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 1;
+}
+
 .line-clamp-2 {
   overflow: hidden;
   display: -webkit-box;
@@ -1023,12 +1030,20 @@ video {
   max-height: 400px;
 }
 
+.max-h-\[85vh\] {
+  max-height: 85vh;
+}
+
 .max-h-\[90vh\] {
   max-height: 90vh;
 }
 
 .min-h-0 {
   min-height: 0px;
+}
+
+.min-h-\[300px\] {
+  min-height: 300px;
 }
 
 .min-h-\[600px\] {
@@ -1152,6 +1167,10 @@ video {
   max-width: 56rem;
 }
 
+.max-w-5xl {
+  max-width: 64rem;
+}
+
 .max-w-6xl {
   max-width: 72rem;
 }
@@ -1207,6 +1226,12 @@ video {
 .scale-100 {
   --tw-scale-x: 1;
   --tw-scale-y: 1;
+  transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
+}
+
+.scale-95 {
+  --tw-scale-x: .95;
+  --tw-scale-y: .95;
   transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
 }
 
@@ -1536,6 +1561,10 @@ video {
   border-top-width: 1px;
 }
 
+.border-t-2 {
+  border-top-width: 2px;
+}
+
 .border-t-4 {
   border-top-width: 4px;
 }
@@ -1555,6 +1584,10 @@ video {
 .border-\[\#183B5B\] {
   --tw-border-opacity: 1;
   border-color: rgb(24 59 91 / var(--tw-border-opacity, 1));
+}
+
+.border-\[\#183B5B\]\/10 {
+  border-color: rgb(24 59 91 / 0.1);
 }
 
 .border-\[\#183B5B\]\/20 {
@@ -1853,6 +1886,11 @@ video {
   background-color: rgb(255 248 225 / 0.9);
 }
 
+.bg-\[\#fffaf0\] {
+  --tw-bg-opacity: 1;
+  background-color: rgb(255 250 240 / var(--tw-bg-opacity, 1));
+}
+
 .bg-\[\#fffaf0\]\/80 {
   background-color: rgb(255 250 240 / 0.8);
 }
@@ -1887,6 +1925,10 @@ video {
 
 .bg-black\/50 {
   background-color: rgb(0 0 0 / 0.5);
+}
+
+.bg-black\/60 {
+  background-color: rgb(0 0 0 / 0.6);
 }
 
 .bg-black\/80 {
@@ -1926,6 +1968,11 @@ video {
 .bg-emerald-600 {
   --tw-bg-opacity: 1;
   background-color: rgb(5 150 105 / var(--tw-bg-opacity, 1));
+}
+
+.bg-gray-200 {
+  --tw-bg-opacity: 1;
+  background-color: rgb(229 231 235 / var(--tw-bg-opacity, 1));
 }
 
 .bg-gray-50 {
@@ -2439,6 +2486,11 @@ video {
   line-height: 2.5rem;
 }
 
+.text-5xl {
+  font-size: 3rem;
+  line-height: 1;
+}
+
 .text-6xl {
   font-size: 3.75rem;
   line-height: 1;
@@ -2535,6 +2587,10 @@ video {
 .text-\[\#183B5B\] {
   --tw-text-opacity: 1;
   color: rgb(24 59 91 / var(--tw-text-opacity, 1));
+}
+
+.text-\[\#183B5B\]\/50 {
+  color: rgb(24 59 91 / 0.5);
 }
 
 .text-\[\#183B5B\]\/70 {
@@ -2743,6 +2799,10 @@ video {
 .text-white {
   --tw-text-opacity: 1;
   color: rgb(255 255 255 / var(--tw-text-opacity, 1));
+}
+
+.text-white\/70 {
+  color: rgb(255 255 255 / 0.7);
 }
 
 .text-white\/80 {
@@ -3024,10 +3084,6 @@ video {
 
 .hover\:bg-\[\#5B8C5A\]\/80:hover {
   background-color: rgb(91 140 90 / 0.8);
-}
-
-.hover\:bg-\[\#C05640\]\/80:hover {
-  background-color: rgb(192 86 64 / 0.8);
 }
 
 .hover\:bg-\[\#F0C66B\]:hover {
@@ -3536,6 +3592,10 @@ video {
 
   .lg\:grid-cols-3 {
     grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .lg\:grid-cols-5 {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
   }
 
   .lg\:flex-row {

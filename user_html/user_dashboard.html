@@ -99,12 +99,12 @@
 
                     <div class="mb-5">
                         <div class="flex items-center justify-between mb-4">
-                            <h3 class="font-bold text-[#1A202C] text-lg font-cinzel">Currently Reading</h3>
+                            <h3 class="font-bold text-[#1A202C] text-lg font-cinzel">Recently Borrowed</h3>
                             <a href="view_all_current.html" class="text-sm bg-[#183B5B] text-[#D6A84A] px-4 py-2 rounded-full font-bold hover:bg-[#2E5F87] transition">View
                                 All</a>
                         </div>
 
-                        <div class="grid grid-cols-2 gap-4" id="currently-reading-container">
+                        <div class="grid grid-cols-2 gap-4" id="recently-borrowed-container">
                             <!-- Dynamic Content -->
                         </div>
                     </div>
@@ -188,13 +188,13 @@
 
             if (!userId) {
                 // Handle guest view for user-specific sections
-                document.getElementById('currently-reading-container').innerHTML = '<p class="col-span-2 text-slate-500 text-sm">Please log in to see your reading list.</p>';
+                document.getElementById('recently-borrowed-container').innerHTML = '<p class="col-span-2 text-slate-500 text-sm">Please log in to see your reading list.</p>';
                 document.getElementById('notifications-container').innerHTML = '<p class="text-slate-500 text-sm">Log in to see notifications.</p>';
                 return;
             }
 
-            // 2. Load Currently Reading
-            await loadCurrentlyReading(userId);
+            // 2. Load Recently Borrowed
+            await loadRecentlyBorrowed(userId);
 
             // 3. Load Notifications
             await loadNotifications(userId);
@@ -228,22 +228,21 @@
             }
         }
 
-        async function loadCurrentlyReading(userId) {
+        async function loadRecentlyBorrowed(userId) {
             try {
                 const query = `
                     SELECT bt.*, b.title, b.author, b.image_url 
                     FROM BORROW_TRANSACTION bt
                     JOIN BOOK b ON bt.book_id = b.book_id
                     WHERE bt.user_id = ? AND bt.status IN ('Borrowed', 'Overdue')
-                    ORDER BY bt.due_date ASC
-                    LIMIT 2
+                    ORDER BY bt.borrow_date DESC
                 `;
                 const res = await db.execute({ sql: query, args: [userId] });
-                const container = document.getElementById('currently-reading-container');
+                const container = document.getElementById('recently-borrowed-container');
                 container.innerHTML = '';
 
                 if (res.rows.length === 0) {
-                    container.innerHTML = '<div class="col-span-2 p-4 bg-white/50 rounded-xl border border-dashed border-slate-300 text-center text-slate-500 text-sm">You are not reading any books currently.</div>';
+                    container.innerHTML = '<div class="col-span-2 p-4 bg-white/50 rounded-xl border border-dashed border-slate-300 text-center text-slate-500 text-sm">You haven\'t borrowed any books recently.</div>';
                     return;
                 }
 
@@ -311,7 +310,7 @@
                     container.insertAdjacentHTML('beforeend', html);
                 });
             } catch (e) {
-                console.error("Currently Reading Error:", e);
+                console.error("Recently Borrowed Error:", e);
             }
         }
 

@@ -61,17 +61,17 @@
 
             <div class="bg-white/70 backdrop-blur-md border border-white/20 rounded-xl p-6 shadow-lg">
                 <p class="text-sm text-[#2E5F87]">Total Unpaid</p>
-                <h2 class="text-2xl font-semibold text-[#C05640] mt-2">₱120.00</h2>
+                <h2 id="summary-unpaid" class="text-2xl font-semibold text-[#C05640] mt-2">₱0.00</h2>
             </div>
 
             <div class="bg-white/70 backdrop-blur-md border border-white/20 rounded-xl p-6 shadow-lg">
                 <p class="text-sm text-[#2E5F87]">Total Paid</p>
-                <h2 class="text-2xl font-semibold text-[#5B8C5A] mt-2">₱350.00</h2>
+                <h2 id="summary-paid" class="text-2xl font-semibold text-[#5B8C5A] mt-2">₱0.00</h2>
             </div>
 
             <div class="bg-white/70 backdrop-blur-md border border-white/20 rounded-xl p-6 shadow-lg">
                 <p class="text-sm text-[#2E5F87]">Outstanding Items</p>
-                <h2 class="text-2xl font-semibold mt-2 text-[#1A202C]">2</h2>
+                <h2 id="summary-outstanding" class="text-2xl font-semibold mt-2 text-[#1A202C]">0</h2>
             </div>
 
         </section>
@@ -88,35 +88,12 @@
                             <th class="text-left px-5 py-3">Reason</th>
                             <th class="text-left px-5 py-3">Due Date</th>
                             <th class="text-left px-5 py-3">Amount</th>
-                            <th class="text-left px-5 py-3">Action</th>
                         </tr>
                     </thead>
-                    <tbody>
-
-                        <tr class="border-t border-white/20">
-                            <td class="px-5 py-4 text-[#1A202C]">The Lighthouse Mystery</td>
-                            <td class="px-5 py-4 text-[#C05640]">Overdue (5 days)</td>
-                            <td class="px-5 py-4 text-[#2E5F87]">03/01/2024</td>
-                            <td class="px-5 py-4 font-medium text-[#1A202C]">₱50.00</td>
-                            <td class="px-5 py-4">
-                                <button onclick="openPayFinePanel('The Lighthouse Mystery', '₱50.00')" class="bg-[#183B5B] text-white px-4 py-2 rounded-lg text-xs hover:bg-[#2E5F87]">
-                                    Pay Now
-                                </button>
-                            </td>
+                    <tbody id="unpaid-fines-body">
+                        <tr>
+                            <td colspan="4" class="px-5 py-4 text-center text-slate-500 italic">No unpaid fines. Good job!</td>
                         </tr>
-
-                        <tr class="border-t border-white/20">
-                            <td class="px-5 py-4 text-[#1A202C]">Marine Biology</td>
-                            <td class="px-5 py-4 text-[#C05640]">Overdue (7 days)</td>
-                            <td class="px-5 py-4 text-[#2E5F87]">02/28/2024</td>
-                            <td class="px-5 py-4 font-medium text-[#1A202C]">₱70.00</td>
-                            <td class="px-5 py-4">
-                                <button onclick="openPayFinePanel('Marine Biology', '₱70.00')" class="bg-[#183B5B] text-white px-4 py-2 rounded-lg text-xs hover:bg-[#2E5F87]">
-                                    Pay Now
-                                </button>
-                            </td>
-                        </tr>
-
                     </tbody>
                 </table>
             </div>
@@ -137,88 +114,109 @@
                             <th class="text-left px-5 py-3">Status</th>
                         </tr>
                     </thead>
-                    <tbody>
-
-                        <tr class="border-t border-white/20">
-                            <td class="px-5 py-4 text-[#1A202C]">Invisible Man</td>
-                            <td class="px-5 py-4 text-[#2E5F87]">Overdue</td>
-                            <td class="px-5 py-4 text-[#2E5F87]">02/10/2024</td>
-                            <td class="px-5 py-4 text-[#1A202C]">₱150.00</td>
-                            <td class="px-5 py-4">
-                                <span class="px-3 py-1 text-xs rounded-full bg-[#5B8C5A]/10 text-[#5B8C5A]">
-                                    Paid
-                                </span>
-                            </td>
+                    <tbody id="payment-history-body">
+                        <tr>
+                            <td colspan="5" class="px-5 py-4 text-center text-slate-500 italic">No payment history available.</td>
                         </tr>
-
-                        <tr class="border-t border-white/20">
-                            <td class="px-5 py-4 text-[#1A202C]">Tales of the Sea</td>
-                            <td class="px-5 py-4 text-[#2E5F87]">Lost Item</td>
-                            <td class="px-5 py-4 text-[#2E5F87]">01/18/2024</td>
-                            <td class="px-5 py-4 text-[#1A202C]">₱200.00</td>
-                            <td class="px-5 py-4">
-                                <span class="px-3 py-1 text-xs rounded-full bg-[#5B8C5A]/10 text-[#5B8C5A]">
-                                    Paid
-                                </span>
-                            </td>
-                        </tr>
-
                     </tbody>
                 </table>
             </div>
         </section>
 
-        <!-- Pay Fine Panel (Modal) -->
-        <div id="user_pay_fine_panel" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden items-center justify-center z-50 transition-opacity duration-300">
-            <div class="bg-white rounded-xl shadow-2xl w-full max-w-md p-6 transform transition-all scale-100">
-                <h3 class="text-2xl font-cinzel text-[#183B5B] mb-4">Pay Fine</h3>
-                
-                <div class="mb-6 p-4 bg-slate-50 rounded-lg border border-slate-200">
-                    <p class="text-sm text-slate-500 mb-1">Book Title</p>
-                    <p id="pay_fine_book_title" class="font-semibold text-[#1A202C] text-lg mb-3">Book Title Here</p>
-                    
-                    <div class="flex justify-between items-center">
-                        <span class="text-sm text-slate-500">Amount Due</span>
-                        <span id="pay_fine_amount" class="font-bold text-[#C05640] text-xl">₱0.00</span>
-                    </div>
-                </div>
-
-                <div class="mb-6">
-                    <p class="text-sm font-medium text-slate-700 mb-3">Select Payment Method</p>
-                    
-                    <div class="space-y-3">
-                        <label class="flex items-center p-3 border border-slate-200 rounded-lg cursor-pointer hover:bg-slate-50 transition">
-                            <input type="radio" name="payment_method" value="ewallet" class="w-4 h-4 text-[#183B5B] focus:ring-[#183B5B]">
-                            <span class="ml-3 text-slate-700">E-Wallet (GCash / Maya)</span>
-                        </label>
-                        
-                        <label class="flex items-center p-3 border border-slate-200 rounded-lg cursor-pointer hover:bg-slate-50 transition">
-                            <input type="radio" name="payment_method" value="desk" class="w-4 h-4 text-[#183B5B] focus:ring-[#183B5B]">
-                            <span class="ml-3 text-slate-700">Pay at the Desk</span>
-                        </label>
-                    </div>
-                </div>
-
-                <div class="flex justify-end gap-3">
-                    <button onclick="closePayFinePanel()" class="px-4 py-2 rounded-lg text-slate-600 hover:bg-slate-100 transition">Cancel</button>
-                    <button onclick="closePayFinePanel()" class="px-4 py-2 rounded-lg bg-[#183B5B] text-white hover:bg-[#2E5F87] transition shadow-md">Proceed to Pay</button>
-                </div>
-            </div>
-        </div>
-
         <script>
-            function openPayFinePanel(title, amount) {
-                document.getElementById('pay_fine_book_title').textContent = title;
-                document.getElementById('pay_fine_amount').textContent = amount;
-                const panel = document.getElementById('user_pay_fine_panel');
-                panel.classList.remove('hidden');
-                panel.classList.add('flex');
+            document.addEventListener('DOMContentLoaded', () => {
+                loadFines();
+            });
+
+            async function loadFines() {
+                const userId = localStorage.getItem('userId');
+                if (!userId) {
+                    console.error("No User ID found in localStorage");
+                    return;
+                }
+
+                try {
+                    const response = await fetch(`http://localhost:3000/api/fines/user/${userId}`);
+                    const result = await response.json();
+
+                    if (result.success) {
+                        renderFines(result.data);
+                    } else {
+                        console.error('Failed to load fines:', result.message);
+                    }
+                } catch (error) {
+                    console.error('Error fetching fines:', error);
+                }
             }
 
-            function closePayFinePanel() {
-                const panel = document.getElementById('user_pay_fine_panel');
-                panel.classList.add('hidden');
-                panel.classList.remove('flex');
+            function renderFines(fines) {
+                const unpaidBody = document.getElementById('unpaid-fines-body');
+                const historyBody = document.getElementById('payment-history-body');
+                
+                let totalUnpaid = 0;
+                let totalPaid = 0;
+                let outstandingCount = 0;
+                let paidCount = 0;
+
+                unpaidBody.innerHTML = '';
+                historyBody.innerHTML = '';
+
+                fines.forEach(fine => {
+                    const amount = parseFloat(fine.amount);
+                    const date = new Date(fine.fine_date || fine.created_at).toLocaleDateString();
+                    
+                    if (fine.status === 'Unpaid') {
+                        totalUnpaid += amount;
+                        outstandingCount++;
+                        
+                        unpaidBody.innerHTML += `
+                            <tr class="border-t border-white/20">
+                                <td class="px-5 py-4 text-[#1A202C]">${fine.book_title || 'N/A'}</td>
+                                <td class="px-5 py-4 text-[#C05640]">${fine.reason || fine.fine_type}</td>
+                                <td class="px-5 py-4 text-[#2E5F87]">${date}</td>
+                                <td class="px-5 py-4 font-medium text-[#1A202C]">₱${amount.toFixed(2)}</td>
+                            </tr>`;
+                    } else {
+                        totalPaid += amount;
+                        paidCount++;
+                        const paidDate = fine.payment_date ? new Date(fine.payment_date).toLocaleDateString() : date;
+                        historyBody.innerHTML += `
+                            <tr class="border-t border-white/20">
+                                <td class="px-5 py-4 text-[#1A202C]">${fine.book_title || 'N/A'}</td>
+                                <td class="px-5 py-4 text-[#2E5F87]">${fine.reason || fine.fine_type}</td>
+                                <td class="px-5 py-4 text-[#2E5F87]">${paidDate}</td>
+                                <td class="px-5 py-4 text-[#1A202C]">₱${amount.toFixed(2)}</td>
+                                <td class="px-5 py-4">
+                                    <span class="px-3 py-1 text-xs rounded-full bg-[#5B8C5A]/10 text-[#5B8C5A]">Paid</span>
+                                </td>
+                            </tr>`;
+                    }
+                });
+
+                if (outstandingCount === 0) {
+                    unpaidBody.innerHTML = '<tr><td colspan="4" class="px-5 py-4 text-center text-slate-500 italic">No unpaid fines. Good job!</td></tr>';
+                } else {
+                    unpaidBody.innerHTML += `
+                        <tr class="bg-[#183B5B]/5 font-bold border-t-2 border-[#183B5B]/10">
+                            <td colspan="3" class="px-5 py-4 text-right text-[#183B5B]">Total Unpaid:</td>
+                            <td class="px-5 py-4 text-[#C05640]">₱${totalUnpaid.toFixed(2)}</td>
+                        </tr>`;
+                }
+
+                if (paidCount === 0) {
+                    historyBody.innerHTML = '<tr><td colspan="5" class="px-5 py-4 text-center text-slate-500 italic">No payment history available.</td></tr>';
+                } else {
+                    historyBody.innerHTML += `
+                        <tr class="bg-[#183B5B]/5 font-bold border-t-2 border-[#183B5B]/10">
+                            <td colspan="3" class="px-5 py-4 text-right text-[#183B5B]">Total Paid:</td>
+                            <td class="px-5 py-4 text-[#5B8C5A]">₱${totalPaid.toFixed(2)}</td>
+                            <td></td>
+                        </tr>`;
+                }
+
+                document.getElementById('summary-unpaid').textContent = `₱${totalUnpaid.toFixed(2)}`;
+                document.getElementById('summary-paid').textContent = `₱${totalPaid.toFixed(2)}`;
+                document.getElementById('summary-outstanding').textContent = outstandingCount;
             }
         </script>
 

@@ -22,6 +22,7 @@ async function loadComponent(elementId, filePath) {
         } else if (elementId === 'topbar-container') {
             // Initialize rune particles whenever topbar is loaded
             initParticles();
+            updateTopbarUserInfo();
         }
 
     } catch (error) {
@@ -135,6 +136,29 @@ function initParticles() {
         particle.style.animationDelay = Math.random() * 5 + 's';
         particle.style.fontSize = (Math.random() * 10 + 10) + 'px';
         container.appendChild(particle);
+    }
+}
+
+async function updateTopbarUserInfo() {
+    const userId = localStorage.getItem('userId');
+    if (!userId) return;
+
+    try {
+        const response = await fetch(`http://localhost:3000/api/user/${userId}`);
+        const result = await response.json();
+
+        if (result.success) {
+            const user = result.data;
+            const topName = document.getElementById('topbar-user-name');
+            const topId = document.getElementById('topbar-user-id');
+            const topInit = document.getElementById('topbar-user-initials');
+
+            if (topName) topName.textContent = `${user.first_name} ${user.last_name}`;
+            if (topId) topId.textContent = `Student ID: ${user.user_id}`;
+            if (topInit) topInit.textContent = `${user.first_name[0]}${user.last_name[0]}`;
+        }
+    } catch (error) {
+        console.error('Error updating topbar:', error);
     }
 }
 

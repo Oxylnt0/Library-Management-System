@@ -444,7 +444,7 @@ app.get('/api/user/:id', async (req, res) => {
     const { id } = req.params;
     try {
         const result = await db.execute({
-            sql: "SELECT user_id, first_name, last_name FROM USER WHERE user_id = ?",
+            sql: "SELECT user_id, first_name, last_name, email, contact_number, address FROM USER WHERE user_id = ?",
             args: [id]
         });
 
@@ -459,6 +459,54 @@ app.get('/api/user/:id', async (req, res) => {
     }
 });
 
+
+// 19. PUT /api/user/:id (Update Profile)
+app.put('/api/user/:id', async (req, res) => {
+    const { id } = req.params;
+    const { first_name, last_name, email, contact_number, address } = req.body;
+
+    try {
+        await db.execute({
+            sql: "UPDATE USER SET first_name = ?, last_name = ?, email = ?, contact_number = ?, address = ? WHERE user_id = ?",
+            args: [first_name, last_name, email, contact_number, address, id]
+        });
+        res.json({ success: true, message: "Profile updated successfully." });
+    } catch (error) {
+        console.error("Update Profile Error:", error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+// 20. PUT /api/user/:id/password (Update Password)
+app.put('/api/user/:id/password', async (req, res) => {
+    const { id } = req.params;
+    const { currentPassword, newPassword } = req.body;
+
+    try {
+        // 1. Verify current password
+        const userRes = await db.execute({
+            sql: "SELECT password FROM USER WHERE user_id = ?",
+            args: [id]
+        });
+
+        if (userRes.rows.length === 0) return res.status(404).json({ success: false, message: "User not found." });
+        
+        if (userRes.rows[0].password !== currentPassword) {
+            return res.status(400).json({ success: false, message: "Incorrect current password." });
+        }
+
+        // 2. Update password
+        await db.execute({
+            sql: "UPDATE USER SET password = ? WHERE user_id = ?",
+            args: [newPassword, id]
+        });
+
+        res.json({ success: true, message: "Password updated successfully." });
+    } catch (error) {
+        console.error("Update Password Error:", error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
 
 // 17. GET /api/books/public (For Landing Page)
 app.get('/api/books/public', async (req, res) => {

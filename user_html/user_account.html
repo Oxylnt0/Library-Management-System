@@ -34,11 +34,14 @@
     </style>
 </head>
 
-<body class="text-slate-800 h-screen overflow-hidden bg-gradient-to-b from-[#Fdfbf7] via-[#eef2f3] to-[#dceefb]">
+<body class="text-slate-800 h-screen overflow-hidden bg-[#e6e0d4]">
 
-    <div class="flex h-screen w-screen overflow-hidden">
+    <!-- Background Image -->
+    <div class="fixed inset-0 z-0 pointer-events-none bg-cover bg-center bg-no-repeat" style="background-image: url('../assets/background.png');"></div>
 
-        <div id="sidebar-container" class="w-80 shrink-0"></div>
+    <div class="flex h-screen w-screen overflow-hidden relative z-10">
+
+        <div id="sidebar-container" class="w-64 shrink-0"></div>
 
         <div class="flex-1 flex flex-col overflow-hidden">
             <div id="topbar-container" class="shrink-0"></div>
@@ -47,11 +50,17 @@
 
                 <main class="flex-1 overflow-y-auto p-8">
 
-        <!-- Back Button -->
-        <a href="user_dashboard.html" class="inline-flex items-center gap-2 text-sm text-[#2E5F87] hover:text-[#183B5B] transition-colors mb-6">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
-            Back to Dashboard
-        </a>
+                    <!-- Back Button -->
+                    <div class="flex justify-between items-center mb-6">
+                        <a href="user_dashboard.html" class="inline-flex items-center gap-2 text-sm text-[#183B5B] hover:text-[#D6A84A] transition-colors font-bold">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                            Back to Dashboard
+                        </a>
+                        <button onclick="logout()" class="inline-flex items-center gap-2 text-sm text-red-600 hover:text-red-800 transition-colors font-bold border border-red-200 bg-red-50 px-4 py-2 rounded-lg hover:bg-red-100">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+                            Logout
+                        </button>
+                    </div>
 
         <!-- Page Header -->
         <header class="mb-8">
@@ -62,109 +71,107 @@
         </header>
 
         <!-- Profile Overview -->
-        <section class="bg-white/70 backdrop-blur-md border border-white/20 rounded-xl shadow-lg p-6 mb-8 flex flex-col sm:flex-row gap-6">
+        <section class="bg-white/80 backdrop-blur-md border border-[#D6A84A]/30 rounded-xl shadow-lg p-6 mb-8 flex flex-col sm:flex-row gap-6">
             <div class="flex-shrink-0">
-                <div class="w-24 h-24 rounded-full bg-slate-200 flex items-center justify-center text-slate-500">
-                    Photo
+                <div class="w-24 h-24 rounded-full bg-[#183B5B] text-[#D6A84A] flex items-center justify-center text-3xl font-cinzel border-4 border-[#D6A84A]">
+                    <span id="profile-initials">--</span>
                 </div>
             </div>
 
             <div class="flex-1">
-                <h2 class="text-xl font-bold text-[#1A202C]">Sarah Collins</h2>
-                <p class="text-[#2E5F87]">sarah.collins@email.com</p>
+                <h2 id="header-name" class="text-xl font-bold text-[#183B5B]">Loading...</h2>
+                <p id="header-email" class="text-slate-600">...</p>
 
                 <div class="flex flex-wrap gap-3 mt-4">
-                    <span class="px-3 py-1 text-xs rounded-full bg-[#183B5B]/10 text-[#183B5B]">
+                    <span class="px-3 py-1 text-xs rounded-full bg-[#183B5B]/10 text-[#183B5B] font-bold border border-[#183B5B]/20">
                         Active Member
                     </span>
-                    <span class="px-3 py-1 text-xs rounded-full bg-[#5B8C5A]/10 text-[#5B8C5A]">
+                    <span class="px-3 py-1 text-xs rounded-full bg-[#5B8C5A]/10 text-[#5B8C5A] font-bold border border-[#5B8C5A]/20">
                         No Outstanding Fines
                     </span>
                 </div>
             </div>
 
             <div class="self-start sm:self-center">
-                <button class="px-5 py-2 rounded-lg bg-[#183B5B] text-white text-sm font-medium hover:bg-[#2E5F87] transition-colors shadow-sm">
+                <button class="px-5 py-2 rounded-lg bg-[#183B5B] text-white text-sm font-bold hover:bg-[#244D75] transition-colors shadow-md">
                     Change Photo
                 </button>
             </div>
         </section>
 
         <!-- Account Information -->
-        <section class="bg-white/70 backdrop-blur-md border border-white/20 rounded-xl shadow-lg p-6 mb-8">
-            <h2 class="text-lg font-bold text-[#1A202C] mb-6 font-cinzel">Account Information</h2>
+        <section class="bg-white/80 backdrop-blur-md border border-[#D6A84A]/30 rounded-xl shadow-lg p-6 mb-8">
+            <h2 class="text-lg font-bold text-[#183B5B] mb-6 font-cinzel">Account Information</h2>
 
             <form class="grid grid-cols-1 sm:grid-cols-2 gap-6">
 
                 <div>
-                    <label class="block text-sm font-medium text-[#2E5F87] mb-1">First Name</label>
-                    <input type="text" value="Sarah"
-                        class="w-full border border-white/30 bg-white/80 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#D6A84A]/50 text-[#1A202C]" />
+                    <label class="block text-sm font-bold text-[#183B5B] mb-1">First Name</label>
+                    <input type="text" id="input-fname"
+                        class="w-full border border-slate-300 bg-white rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#D6A84A] text-slate-800" />
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-[#2E5F87] mb-1">Last Name</label>
-                    <input type="text" value="Collins"
-                        class="w-full border border-white/30 bg-white/80 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#D6A84A]/50 text-[#1A202C]" />
+                    <label class="block text-sm font-bold text-[#183B5B] mb-1">Last Name</label>
+                    <input type="text" id="input-lname"
+                        class="w-full border border-slate-300 bg-white rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#D6A84A] text-slate-800" />
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-[#2E5F87] mb-1">Email Address</label>
-                    <input type="email" value="sarah.collins@email.com"
-                        class="w-full border border-white/30 bg-white/80 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#D6A84A]/50 text-[#1A202C]" />
+                    <label class="block text-sm font-bold text-[#183B5B] mb-1">Email Address</label>
+                    <input type="email" id="input-email"
+                        class="w-full border border-slate-300 bg-white rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#D6A84A] text-slate-800" />
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-[#2E5F87] mb-1">Contact Number</label>
-                    <input type="text" value="+63 912 345 6789"
-                        class="w-full border border-white/30 bg-white/80 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#D6A84A]/50 text-[#1A202C]" />
+                    <label class="block text-sm font-bold text-[#183B5B] mb-1">Contact Number</label>
+                    <input type="text" id="input-contact"
+                        class="w-full border border-slate-300 bg-white rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#D6A84A] text-slate-800" />
                 </div>
 
                 <div class="sm:col-span-2">
-                    <label class="block text-sm font-medium text-[#2E5F87] mb-1">Address</label>
-                    <textarea rows="3"
-                        class="w-full border border-white/30 bg-white/80 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#D6A84A]/50 text-[#1A202C]">
-123 Coastal Road, Cavite
-          </textarea>
+                    <label class="block text-sm font-bold text-[#183B5B] mb-1">Address</label>
+                    <textarea rows="3" id="input-address"
+                        class="w-full border border-slate-300 bg-white rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#D6A84A] text-slate-800"></textarea>
                 </div>
 
             </form>
 
             <div class="mt-6 text-right">
-                <button class="px-6 py-2 rounded-lg bg-[#5B8C5A] text-white text-sm font-medium hover:bg-[#5B8C5A]/80 transition-colors shadow-sm">
+                <button onclick="updateProfile()" class="px-6 py-2 rounded-lg bg-[#183B5B] text-white text-sm font-bold hover:bg-[#244D75] transition-colors shadow-md">
                     Save Changes
                 </button>
             </div>
         </section>
 
         <!-- Security Settings -->
-        <section class="bg-white/70 backdrop-blur-md border border-white/20 rounded-xl shadow-lg p-6">
-            <h2 class="text-lg font-bold text-[#1A202C] mb-6 font-cinzel">Security</h2>
+        <section class="bg-white/80 backdrop-blur-md border border-[#D6A84A]/30 rounded-xl shadow-lg p-6">
+            <h2 class="text-lg font-bold text-[#183B5B] mb-6 font-cinzel">Security</h2>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
 
                 <div>
-                    <label class="block text-sm font-medium text-[#2E5F87] mb-1">Current Password</label>
-                    <input type="password"
-                        class="w-full border border-white/30 bg-white/80 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#D6A84A]/50 text-[#1A202C]" />
+                    <label class="block text-sm font-bold text-[#183B5B] mb-1">Current Password</label>
+                    <input type="password" id="input-current-pass"
+                        class="w-full border border-slate-300 bg-white rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#D6A84A] text-slate-800" />
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-[#2E5F87] mb-1">New Password</label>
-                    <input type="password"
-                        class="w-full border border-white/30 bg-white/80 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#D6A84A]/50 text-[#1A202C]" />
+                    <label class="block text-sm font-bold text-[#183B5B] mb-1">New Password</label>
+                    <input type="password" id="input-new-pass"
+                        class="w-full border border-slate-300 bg-white rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#D6A84A] text-slate-800" />
                 </div>
 
                 <div class="sm:col-span-2">
-                    <label class="block text-sm font-medium text-[#2E5F87] mb-1">Confirm New Password</label>
-                    <input type="password"
-                        class="w-full border border-white/30 bg-white/80 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#D6A84A]/50 text-[#1A202C]" />
+                    <label class="block text-sm font-bold text-[#183B5B] mb-1">Confirm New Password</label>
+                    <input type="password" id="input-confirm-pass"
+                        class="w-full border border-slate-300 bg-white rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#D6A84A] text-slate-800" />
                 </div>
 
             </div>
 
             <div class="mt-6 text-right">
-                <button class="px-6 py-2 rounded-lg bg-[#C05640] text-white text-sm font-medium hover:bg-[#C05640]/80 transition-colors shadow-sm">
+                <button onclick="updatePassword()" class="px-6 py-2 rounded-lg bg-[#183B5B] text-white text-sm font-bold hover:bg-[#244D75] transition-colors shadow-md">
                     Update Password
                 </button>
             </div>
@@ -177,6 +184,110 @@
     </div>
 
     <script src="../user_js/user_loader.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            loadUserProfile();
+        });
+
+        async function loadUserProfile() {
+            const userId = localStorage.getItem('userId');
+            if (!userId) {
+                window.location.href = 'login.html';
+                return;
+            }
+
+            try {
+                const response = await fetch(`http://localhost:3000/api/user/${userId}`);
+                const result = await response.json();
+
+                if (result.success) {
+                    const user = result.data;
+                    
+                    // Populate Form
+                    document.getElementById('input-fname').value = user.first_name;
+                    document.getElementById('input-lname').value = user.last_name;
+                    document.getElementById('input-email').value = user.email;
+                    document.getElementById('input-contact').value = user.contact_number || '';
+                    document.getElementById('input-address').value = user.address || '';
+
+                    // Populate Header
+                    document.getElementById('header-name').textContent = `${user.first_name} ${user.last_name}`;
+                    document.getElementById('header-email').textContent = user.email;
+                    
+                    // Populate Initials
+                    const initials = ((user.first_name?.[0] || '') + (user.last_name?.[0] || '')).toUpperCase();
+                    const profileInitials = document.getElementById('profile-initials');
+                    if(profileInitials) profileInitials.textContent = initials;
+
+                    // Refresh topbar using the shared loader function if available
+                    if (typeof updateTopbarUserInfo === 'function') {
+                        updateTopbarUserInfo();
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading profile:', error);
+            }
+        }
+
+        async function updateProfile() {
+            const userId = localStorage.getItem('userId');
+            const data = {
+                first_name: document.getElementById('input-fname').value,
+                last_name: document.getElementById('input-lname').value,
+                email: document.getElementById('input-email').value,
+                contact_number: document.getElementById('input-contact').value,
+                address: document.getElementById('input-address').value
+            };
+
+            try {
+                const response = await fetch(`http://localhost:3000/api/user/${userId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                const result = await response.json();
+                alert(result.message);
+                if (result.success) loadUserProfile(); // Refresh UI
+            } catch (error) {
+                alert('Failed to update profile.');
+            }
+        }
+
+        async function updatePassword() {
+            const userId = localStorage.getItem('userId');
+            const currentPassword = document.getElementById('input-current-pass').value;
+            const newPassword = document.getElementById('input-new-pass').value;
+            const confirmPassword = document.getElementById('input-confirm-pass').value;
+
+            if (newPassword !== confirmPassword) {
+                alert("New passwords do not match!");
+                return;
+            }
+
+            try {
+                const response = await fetch(`http://localhost:3000/api/user/${userId}/password`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ currentPassword, newPassword })
+                });
+                const result = await response.json();
+                alert(result.message);
+                if (result.success) {
+                    document.getElementById('input-current-pass').value = '';
+                    document.getElementById('input-new-pass').value = '';
+                    document.getElementById('input-confirm-pass').value = '';
+                }
+            } catch (error) {
+                alert('Failed to update password.');
+            }
+        }
+
+        function logout() {
+            localStorage.clear();
+            sessionStorage.clear();
+            window.location.href = 'login.html';
+        }
+    </script>
 </body>
 
 </html>

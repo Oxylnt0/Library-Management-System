@@ -7,6 +7,7 @@
     <title>Welcome - Puerto Palabra Library</title>
 
     <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' https:;
+                 connect-src 'self' http://localhost:3000;
                  font-src 'self' https://fonts.gstatic.com;
                  style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
                  img-src 'self' data: https:;">
@@ -165,9 +166,10 @@
                     <div class="px-4 border-r border-slate-200 text-sm font-bold text-[#183B5B]">
                         All
                     </div>
-                    <input type="text" placeholder="Search by Title, Author, ISBN..."
-                        class="flex-1 px-3 py-2.5 outline-none text-sm bg-transparent">
-                    <button
+                    <input type="text" id="search-input" placeholder="Search by Title, Author, ISBN..."
+                        class="flex-1 px-3 py-2.5 outline-none text-sm bg-transparent"
+                        onkeypress="if(event.key === 'Enter') handleSearch()">
+                    <button onclick="handleSearch()"
                         class="bg-[#183B5B] text-[#D6A84A] px-6 py-2.5 rounded-full font-bold text-sm shadow-md hover:bg-[#2E5F87] transition-colors">
                         Search
                     </button>
@@ -184,17 +186,20 @@
                 <!-- QUICK ACCESS -->
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
                     <div
-                        class="bg-[#fffaf0]/80 backdrop-blur-sm h-40 rounded-2xl border border-[#D6A84A]/20 flex flex-col items-center justify-center gap-3 shadow-md hover:shadow-xl hover:-translate-y-1 transition-all cursor-pointer group">
+                        onclick="openBrowseModal()"
+                        class="bg-[#fffaf0]/80 backdrop-blur-sm h-40 rounded-2xl border border-[#D6A84A]/20 flex flex-col items-center justify-center gap-3 shadow-md hover:shadow-xl hover:-translate-y-1 transition-all cursor-pointer group active:scale-95">
                         <div class="w-14 h-14 rounded-xl bg-[#183B5B]/10 flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">📚</div>
                         <span class="font-bold text-sm text-[#183B5B]">Browse All Books</span>
                     </div>
                     <div
-                        class="bg-[#fffaf0]/80 backdrop-blur-sm h-40 rounded-2xl border border-[#D6A84A]/20 flex flex-col items-center justify-center gap-3 shadow-md hover:shadow-xl hover:-translate-y-1 transition-all cursor-pointer group">
+                        onclick="openRulesModal()"
+                        class="bg-[#fffaf0]/80 backdrop-blur-sm h-40 rounded-2xl border border-[#D6A84A]/20 flex flex-col items-center justify-center gap-3 shadow-md hover:shadow-xl hover:-translate-y-1 transition-all cursor-pointer group active:scale-95">
                         <div class="w-14 h-14 rounded-xl bg-[#D6A84A]/10 flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">📜</div>
                         <span class="font-bold text-sm text-[#183B5B]">Rules & Regulations</span>
                     </div>
                     <div
-                        class="bg-[#fffaf0]/80 backdrop-blur-sm h-40 rounded-2xl border border-[#D6A84A]/20 flex flex-col items-center justify-center gap-3 shadow-md hover:shadow-xl hover:-translate-y-1 transition-all cursor-pointer group">
+                        onclick="openHoursModal()"
+                        class="bg-[#fffaf0]/80 backdrop-blur-sm h-40 rounded-2xl border border-[#D6A84A]/20 flex flex-col items-center justify-center gap-3 shadow-md hover:shadow-xl hover:-translate-y-1 transition-all cursor-pointer group active:scale-95">
                         <div class="w-14 h-14 rounded-xl bg-[#5B8C5A]/10 flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">🕒</div>
                         <span class="font-bold text-sm text-[#183B5B]">Library Hours</span>
                     </div>
@@ -205,40 +210,15 @@
                     <div class="flex justify-between items-end mb-4 border-b border-[#D6A84A]/30 pb-3">
                         <h2 class="text-2xl font-bold text-[#183B5B] font-cinzel">Explore Our Collection</h2>
                         <div class="flex gap-2">
-                            <button class="px-4 py-2 bg-[#183B5B] text-[#D6A84A] rounded-full text-sm font-bold shadow-md hover:bg-[#2E5F87] transition-colors">New
-                                Arrivals</button>
-                            <button class="px-4 py-2 border border-[#D6A84A]/50 bg-white/50 rounded-full text-sm font-bold text-[#183B5B] hover:bg-white transition-colors">Popular</button>
+                            <button id="btn-new" onclick="switchTab('latest')" class="px-4 py-2 bg-[#183B5B] text-[#D6A84A] rounded-full text-sm font-bold shadow-md hover:bg-[#2E5F87] transition-colors">New Arrivals</button>
+                            <button id="btn-popular" onclick="switchTab('popular')" class="px-4 py-2 border border-[#D6A84A]/50 bg-white/50 rounded-full text-sm font-bold text-[#183B5B] hover:bg-white transition-colors">Popular</button>
                         </div>
                     </div>
     
-                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        <div class="group cursor-pointer">
-                            <div class="rounded-xl aspect-[2/3] overflow-hidden shadow-md group-hover:shadow-xl group-hover:-translate-y-1 transition-all">
-                                <img src="https://covers.openlibrary.org/b/id/12658936-L.jpg"
-                                    class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
-                            </div>
-                            <p class="font-bold text-sm mt-2 text-[#1A202C] group-hover:text-[#D6A84A] transition-colors">El Filibusterismo</p>
-                        </div>
-                        <div class="group cursor-pointer">
-                            <div class="rounded-xl aspect-[2/3] overflow-hidden shadow-md group-hover:shadow-xl group-hover:-translate-y-1 transition-all">
-                                <img src="https://covers.openlibrary.org/b/id/8259443-L.jpg"
-                                    class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
-                            </div>
-                            <p class="font-bold text-sm mt-2 text-[#1A202C] group-hover:text-[#D6A84A] transition-colors">Pragmatic Programmer</p>
-                        </div>
-                        <div class="group cursor-pointer">
-                            <div class="rounded-xl aspect-[2/3] overflow-hidden shadow-md group-hover:shadow-xl group-hover:-translate-y-1 transition-all">
-                                <img src="https://covers.openlibrary.org/b/id/14553106-L.jpg"
-                                    class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
-                            </div>
-                            <p class="font-bold text-sm mt-2 text-[#1A202C] group-hover:text-[#D6A84A] transition-colors">Design Patterns</p>
-                        </div>
-                        <div class="group cursor-pointer">
-                            <div class="rounded-xl aspect-[2/3] overflow-hidden shadow-md group-hover:shadow-xl group-hover:-translate-y-1 transition-all">
-                                <img src="https://covers.openlibrary.org/b/id/10603171-L.jpg"
-                                    class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
-                            </div>
-                            <p class="font-bold text-sm mt-2 text-[#1A202C] group-hover:text-[#D6A84A] transition-colors">Clean Code</p>
+                    <div id="collection-grid" class="grid grid-cols-2 md:grid-cols-4 gap-4 min-h-[300px]">
+                        <!-- Dynamic Content Loaded Here -->
+                        <div class="col-span-full flex justify-center items-center h-40 text-[#183B5B]/50 animate-pulse">
+                            Loading collection...
                         </div>
                     </div>
                 </section>
@@ -282,6 +262,19 @@
     
         </main>
     
+        <!-- ================= MODAL ================= -->
+        <div id="info-modal" class="fixed inset-0 z-50 hidden bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+            <div class="bg-[#fffaf0] w-full max-w-5xl max-h-[85vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden border border-[#D6A84A] transform scale-95 transition-transform duration-300" id="modal-panel">
+                <div class="p-5 border-b border-[#D6A84A]/30 flex justify-between items-center bg-gradient-to-r from-[#183B5B] to-[#244D75] text-white">
+                    <h3 id="modal-title" class="text-2xl font-bold font-cinzel text-[#D6A84A]">Title</h3>
+                    <button onclick="closeModal()" class="text-white/70 hover:text-[#D6A84A] transition-colors text-3xl leading-none">&times;</button>
+                </div>
+                <div id="modal-body" class="p-8 overflow-y-auto custom-scrollbar">
+                    <!-- Content goes here -->
+                </div>
+            </div>
+        </div>
+
         <script>
             document.addEventListener('DOMContentLoaded', () => {
                 const container = document.getElementById('particles-container');
@@ -298,7 +291,151 @@
                     particle.style.fontSize = (Math.random() * 10 + 10) + 'px';
                     container.appendChild(particle);
                 }
+
+                // Initial Load
+                loadCollection('latest');
             });
+
+            // ================= API & LOGIC =================
+            const API_BASE = 'http://localhost:3000/api';
+
+            // --- 1. Explore Collection Logic ---
+            async function loadCollection(type) {
+                const grid = document.getElementById('collection-grid');
+                grid.innerHTML = '<div class="col-span-full flex justify-center items-center h-40 text-[#183B5B]/50 animate-pulse">Loading...</div>';
+
+                try {
+                    const res = await fetch(`${API_BASE}/books/public?sort=${type}`);
+                    const result = await res.json();
+
+                    if (result.success && result.data.length > 0) {
+                        grid.innerHTML = result.data.map(book => createBookCard(book)).join('');
+                    } else {
+                        grid.innerHTML = '<div class="col-span-full text-center text-slate-500">No books found.</div>';
+                    }
+                } catch (error) {
+                    console.error("Error loading collection:", error);
+                    grid.innerHTML = '<div class="col-span-full text-center text-red-500">Failed to load books.</div>';
+                }
+            }
+
+            function switchTab(type) {
+                const btnNew = document.getElementById('btn-new');
+                const btnPop = document.getElementById('btn-popular');
+                
+                // Active Styles
+                const activeClass = "bg-[#183B5B] text-[#D6A84A] shadow-md hover:bg-[#2E5F87]";
+                // Inactive Styles
+                const inactiveClass = "border border-[#D6A84A]/50 bg-white/50 text-[#183B5B] hover:bg-white";
+
+                if (type === 'latest') {
+                    btnNew.className = `px-4 py-2 rounded-full text-sm font-bold transition-colors ${activeClass}`;
+                    btnPop.className = `px-4 py-2 rounded-full text-sm font-bold transition-colors ${inactiveClass}`;
+                } else {
+                    btnPop.className = `px-4 py-2 rounded-full text-sm font-bold transition-colors ${activeClass}`;
+                    btnNew.className = `px-4 py-2 rounded-full text-sm font-bold transition-colors ${inactiveClass}`;
+                }
+
+                loadCollection(type);
+            }
+
+            function createBookCard(book) {
+                return `
+                    <div class="group cursor-pointer">
+                        <div class="rounded-xl aspect-[2/3] overflow-hidden shadow-md group-hover:shadow-xl group-hover:-translate-y-1 transition-all bg-gray-200 relative">
+                            <img src="${book.image_url || '../assets/book_placeholder.png'}" 
+                                onerror="this.src='https://placehold.co/200x300?text=No+Cover'"
+                                class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                            ${book.borrow_count ? `<div class="absolute top-2 right-2 bg-[#D6A84A] text-black text-xs font-bold px-2 py-1 rounded-full shadow-sm">🔥 ${book.borrow_count} Borrows</div>` : ''}
+                        </div>
+                        <p class="font-bold text-sm mt-2 text-[#1A202C] group-hover:text-[#D6A84A] transition-colors line-clamp-2">${book.title}</p>
+                        ${book.author ? `<p class="text-xs text-slate-500 line-clamp-1">${book.author}</p>` : ''}
+                    </div>
+                `;
+            }
+
+            // --- 2. Modal Logic ---
+            const modal = document.getElementById('info-modal');
+            const modalPanel = document.getElementById('modal-panel');
+            const modalTitle = document.getElementById('modal-title');
+            const modalBody = document.getElementById('modal-body');
+
+            function openModal(title, contentHtml) {
+                modalTitle.textContent = title;
+                modalBody.innerHTML = contentHtml;
+                modal.classList.remove('hidden');
+                // Small delay to allow display:block to apply before opacity transition
+                setTimeout(() => {
+                    modal.classList.remove('opacity-0');
+                    modalPanel.classList.remove('scale-95');
+                    modalPanel.classList.add('scale-100');
+                }, 10);
+            }
+
+            function closeModal() {
+                modal.classList.add('opacity-0');
+                modalPanel.classList.remove('scale-100');
+                modalPanel.classList.add('scale-95');
+                setTimeout(() => {
+                    modal.classList.add('hidden');
+                }, 300);
+            }
+
+            // --- 3. Features ---
+            
+            async function openBrowseModal(filterQuery = null) {
+                openModal(filterQuery ? `Search Results: "${filterQuery}"` : 'Browse All Books', '<div class="text-center p-10">Loading Library Catalog...</div>');
+
+                try {
+                    // Fetch ALL books
+                    const res = await fetch(`${API_BASE}/books`);
+                    const result = await res.json();
+
+                    if (result.success) {
+                        let books = result.data;
+
+                        // Client-side filtering for search
+                        if (filterQuery) {
+                            const q = filterQuery.toLowerCase();
+                            books = books.filter(b => 
+                                b.title.toLowerCase().includes(q) || 
+                                b.author.toLowerCase().includes(q) || 
+                                (b.isbn && b.isbn.includes(q))
+                            );
+                        }
+
+                        if (books.length === 0) {
+                            modalBody.innerHTML = `<div class="text-center py-10 text-slate-500 text-lg">No books found matching your search.</div>`;
+                            return;
+                        }
+
+                        const gridHtml = `
+                            <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6">
+                                ${books.map(book => createBookCard(book)).join('')}
+                            </div>
+                        `;
+                        modalBody.innerHTML = gridHtml;
+                    }
+                } catch (error) {
+                    modalBody.innerHTML = `<div class="text-center text-red-500">Error fetching catalog. Please try again later.</div>`;
+                }
+            }
+
+            function handleSearch() {
+                const query = document.getElementById('search-input').value.trim();
+                if (!query) return;
+                openBrowseModal(query);
+            }
+
+            function openRulesModal() {
+                const content = `<div class="space-y-6 text-[#183B5B] max-w-3xl mx-auto"><div class="p-6 bg-white rounded-xl border border-[#D6A84A]/20 shadow-sm"><h4 class="font-bold text-xl mb-2 font-cinzel">1. General Conduct</h4><p class="text-slate-600">Silence must be observed at all times within the reading areas. Mobile phones should be set to silent mode. Food and drinks are strictly prohibited to preserve our collection.</p></div><div class="p-6 bg-white rounded-xl border border-[#D6A84A]/20 shadow-sm"><h4 class="font-bold text-xl mb-2 font-cinzel">2. Borrowing Privileges</h4><p class="text-slate-600">A valid library card is required for all transactions. Users may borrow up to 3 books at a time for a duration of 7 days. Renewals are allowed unless the book is reserved by another user.</p></div><div class="p-6 bg-white rounded-xl border border-[#D6A84A]/20 shadow-sm"><h4 class="font-bold text-xl mb-2 font-cinzel">3. Care of Materials</h4><p class="text-slate-600">Patrons are responsible for all materials borrowed on their card. Please report any existing damage before borrowing. Lost or damaged items will incur a replacement fee.</p></div></div>`;
+                openModal('Rules & Regulations', content);
+            }
+
+            function openHoursModal() {
+                const content = `<div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-[#183B5B] max-w-3xl mx-auto"><div class="p-8 bg-white rounded-2xl border border-[#D6A84A]/20 shadow-md text-center hover:-translate-y-1 transition-transform"><div class="text-5xl mb-4">☀️</div><h4 class="font-bold text-2xl mb-2 font-cinzel">Weekdays</h4><p class="font-bold text-[#D6A84A] uppercase tracking-wider text-sm mb-4">Monday - Friday</p><p class="text-xl font-mono">8:00 AM - 6:00 PM</p></div><div class="p-8 bg-white rounded-2xl border border-[#D6A84A]/20 shadow-md text-center hover:-translate-y-1 transition-transform"><div class="text-5xl mb-4">🌤️</div><h4 class="font-bold text-2xl mb-2 font-cinzel">Weekends</h4><p class="font-bold text-[#D6A84A] uppercase tracking-wider text-sm mb-4">Saturday</p><p class="text-xl font-mono">9:00 AM - 4:00 PM</p><p class="text-sm text-slate-400 mt-2 italic">(Sunday Closed)</p></div></div>`;
+                openModal('Library Hours', content);
+            }
         </script>
     </div>
 
