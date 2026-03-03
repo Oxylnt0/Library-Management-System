@@ -4,8 +4,8 @@ async function createAllTables() {
     console.log("🚀 Starting Fresh Database Setup...");
 
     // STEP 1: DROP ALL EXISTING TABLES
-    // We drop child tables first to avoid Foreign Key constraint errors
     const dropSchema = `
+        DROP TABLE IF EXISTS FINE_SETTINGS;
         DROP TABLE IF EXISTS DONATION;
         DROP TABLE IF EXISTS RESERVATION;
         DROP TABLE IF EXISTS SECURITY_QUESTIONS;
@@ -48,10 +48,10 @@ async function createAllTables() {
         CREATE TABLE MATERIAL (
             material_id INTEGER PRIMARY KEY AUTOINCREMENT,
             title VARCHAR(150) NOT NULL,
-            material_type VARCHAR(30) CHECK (material_type IN ('Book', 'Periodical', 'AV', 'Board Game')),
+            material_type VARCHAR(30) CHECK (material_type IN ('Book', 'Periodical')),
             dewey_decimal VARCHAR(20),
             publication_year INT,
-            status VARCHAR(20) DEFAULT 'Available' CHECK (status IN ('Available', 'Borrowed', 'Lost'))
+            status VARCHAR(20) DEFAULT 'Available' CHECK (status IN ('Available', 'Borrowed', 'Archived', 'Lost'))
         );
 
         CREATE TABLE GUARDIAN_NAME (
@@ -98,12 +98,14 @@ async function createAllTables() {
             author VARCHAR(100) NOT NULL,
             publisher VARCHAR(150),
             publication_year INT,
+            volume VARCHAR(50),
+            edition VARCHAR(50),
             dewey_decimal VARCHAR(20),
             genre VARCHAR(100),
             book_category VARCHAR(50) NOT NULL CHECK (book_category IN ('Fiction', 'Non-Fiction', 'Reference', 'Textbook')),
             book_source VARCHAR(50) NOT NULL CHECK (book_source IN ('Purchased', 'Donated')),
             book_condition VARCHAR(50) DEFAULT 'New' CHECK (book_condition IN ('New', 'Good', 'Damaged', 'Outdated', 'Obsolete')),
-            status VARCHAR(20) DEFAULT 'Available' CHECK (status IN ('Available', 'Borrowed', 'Archived')),
+            status VARCHAR(20) DEFAULT 'Available' CHECK (status IN ('Available', 'Borrowed', 'Archived', 'Lost')),
             location VARCHAR(100),
             page_count INT,
             age_restriction INT,
@@ -116,23 +118,23 @@ async function createAllTables() {
 
         CREATE TABLE PERIODICAL (
             periodical_id INTEGER PRIMARY KEY AUTOINCREMENT,
+            issn VARCHAR(20),
+            title VARCHAR(255) NOT NULL,
             material_id INT NOT NULL,
-            issue_no VARCHAR(20) NOT NULL,
+            publisher VARCHAR(150),
+            publication_date DATE,
+            volume_no VARCHAR(50),
+            issue_no VARCHAR(50) NOT NULL,
             type VARCHAR(30) CHECK (type IN ('Magazine', 'Journal', 'Newspaper')),
-            FOREIGN KEY (material_id) REFERENCES MATERIAL(material_id)
-        );
-
-        CREATE TABLE AUDIO_VISUAL (
-            av_id INTEGER PRIMARY KEY AUTOINCREMENT,
-            material_id INT NOT NULL,
-            format VARCHAR(20) CHECK (format IN ('CD', 'DVD', 'VHS')),
-            FOREIGN KEY (material_id) REFERENCES MATERIAL(material_id)
-        );
-
-        CREATE TABLE BOARD_GAME (
-            game_id INTEGER PRIMARY KEY AUTOINCREMENT,
-            material_id INT NOT NULL,
-            players INT,
+            genre VARCHAR(100),
+            periodical_source VARCHAR(50) NOT NULL CHECK (periodical_source IN ('Purchased', 'Donated')),
+            periodical_condition VARCHAR(50) DEFAULT 'New' CHECK (periodical_condition IN ('New', 'Good', 'Damaged', 'Outdated', 'Obsolete')),
+            status VARCHAR(20) DEFAULT 'Available' CHECK (status IN ('Available', 'Borrowed', 'Archived', 'Lost')),
+            location VARCHAR(100),
+            available_copies INT DEFAULT 1,
+            total_copies INT DEFAULT 1,
+            image_url TEXT,
+            date_added DATE DEFAULT CURRENT_DATE,
             FOREIGN KEY (material_id) REFERENCES MATERIAL(material_id)
         );
 
@@ -142,6 +144,7 @@ async function createAllTables() {
             book_id INT,
             material_id INT,
             borrow_date DATE,
+            borrow_time TIME,
             due_date DATE,
             return_date DATE,
             expires_at DATETIME,
@@ -151,6 +154,13 @@ async function createAllTables() {
             FOREIGN KEY (user_id) REFERENCES USER(user_id),
             FOREIGN KEY (book_id) REFERENCES BOOK(book_id),
             FOREIGN KEY (material_id) REFERENCES MATERIAL(material_id)
+        );
+
+        CREATE TABLE FINE_SETTINGS (
+            setting_id INTEGER PRIMARY KEY AUTOINCREMENT,
+            damage_level VARCHAR(50) NOT NULL UNIQUE,
+            fine_amount DECIMAL(10,2) NOT NULL,
+            description VARCHAR(255)
         );
 
         CREATE TABLE FINE (
@@ -237,6 +247,15 @@ async function createAllTables() {
         );
     `;
 
+    // STEP 3: PRE-LOAD DEFAULT SETTINGS
+    const seedSettings = `
+        INSERT INTO FINE_SETTINGS (damage_level, fine_amount, description) VALUES 
+        ('Minor', 30.00, 'Folded pages, small tear (1-2 pages), pencil marks'),
+        ('Moderate', 150.00, 'Multiple torn pages, ink or highlighter marks, loose binding'),
+        ('Severe', 0.00, 'System will compute full book price for missing pages or heavy water damage'),
+        ('Overdue', 5.00, 'Daily fine per day overdue (example value)');
+    `;
+
     try {
         // Run drops first
         console.log("🧹 Wiping old tables and data...");
@@ -252,7 +271,11 @@ async function createAllTables() {
             await db.execute(statement);
         }
         
-        console.log("✅ SUCCESS: All tables created cleanly!");
+        // Run seeds
+        console.log("⚙️ Inserting default fine settings...");
+        await db.execute(seedSettings);
+
+        console.log("✅ SUCCESS: All tables created and settings loaded cleanly!");
         
         // Verification
         const check = await db.execute("SELECT name FROM sqlite_schema WHERE type='table' AND name NOT LIKE 'sqlite_%'");

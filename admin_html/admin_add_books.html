@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="Content-Security-Policy"
-        content="default-src 'self' 'unsafe-inline' https:; script-src 'self' 'unsafe-inline' https://esm.run https://cdn.jsdelivr.net; img-src 'self' data: https:;">
+        content="default-src 'self' 'unsafe-inline' https:; script-src 'self' 'unsafe-inline' https://esm.run https://cdn.jsdelivr.net; img-src 'self' data: https:; connect-src 'self' http://localhost:3000;">
 
     <title>Add New Book - Puerto Palabra</title>
     <link href="../output.css" rel="stylesheet">
@@ -20,6 +20,39 @@
         .paper-bg {
             background-color: #fdfbf7;
             background-image: repeating-linear-gradient(#fdfbf7 0px, #fdfbf7 24px, #e6e0d4 25px);
+        }
+        /* Library Map Styles */
+        .library-map-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr); /* 4 Columns */
+            gap: 1rem;
+            padding: 1.5rem;
+            background-color: #f1f5f9;
+            border-radius: 0.75rem;
+            border: 2px dashed #cbd5e1;
+        }
+        .shelf {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: center;
+            font-size: 0.75rem;
+            font-weight: bold;
+            color: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            min-height: 80px;
+        }
+        .shelf:hover { transform: translateY(-2px); box-shadow: 0 4px 6px rgba(0,0,0,0.2); }
+        .shelf-nf { background-color: #3b82f6; border-bottom: 4px solid #1d4ed8; } /* Blue */
+        .shelf-fic { background-color: #10b981; border-bottom: 4px solid #047857; } /* Green */
+        .shelf-ref { background-color: #ef4444; border-bottom: 4px solid #b91c1c; } /* Red */
+        .shelf-per { background-color: #f59e0b; border-bottom: 4px solid #b45309; } /* Orange */
+        .entrance { grid-column: span 4; text-align: center; color: #94a3b8; font-size: 0.7rem; letter-spacing: 0.1em; margin-top: 0.5rem; }
         }
     </style>
 
@@ -52,80 +85,109 @@
             <div class="max-w-6xl w-full mx-auto">
 
                 <div class="book-cover-bg rounded-[18px] p-5 relative z-0">
-                    <div class="flex flex-col lg:flex-row bg-[#fdfbf7] rounded-xl overflow-hidden relative z-10 min-h-[600px]">
+                    <div class="flex flex-col lg:flex-row bg-[#fdfbf7] rounded-xl overflow-hidden relative z-10">
 
                         <!-- Left Page (Form) -->
-                        <div class="flex-1 paper-bg p-10 border-r border-[#e2e8f0]">
-                            <div class="space-y-8">
+                        <div class="flex-1 paper-bg p-6 border-r border-[#e2e8f0]">
+                            <div class="space-y-3">
                             
                             <!-- Hidden Input for Donation ID -->
                             <input type="hidden" id="inp-donation-id">
 
+                            <!-- 0. Material Type Selection (Moved to Top) -->
+                            <div class="bg-[#183B5B]/5 p-2 rounded-lg border border-[#183B5B]/10 flex items-center gap-3">
+                                <label class="block text-xs font-bold text-slate-500 uppercase whitespace-nowrap">I am adding a:</label>
+                                <select id="inp-type" class="w-full p-2 rounded-lg bg-white border border-slate-200 outline-none focus:ring-2 focus:ring-[#D6A84A]/50 focus:border-[#D6A84A] transition-all font-bold text-[#183B5B] text-sm">
+                                    <option value="Book">Book</option>
+                                    <option value="Periodical">Periodical</option>
+                                </select>
+                            </div>
+
                             <div>
-                                <h4 class="text-xs font-bold text-[#1A202C] uppercase tracking-widest mb-4 border-b border-[#D6A84A]/20 pb-2 font-cinzel">
+                                <h4 class="text-xs font-bold text-[#1A202C] uppercase tracking-widest mb-2 border-b border-[#D6A84A]/20 pb-1 font-cinzel">
                                     1. Basic Information</h4>
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
                                     <div class="col-span-2">
-                                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Book Title
+                                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Material Title
                                             *</label>
                                         <input type="text" id="inp-title"
-                                            class="w-full p-3 rounded-lg bg-white/80 border border-slate-200 focus:ring-2 focus:ring-[#D6A84A]/50 focus:border-[#D6A84A] outline-none transition-all"
+                                            class="w-full p-2 rounded-lg bg-white/80 border border-slate-200 focus:ring-2 focus:ring-[#D6A84A]/50 focus:border-[#D6A84A] outline-none transition-all text-sm"
                                             placeholder="Ex: Noli Me Tangere">
                                     </div>
-                                    <div>
+                                    <!-- Book Specific: Author -->
+                                    <div id="field-group-author">
                                         <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Author
                                             *</label>
                                         <input type="text" id="inp-author"
-                                            class="w-full p-3 rounded-lg bg-white/80 border border-slate-200 focus:ring-2 focus:ring-[#D6A84A]/50 focus:border-[#D6A84A] outline-none transition-all"
+                                            class="w-full p-2 rounded-lg bg-white/80 border border-slate-200 focus:ring-2 focus:ring-[#D6A84A]/50 focus:border-[#D6A84A] outline-none transition-all text-sm"
                                             placeholder="Ex: Jose Rizal">
                                     </div>
-                                    <div>
-                                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">ISBN
-                                            (Barcode)</label>
-                                        <input type="text" id="inp-isbn"
-                                            class="w-full p-3 rounded-lg bg-white/80 border border-slate-200 focus:ring-2 focus:ring-[#D6A84A]/50 focus:border-[#D6A84A] outline-none font-mono text-sm transition-all"
-                                            placeholder="Ex: 978-...">
+                                    <!-- Identifier (ISBN for Books, ISSN for Periodicals) -->
+                                    <div id="field-group-isbn">
+                                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">ISBN (Barcode)</label>
+                                        <input type="text" id="inp-isbn" class="w-full p-2 rounded-lg bg-white/80 border border-slate-200 focus:ring-2 focus:ring-[#D6A84A]/50 focus:border-[#D6A84A] outline-none font-mono text-sm transition-all" placeholder="Ex: 978-...">
+                                    </div>
+                                    <div id="field-group-issn" class="hidden">
+                                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">ISSN</label>
+                                        <input type="text" id="inp-issn" class="w-full p-2 rounded-lg bg-white/80 border border-slate-200 focus:ring-2 focus:ring-[#D6A84A]/50 focus:border-[#D6A84A] outline-none font-mono text-sm transition-all" placeholder="Ex: 2049-3630">
                                     </div>
                                 </div>
                             </div>
 
                             <div>
-                                <h4 class="text-xs font-bold text-[#1A202C] uppercase tracking-widest mb-4 border-b border-[#D6A84A]/20 pb-2 font-cinzel">
+                                <h4 class="text-xs font-bold text-[#1A202C] uppercase tracking-widest mb-2 border-b border-[#D6A84A]/20 pb-1 font-cinzel">
                                     2. Publishing Details</h4>
-                                <div class="grid grid-cols-2 md:grid-cols-3 gap-5">
+                                <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
                                     <div class="col-span-2 md:col-span-1">
-                                        <label
-                                            class="block text-xs font-bold text-slate-500 uppercase mb-1">Publisher</label>
-                                        <input type="text" id="inp-publisher"
-                                            class="w-full p-3 rounded-lg bg-white/80 border border-slate-200 focus:ring-2 focus:ring-[#D6A84A]/50 focus:border-[#D6A84A] outline-none transition-all"
-                                            placeholder="Ex: Penguin Books">
+                                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Publisher</label>
+                                        <input type="text" id="inp-publisher" class="w-full p-2 rounded-lg bg-white/80 border border-slate-200 focus:ring-2 focus:ring-[#D6A84A]/50 focus:border-[#D6A84A] outline-none transition-all text-sm" placeholder="Ex: Penguin Books">
                                     </div>
-                                    <div>
-                                        <label
-                                            class="block text-xs font-bold text-slate-500 uppercase mb-1">Year</label>
-                                        <input type="number" id="inp-year"
-                                            class="w-full p-3 rounded-lg bg-white/80 border border-slate-200 focus:ring-2 focus:ring-[#D6A84A]/50 focus:border-[#D6A84A] outline-none transition-all"
-                                            placeholder="2024">
+                                    <!-- Book Specific: Year -->
+                                    <div id="field-group-year">
+                                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Year</label>
+                                        <select id="inp-year" class="w-full p-2 rounded-lg bg-white/80 border border-slate-200 focus:ring-2 focus:ring-[#D6A84A]/50 focus:border-[#D6A84A] outline-none transition-all text-sm"></select>
                                     </div>
-                                    <div>
-                                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Page
-                                            Count</label>
-                                        <input type="number" id="inp-pages"
-                                            class="w-full p-3 rounded-lg bg-white/80 border border-slate-200 focus:ring-2 focus:ring-[#D6A84A]/50 focus:border-[#D6A84A] outline-none transition-all"
-                                            placeholder="0">
+                                    <!-- Periodical Specific: Publication Date -->
+                                    <div id="field-group-pub-date" class="hidden">
+                                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Pub. Date</label>
+                                        <input type="date" id="inp-publication-date" class="w-full p-2 rounded-lg bg-white/80 border border-slate-200 focus:ring-2 focus:ring-[#D6A84A]/50 focus:border-[#D6A84A] outline-none transition-all text-sm">
+                                    </div>
+                                    <!-- Book Specific: Page Count -->
+                                    <div id="field-group-pages">
+                                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Page Count</label>
+                                        <input type="number" id="inp-pages" class="w-full p-2 rounded-lg bg-white/80 border border-slate-200 focus:ring-2 focus:ring-[#D6A84A]/50 focus:border-[#D6A84A] outline-none transition-all text-sm" placeholder="0">
+                                    </div>
+                                    <!-- Book Specific: Volume -->
+                                    <div id="field-group-volume">
+                                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Volume</label>
+                                        <input type="text" id="inp-volume" class="w-full p-2 rounded-lg bg-white/80 border border-slate-200 focus:ring-2 focus:ring-[#D6A84A]/50 focus:border-[#D6A84A] outline-none transition-all text-sm" placeholder="e.g., 1 or IV">
+                                    </div>
+                                    <!-- Book Specific: Edition -->
+                                    <div id="field-group-edition">
+                                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Edition</label>
+                                        <input type="text" id="inp-edition" class="w-full p-2 rounded-lg bg-white/80 border border-slate-200 focus:ring-2 focus:ring-[#D6A84A]/50 focus:border-[#D6A84A] outline-none transition-all text-sm" placeholder="e.g., 2nd or Revised">
+                                    </div>
+                                    <!-- Periodical Specific: Volume No. -->
+                                    <div id="field-group-volume-no" class="hidden">
+                                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Volume No.</label>
+                                        <input type="text" id="inp-volume-no" class="w-full p-2 rounded-lg bg-white/80 border border-slate-200 focus:ring-2 focus:ring-[#D6A84A]/50 focus:border-[#D6A84A] outline-none transition-all text-sm" placeholder="e.g., 52">
+                                    </div>
+                                    <!-- Periodical Specific: Issue No. -->
+                                    <div id="field-group-issue-no" class="hidden">
+                                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Issue No. *</label>
+                                        <input type="text" id="inp-issue-no" class="w-full p-2 rounded-lg bg-white/80 border border-slate-200 focus:ring-2 focus:ring-[#D6A84A]/50 focus:border-[#D6A84A] outline-none transition-all text-sm" placeholder="e.g., 12">
                                     </div>
                                 </div>
                             </div>
 
                             <div>
-                                <h4 class="text-xs font-bold text-[#1A202C] uppercase tracking-widest mb-4 border-b border-[#D6A84A]/20 pb-2 font-cinzel">
+                                <h4 class="text-xs font-bold text-[#1A202C] uppercase tracking-widest mb-2 border-b border-[#D6A84A]/20 pb-1 font-cinzel">
                                     3. Library Details</h4>
-                                <div class="grid grid-cols-2 md:grid-cols-4 gap-5">
+                                <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
                                     <div class="col-span-2 md:col-span-1">
-                                        <label
-                                            class="block text-xs font-bold text-slate-500 uppercase mb-1">Genre</label>
+                                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Genre</label>
                                         <select id="inp-genre"
-                                            class="w-full p-3 rounded-lg bg-white/80 border border-slate-200 outline-none focus:ring-2 focus:ring-[#D6A84A]/50 focus:border-[#D6A84A] transition-all">
+                                            class="w-full p-2 rounded-lg bg-white/80 border border-slate-200 outline-none focus:ring-2 focus:ring-[#D6A84A]/50 focus:border-[#D6A84A] transition-all text-sm">
                                             <option value="Fiction">Fiction</option>
                                             <option value="Non-Fiction">Non-Fiction</option>
                                             <option value="Science">Science</option>
@@ -134,46 +196,53 @@
                                             <option value="Philosophy">Philosophy</option>
                                         </select>
                                     </div>
-                                    <div class="col-span-2 md:col-span-1">
-                                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Dewey
-                                            Decimal</label>
-                                        <input type="text" id="inp-dewey"
-                                            class="w-full p-3 rounded-lg bg-white/80 border border-slate-200 focus:ring-2 focus:ring-[#D6A84A]/50 focus:border-[#D6A84A] outline-none transition-all"
-                                            placeholder="Ex: 899.21">
+                                    <div id="field-group-dewey" class="col-span-2 md:col-span-1">
+                                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Dewey Decimal</label>
+                                        <input type="text" id="inp-dewey" class="w-full p-2 rounded-lg bg-white/80 border border-slate-200 focus:ring-2 focus:ring-[#D6A84A]/50 focus:border-[#D6A84A] outline-none transition-all text-sm" placeholder="Ex: 899.21">
                                     </div>
                                     <div>
-                                        <label
-                                            class="block text-xs font-bold text-slate-500 uppercase mb-1">Location</label>
-                                        <input type="text" id="inp-location"
-                                            class="w-full p-3 rounded-lg bg-white/80 border border-slate-200 focus:ring-2 focus:ring-[#D6A84A]/50 focus:border-[#D6A84A] outline-none transition-all"
-                                            placeholder="Shelf A-1">
+                                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Location</label>
+                                        <div class="flex gap-2">
+                                            <input type="text" id="inp-location" name="location" class="w-full p-2 rounded-lg bg-white/80 border border-slate-200 focus:ring-2 focus:ring-[#D6A84A]/50 focus:border-[#D6A84A] outline-none transition-all text-sm text-slate-500" placeholder="Select shelf from map..." readonly>
+                                            <button type="button" id="open-map-btn" class="px-3 py-2 bg-slate-200 text-slate-600 rounded-lg hover:bg-slate-300 transition-colors text-xs font-bold whitespace-nowrap">
+                                                🗺️ Map
+                                            </button>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Age
-                                            Limit</label>
-                                        <input type="number" id="inp-age"
-                                            class="w-full p-3 rounded-lg bg-white/80 border border-slate-200 focus:ring-2 focus:ring-[#D6A84A]/50 focus:border-[#D6A84A] outline-none transition-all"
-                                            placeholder="0 = None">
+                                    <!-- Book Specific: Age Limit -->
+                                    <div id="field-group-age">
+                                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Age Limit</label>
+                                        <input type="number" id="inp-age" class="w-full p-2 rounded-lg bg-white/80 border border-slate-200 focus:ring-2 focus:ring-[#D6A84A]/50 focus:border-[#D6A84A] outline-none transition-all text-sm" placeholder="0 = None">
                                     </div>
-                                    <div>
-                                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Category</label>
-                                        <select id="inp-category" class="w-full p-3 rounded-lg bg-white/80 border border-slate-200 outline-none focus:ring-2 focus:ring-[#D6A84A]/50 focus:border-[#D6A84A] transition-all">
+                                    <!-- Book Specific: Category -->
+                                    <div id="field-group-category">
+                                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Book Category</label>
+                                        <select id="inp-category" class="w-full p-2 rounded-lg bg-white/80 border border-slate-200 outline-none focus:ring-2 focus:ring-[#D6A84A]/50 focus:border-[#D6A84A] transition-all text-sm">
                                             <option value="Fiction">Fiction</option>
                                             <option value="Non-Fiction">Non-Fiction</option>
                                             <option value="Reference">Reference</option>
                                             <option value="Textbook">Textbook</option>
                                         </select>
                                     </div>
+                                    <!-- Periodical Specific: Type -->
+                                    <div id="field-group-periodical-type" class="hidden">
+                                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Periodical Type</label>
+                                        <select id="inp-periodical-type" class="w-full p-2 rounded-lg bg-white/80 border border-slate-200 outline-none focus:ring-2 focus:ring-[#D6A84A]/50 focus:border-[#D6A84A] transition-all text-sm">
+                                            <option value="Magazine">Magazine</option>
+                                            <option value="Journal">Journal</option>
+                                            <option value="Newspaper">Newspaper</option>
+                                        </select>
+                                    </div>
                                     <div>
                                         <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Source</label>
-                                        <select id="inp-source" class="w-full p-3 rounded-lg bg-white/80 border border-slate-200 outline-none focus:ring-2 focus:ring-[#D6A84A]/50 focus:border-[#D6A84A] transition-all">
+                                        <select id="inp-source" class="w-full p-2 rounded-lg bg-white/80 border border-slate-200 outline-none focus:ring-2 focus:ring-[#D6A84A]/50 focus:border-[#D6A84A] transition-all text-sm">
                                             <option value="Purchased">Purchased</option>
                                             <option value="Donated">Donated</option>
                                         </select>
                                     </div>
                                     <div>
                                         <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Condition</label>
-                                        <select id="inp-condition" class="w-full p-3 rounded-lg bg-white/80 border border-slate-200 outline-none focus:ring-2 focus:ring-[#D6A84A]/50 focus:border-[#D6A84A] transition-all">
+                                        <select id="inp-condition" class="w-full p-2 rounded-lg bg-white/80 border border-slate-200 outline-none focus:ring-2 focus:ring-[#D6A84A]/50 focus:border-[#D6A84A] transition-all text-sm">
                                             <option value="New">New</option>
                                             <option value="Good">Good</option>
                                             <option value="Damaged">Damaged</option>
@@ -185,31 +254,21 @@
                             </div>
 
                             <div>
-                                <h4 class="text-xs font-bold text-[#1A202C] uppercase tracking-widest mb-4 border-b border-[#D6A84A]/20 pb-2 font-cinzel">
+                                <h4 class="text-xs font-bold text-[#1A202C] uppercase tracking-widest mb-2 border-b border-[#D6A84A]/20 pb-1 font-cinzel">
                                     4. Inventory & Visuals</h4>
-                                <div class="grid grid-cols-2 md:grid-cols-4 gap-5">
-                                    <div>
-                                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Material
-                                            Type</label>
-                                        <select id="inp-type"
-                                            class="w-full p-3 rounded-lg bg-white/80 border border-slate-200 outline-none focus:ring-2 focus:ring-[#D6A84A]/50 focus:border-[#D6A84A] transition-all">
-                                            <option value="Book">Book</option>
-                                            <option value="Periodical">Periodical</option>
-                                            <option value="AV">Audio/Visual</option>
-                                        </select>
-                                    </div>
+                                <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
                                     <div>
                                         <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Total
                                             Copies</label>
                                         <input type="number" id="inp-copies" value="1" min="1"
-                                            class="w-full p-3 rounded-lg bg-white/80 border border-slate-200 focus:ring-2 focus:ring-[#D6A84A]/50 focus:border-[#D6A84A] outline-none transition-all">
+                                            class="w-full p-2 rounded-lg bg-white/80 border border-slate-200 focus:ring-2 focus:ring-[#D6A84A]/50 focus:border-[#D6A84A] outline-none transition-all text-sm">
                                     </div>
-                                    <div class="col-span-2">
+                                    <div class="col-span-3">
                                         <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Cover Image
                                             URL</label>
                                         <div class="flex gap-2">
                                             <input type="text" id="inp-image"
-                                                class="flex-1 p-3 rounded-lg bg-white/80 border border-slate-200 focus:ring-2 focus:ring-[#D6A84A]/50 focus:border-[#D6A84A] outline-none text-sm font-mono text-slate-600 transition-all"
+                                                class="flex-1 p-2 rounded-lg bg-white/80 border border-slate-200 focus:ring-2 focus:ring-[#D6A84A]/50 focus:border-[#D6A84A] outline-none text-sm font-mono text-slate-600 transition-all"
                                                 placeholder="Paste link here...">
                                             <button type="button" id="btn-preview"
                                                 class="px-4 py-2 bg-[#183B5B] text-[#D6A84A] font-bold rounded-lg hover:bg-[#2E5F87] transition text-sm">Check</button>
@@ -239,6 +298,7 @@
                                     class="font-bold text-sm text-[#1A202C] leading-tight mb-1 line-clamp-2">Book Title
                                 </h4>
                                 <p id="preview-author" class="text-xs text-[#2E5F87] truncate">Author Name</p>
+                                <p id="preview-periodical-details" class="text-xs text-[#2E5F87] truncate hidden">Vol. X, No. Y</p>
 
                                 <div class="mt-3 flex flex-wrap justify-center gap-1">
                                     <span id="preview-genre"
@@ -266,6 +326,49 @@
             </div>
         </div>
     </main>
+
+    <!-- Library Map Modal -->
+    <div id="map-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-4xl overflow-hidden flex flex-col max-h-[90vh]">
+            <!-- Modal Header -->
+            <div class="bg-[#183B5B] p-4 flex justify-between items-center shrink-0">
+                <h3 class="text-white font-cinzel font-bold text-lg">📍 Select Library Location</h3>
+                <button id="close-map-btn" class="text-white/70 hover:text-white text-2xl leading-none">&times;</button>
+            </div>
+            
+            <!-- Modal Body (Scrollable) -->
+            <div class="p-6 overflow-y-auto">
+                <p class="text-sm text-slate-500 mb-4 text-center">Click on a shelf to assign it to this material.</p>
+                
+                <div class="library-map-grid">
+                    <!-- Non-Fiction Section (Blue) -->
+                    <div class="shelf shelf-nf" data-loc="Shelf NF-1: Comp Sci & Info (000-099)">NF-1<br><span class="text-[9px] block mt-1 leading-tight">Comp Sci & Info</span><span class="text-[9px] opacity-80 font-normal">000-099</span></div>
+                    <div class="shelf shelf-nf" data-loc="Shelf NF-2: Philosophy & Psych (100-199)">NF-2<br><span class="text-[9px] block mt-1 leading-tight">Philosophy</span><span class="text-[9px] opacity-80 font-normal">100-199</span></div>
+                    <div class="shelf shelf-nf" data-loc="Shelf NF-3: Religion (200-299)">NF-3<br><span class="text-[9px] block mt-1 leading-tight">Religion</span><span class="text-[9px] opacity-80 font-normal">200-299</span></div>
+                    <div class="shelf shelf-nf" data-loc="Shelf NF-4: Social Sciences (300-399)">NF-4<br><span class="text-[9px] block mt-1 leading-tight">Social Sciences</span><span class="text-[9px] opacity-80 font-normal">300-399</span></div>
+                    
+                    <div class="shelf shelf-nf" data-loc="Shelf NF-5: Language (400-499)">NF-5<br><span class="text-[9px] block mt-1 leading-tight">Language</span><span class="text-[9px] opacity-80 font-normal">400-499</span></div>
+                    <div class="shelf shelf-nf" data-loc="Shelf NF-6: Science (500-599)">NF-6<br><span class="text-[9px] block mt-1 leading-tight">Science</span><span class="text-[9px] opacity-80 font-normal">500-599</span></div>
+                    <div class="shelf shelf-nf" data-loc="Shelf NF-7: Technology & Med (600-699)">NF-7<br><span class="text-[9px] block mt-1 leading-tight">Technology</span><span class="text-[9px] opacity-80 font-normal">600-699</span></div>
+                    <div class="shelf shelf-nf" data-loc="Shelf NF-8: Arts & Recreation (700-799)">NF-8<br><span class="text-[9px] block mt-1 leading-tight">Arts</span><span class="text-[9px] opacity-80 font-normal">700-799</span></div>
+
+                    <div class="shelf shelf-nf" data-loc="Shelf NF-9: Literature (800-899)">NF-9<br><span class="text-[9px] block mt-1 leading-tight">Literature</span><span class="text-[9px] opacity-80 font-normal">800-899</span></div>
+                    <div class="shelf shelf-nf" data-loc="Shelf NF-10: History & Geo (900-999)">NF-10<br><span class="text-[9px] block mt-1 leading-tight">History</span><span class="text-[9px] opacity-80 font-normal">900-999</span></div>
+                    
+                    <!-- Reference & Periodicals (Red/Orange) -->
+                    <div class="shelf shelf-ref" data-loc="REF-1: General Reference">REF-1<br><span class="text-[9px] block mt-1 leading-tight">General Reference</span></div>
+                    <div class="shelf shelf-per" data-loc="PER-1: Periodicals & News">PER-1<br><span class="text-[9px] block mt-1 leading-tight">Periodicals</span></div>
+
+                    <!-- Fiction Section (Green) -->
+                    <div class="shelf shelf-fic col-span-2" data-loc="Shelf FIC-A: Fiction (A-H)">FIC-A<br><span class="text-[9px] block mt-1 leading-tight">Fiction</span><span class="text-[9px] opacity-80 font-normal">Authors A-H</span></div>
+                    <div class="shelf shelf-fic" data-loc="Shelf FIC-B: Fiction (I-P)">FIC-B<br><span class="text-[9px] block mt-1 leading-tight">Fiction</span><span class="text-[9px] opacity-80 font-normal">Authors I-P</span></div>
+                    <div class="shelf shelf-fic" data-loc="Shelf FIC-C: Fiction (Q-Z)">FIC-C<br><span class="text-[9px] block mt-1 leading-tight">Fiction</span><span class="text-[9px] opacity-80 font-normal">Authors Q-Z</span></div>
+
+                    <div class="entrance">↓↓ LIBRARY ENTRANCE ↓↓</div>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- This script should contain the logic for this page (previewing image, saving form, etc.) -->
     <script type="module" src="../admin_js/admin_add_books.js"></script>

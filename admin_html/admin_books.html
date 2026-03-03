@@ -42,23 +42,29 @@
                 <div class="flex flex-col gap-4 mb-6">
                     <div class="flex justify-between items-start">
                         <div>
-                            <h2 class="text-2xl font-bold text-slate-800" id="page-title">Book Catalog</h2>
+                            <h2 class="text-2xl font-bold text-slate-800" id="page-title">Library Catalog</h2>
                             <p class="text-sm text-slate-500">Manage your library's collection</p>
                         </div>
     
                         <div class="flex gap-3">
+                        <select id="filter-material-type" onchange="loadBooks()" class="bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 px-3 py-2 rounded-lg font-medium shadow-sm outline-none focus:ring-2 focus:ring-[#183B5B] transition-colors cursor-pointer">
+                            <option value="all">All Materials</option>
+                            <option value="Book">Books</option>
+                            <option value="Periodical">Periodicals</option>
+                        </select>
+
                         <button onclick="loadBooks()" class="bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 px-3 py-2 rounded-lg font-medium shadow-sm transition-colors" title="Refresh Catalog">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
                         </button>
 
                         <button id="archive-view-btn" onclick="toggleArchivedView()" class="bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 px-4 py-2 rounded-lg font-medium shadow-sm transition-colors">
-                            View Archived Books
+                            Catalog Archive
                         </button>
 
                         <a href="../admin_html/admin_add_books.html"
                             class="bg-[#183B5B] hover:bg-[#2E5F87] text-white px-4 py-2 rounded-lg font-medium shadow-md flex items-center gap-2 transition-colors">
                             <span>+</span>
-                            Add New Book
+                            Add New Catalog
                         </a>
                     </div>
                     </div>
@@ -361,63 +367,93 @@
         async function loadBooks() {
             const grid = document.getElementById('books-grid');
             const footerCount = document.getElementById('books-count');
+            const filterType = document.getElementById('filter-material-type') ? document.getElementById('filter-material-type').value : 'all';
             
             grid.innerHTML = '<p class="text-slate-500 col-span-full text-center py-10">Loading books...</p>';
             
             try {
-                // Fetch books from database
-                let sql = "SELECT * FROM BOOK WHERE ";
-                const args = [];
+                let allItems = [];
+                let term = "";
+                if (currentSearchTerm) term = `%${currentSearchTerm}%`;
 
-                if (isArchivedView) {
-                    sql += "status = 'Archived'";
-                    document.getElementById('page-title').innerText = "Archived Books";
-                } else {
-                    sql += "status != 'Archived'";
-                    document.getElementById('page-title').innerText = "Book Catalog";
+                // Update Page Title
+                document.getElementById('page-title').innerText = isArchivedView ? "Archived Catalog" : "Library Catalog";
+
+                // 1. Fetch Books
+                if (filterType === 'all' || filterType === 'Book') {
+                    let sql = "SELECT *, 'Book' as material_type FROM BOOK WHERE ";
+                    sql += isArchivedView ? "status = 'Archived'" : "status != 'Archived'";
+
+                    const args = [];
+                    if (currentSearchTerm) {
+                        sql += " AND (title LIKE ? OR author LIKE ? OR isbn LIKE ?)";
+                        args.push(term, term, term);
+                    }
+                    const res = await db.execute({ sql, args });
+                    allItems = allItems.concat(res.rows);
                 }
 
-                if (currentSearchTerm) {
-                    sql += " AND (title LIKE ? OR author LIKE ? OR isbn LIKE ?)";
-                    const term = `%${currentSearchTerm}%`;
-                    args.push(term, term, term);
+                // 2. Fetch Periodicals
+                if (filterType === 'all' || filterType === 'Periodical') {
+                    let sql = "SELECT *, 'Periodical' as material_type FROM PERIODICAL WHERE ";
+                    sql += isArchivedView ? "status = 'Archived'" : "status != 'Archived'";
+
+                    const args = [];
+                    if (currentSearchTerm) {
+                        sql += " AND (title LIKE ? OR publisher LIKE ? OR issn LIKE ?)";
+                        args.push(term, term, term);
+                    }
+                    const res = await db.execute({ sql, args });
+                    allItems = allItems.concat(res.rows);
                 }
 
-                sql += " ORDER BY date_added DESC";
-
-                const result = await db.execute({ sql, args });
-                const books = result.rows;
+                // Sort by date_added descending
+                allItems.sort((a, b) => new Date(b.date_added) - new Date(a.date_added));
                 
                 grid.innerHTML = '';
                 
-                if (!books || books.length === 0) {
-                    grid.innerHTML = '<p class="text-slate-500 col-span-full text-center py-10">No books found in the catalog.</p>';
-                    footerCount.innerText = 'Showing 0 books';
+                if (!allItems || allItems.length === 0) {
+                    grid.innerHTML = '<p class="text-slate-500 col-span-full text-center py-10">No materials found in the catalog.</p>';
+                    footerCount.innerText = 'Showing 0 materials';
                     return;
                 }
                 
-                footerCount.innerText = `Showing ${books.length} books`;
+                footerCount.innerText = `Showing ${allItems.length} materials`;
 
-                books.forEach(book => {
+                allItems.forEach(item => {
                     // Determine Status Color
                     let statusColor = 'bg-green-500';
-                    if (book.available_copies === 0) statusColor = 'bg-red-500';
-                    else if (book.available_copies < 3) statusColor = 'bg-amber-500';
+                    if (item.available_copies === 0) statusColor = 'bg-red-500';
+                    else if (item.available_copies < 3) statusColor = 'bg-amber-500';
                     
                     // Handle Image
                     let imageHtml = '';
-                    if (book.image_url) {
-                        imageHtml = `<img src="${book.image_url}" class="w-full h-full object-cover" alt="Cover">`;
+                    if (item.image_url) {
+                        imageHtml = `<img src="${item.image_url}" class="w-full h-full object-cover" alt="Cover">`;
                     } else {
-                        imageHtml = `<svg class="w-8 h-8 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>`;
+                        // Icon based on type
+                        if (item.material_type === 'Periodical') {
+                            imageHtml = `<svg class="w-8 h-8 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"></path></svg>`;
+                        } else {
+                            imageHtml = `<svg class="w-8 h-8 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>`;
+                        }
                     }
+
+                    // Normalize Display Fields
+                    const authorOrPub = item.material_type === 'Book' ? item.author : (item.publisher || 'Unknown Publisher');
+                    const idLabel = item.material_type === 'Book' ? (item.isbn || 'No ISBN') : (item.issn || 'No ISSN');
+                    const genre = item.genre || 'General';
+                    const typeBadge = item.material_type === 'Periodical' 
+                        ? `<span class="bg-purple-50 text-purple-700 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide border border-purple-100">${item.type || 'Periodical'}</span>`
+                        : `<span class="bg-blue-50 text-blue-700 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide border border-blue-100">${genre}</span>`;
 
                     const card = document.createElement('div');
                     card.className = 'bg-white rounded-xl shadow-sm border border-slate-200 p-4 flex flex-col gap-4 hover:shadow-md transition-shadow group';
                     
                     // Escape strings for HTML attributes
-                    const safeBook = JSON.stringify(book).replace(/'/g, "&#39;").replace(/"/g, "&quot;");
-                    const safeTitle = book.title.replace(/'/g, "\\'");
+                    const safeItem = JSON.stringify(item).replace(/'/g, "&#39;").replace(/"/g, "&quot;");
+                    const safeTitle = item.title.replace(/'/g, "\\'");
+                    const itemId = item.book_id || item.periodical_id;
 
                     card.innerHTML = `
                         <div class="flex gap-4">
@@ -426,32 +462,32 @@
                             </div>
                             <div class="flex-1 min-w-0 flex flex-col">
                                 <div class="flex justify-between items-start">
-                                    <h3 class="font-bold text-slate-800 text-lg leading-tight line-clamp-2" title="${book.title}">${book.title}</h3>
-                                    <span class="w-2.5 h-2.5 rounded-full ${statusColor} shrink-0 mt-1.5 ml-2" title="${book.status}"></span>
+                                    <h3 class="font-bold text-slate-800 text-lg leading-tight line-clamp-2" title="${item.title}">${item.title}</h3>
+                                    <span class="w-2.5 h-2.5 rounded-full ${statusColor} shrink-0 mt-1.5 ml-2" title="${item.status}"></span>
                                 </div>
-                                <p class="text-sm text-slate-600 mt-1">${book.author}</p>
-                                <p class="text-xs text-slate-400 font-mono mt-0.5">${book.isbn || 'No ISBN'}</p>
+                                <p class="text-sm text-slate-600 mt-1">${authorOrPub}</p>
+                                <p class="text-xs text-slate-400 font-mono mt-0.5">${idLabel}</p>
                                 
                                 <div class="mt-auto pt-2 flex flex-wrap gap-2">
-                                    <span class="bg-blue-50 text-blue-700 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide border border-blue-100">${book.genre || 'General'}</span>
+                                    ${typeBadge}
                                 </div>
                             </div>
                         </div>
                         
                         <div class="pt-3 border-t border-slate-100 flex items-center justify-between">
                             <div class="text-xs text-slate-500">
-                                <span class="font-bold text-slate-700">${book.available_copies}</span> / ${book.total_copies} Copies
+                                <span class="font-bold text-slate-700">${item.available_copies}</span> / ${item.total_copies} Copies
                             </div>
                             <div class="flex items-center gap-2">
-                                <button onclick='openBookDetails(${safeBook})' 
+                                <button onclick='openBookDetails(${safeItem})' 
                                     class="text-xs font-bold text-[#183B5B] hover:text-[#2E5F87] bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-lg transition-colors">
                                     Details
                                 </button>
                                 <div class="h-4 w-px bg-slate-200 mx-1"></div>
-                                <button onclick='openBookEdit(${safeBook})' class="text-slate-400 hover:text-blue-600 transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg></button>
+                                <button onclick='openBookEdit(${safeItem})' class="text-slate-400 hover:text-blue-600 transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg></button>
                                 ${isArchivedView 
-                                    ? `<button onclick="openRestoreModal(${book.book_id}, '${safeTitle}')" class="text-slate-400 hover:text-green-600 transition-colors" title="Restore Book"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg></button>`
-                                    : `<button onclick="openArchiveModal(${book.book_id}, '${safeTitle}')" class="text-slate-400 hover:text-amber-600 transition-colors" title="Archive Book"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"></path></svg></button>`
+                                    ? `<button onclick="openRestoreModal(${itemId}, '${safeTitle}')" class="text-slate-400 hover:text-green-600 transition-colors" title="Restore Book"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg></button>`
+                                    : `<button onclick="openArchiveModal(${itemId}, '${safeTitle}')" class="text-slate-400 hover:text-amber-600 transition-colors" title="Archive Book"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"></path></svg></button>`
                                 }
                             </div>
                         </div>
@@ -535,32 +571,36 @@
         window.saveBookChanges = saveBookChanges;
 
         // Modal Functions
-        function openBookDetails(book) {
-            document.getElementById('detail-title').innerText = book.title;
-            document.getElementById('detail-book-id').innerText = book.book_id;
-            document.getElementById('detail-material-id').innerText = book.material_id;
-            document.getElementById('detail-isbn').innerText = book.isbn || 'N/A';
-            document.getElementById('detail-author').innerText = book.author;
-            document.getElementById('detail-publisher').innerText = book.publisher || 'N/A';
-            document.getElementById('detail-year').innerText = book.publication_year || 'N/A';
-            document.getElementById('detail-genre').innerText = book.genre || 'N/A';
-            document.getElementById('detail-dewey').innerText = book.dewey_decimal || 'N/A';
-            document.getElementById('detail-status').innerText = book.status;
-            document.getElementById('detail-location').innerText = book.location || 'N/A';
-            document.getElementById('detail-pages').innerText = book.page_count || 'N/A';
-            document.getElementById('detail-age').innerText = book.age_restriction ? book.age_restriction + '+' : 'None';
-            document.getElementById('detail-copies').innerText = `${book.available_copies} / ${book.total_copies}`;
-            document.getElementById('detail-date').innerText = book.date_added;
-            document.getElementById('detail-category').innerText = book.book_category || 'N/A';
-            document.getElementById('detail-source').innerText = book.book_source || 'N/A';
-            document.getElementById('detail-condition').innerText = book.book_condition || 'N/A';
+        function openBookDetails(item) {
+            const isPeriodical = item.material_type === 'Periodical';
+            
+            document.getElementById('detail-title').innerText = item.title;
+            document.getElementById('detail-book-id').innerText = item.book_id || item.periodical_id;
+            document.getElementById('detail-material-id').innerText = item.material_id;
+            document.getElementById('detail-isbn').innerText = isPeriodical ? (item.issn || 'N/A') : (item.isbn || 'N/A');
+            // Update label for ISBN/ISSN if possible, but for now just reuse the element
+            
+            document.getElementById('detail-author').innerText = isPeriodical ? (item.publisher || 'N/A') : item.author;
+            document.getElementById('detail-publisher').innerText = item.publisher || 'N/A';
+            document.getElementById('detail-year').innerText = isPeriodical ? (item.publication_date || 'N/A') : (item.publication_year || 'N/A');
+            document.getElementById('detail-genre').innerText = item.genre || 'N/A';
+            document.getElementById('detail-dewey').innerText = item.dewey_decimal || 'N/A';
+            document.getElementById('detail-status').innerText = item.status;
+            document.getElementById('detail-location').innerText = item.location || 'N/A';
+            document.getElementById('detail-pages').innerText = item.page_count || 'N/A';
+            document.getElementById('detail-age').innerText = item.age_restriction ? item.age_restriction + '+' : 'None';
+            document.getElementById('detail-copies').innerText = `${item.available_copies} / ${item.total_copies}`;
+            document.getElementById('detail-date').innerText = item.date_added;
+            document.getElementById('detail-category').innerText = isPeriodical ? (item.type || 'Periodical') : (item.book_category || 'N/A');
+            document.getElementById('detail-source').innerText = isPeriodical ? (item.periodical_source || 'N/A') : (item.book_source || 'N/A');
+            document.getElementById('detail-condition').innerText = isPeriodical ? (item.periodical_condition || 'N/A') : (item.book_condition || 'N/A');
 
             // Handle Image
             const imgEl = document.getElementById('detail-image');
             const placeholderEl = document.getElementById('detail-image-placeholder');
             
-            if (book.image_url) {
-                imgEl.src = book.image_url;
+            if (item.image_url) {
+                imgEl.src = item.image_url;
                 imgEl.classList.remove('hidden');
                 placeholderEl.classList.add('hidden');
             } else {

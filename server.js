@@ -183,41 +183,103 @@ app.post('/api/books/add', async (req, res) => {
 
     try {
         // 1. Insert into MATERIAL (Parent Table)
+        // Frontend sends 'material_type' (Book/Periodical).
+        const materialType = data.material_type || 'Book';
+
+        // Extract common fields for MATERIAL table
+        const deweyDecimal = data.dewey_decimal || data.dewey || null;
+        let pubYear = data.publication_year || data.year || null;
+
+        // If Periodical, try to extract year from publication_date if pubYear is missing
+        if (!pubYear && data.publication_date) {
+            pubYear = parseInt(data.publication_date.split('-')[0]) || null;
+        }
+
         const matResult = await db.execute({
-            sql: "INSERT INTO MATERIAL (title, material_type, status) VALUES (?, ?, ?) RETURNING material_id",
-            args: [data.title, data.type, data.status]
+            sql: "INSERT INTO MATERIAL (title, material_type, dewey_decimal, publication_year, status) VALUES (?, ?, ?, ?, ?) RETURNING material_id",
+            args: [data.title, materialType, deweyDecimal, pubYear, data.status || 'Available']
         });
 
         const materialId = matResult.rows[0].material_id;
+        let newBookId = null;
 
-        // 2. Insert into BOOK (Child Table)
-        const bookResult = await db.execute({
-            sql: `INSERT INTO BOOK (
-                title, author, isbn, material_id, 
-                publisher, publication_year, page_count, 
-                genre, dewey_decimal, location, age_restriction, 
-                status, image_url, available_copies, total_copies,
-                book_category, book_source, book_condition
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING book_id`,
-            args: [
-                data.title, data.author, data.isbn, materialId,
-                data.publisher, data.year, data.pages,
-                data.genre, data.dewey, data.location, data.age,
-                data.status, data.image, data.copies, data.copies,
-                data.category, data.source, data.condition
-            ]
-        });
+        if (materialType === 'Book') {
+            // 2a. Insert into BOOK (Child Table)
+            const bookResult = await db.execute({
+                sql: `INSERT INTO BOOK (
+                    title, author, isbn, material_id, 
+                    publisher, publication_year, page_count, 
+                    genre, dewey_decimal, location, age_restriction, 
+                    status, image_url, available_copies, total_copies,
+                    book_category, book_source, book_condition,
+                    volume, edition
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING book_id`,
+                args: [
+                    data.title, 
+                    data.author, 
+                    data.isbn || null, 
+                    materialId,
+                    data.publisher || null, 
+                    data.publication_year || data.year || null, 
+                    data.page_count || data.pages || null,
+                    data.genre || null, 
+                    data.dewey_decimal || data.dewey || null, 
+                    data.location || null, 
+                    data.age_restriction || data.age || 0,
+                    data.status || 'Available', 
+                    data.image_url || data.image || null, 
+                    data.available_copies || data.copies || 1, 
+                    data.total_copies || data.copies || 1,
+                    data.book_category || data.category, 
+                    data.book_source || data.source, 
+                    data.book_condition || data.condition || 'New',
+                    data.volume || null,
+                    data.edition || null
+                ]
+            });
+            newBookId = bookResult.rows[0].book_id;
 
-        // 3. Update Donation Record if donation_id exists
-        if (data.donation_id) {
-            const newBookId = bookResult.rows[0].book_id;
+        } else if (materialType === 'Periodical') {
+            // 2b. Insert into PERIODICAL
+            await db.execute({
+                sql: `INSERT INTO PERIODICAL (
+                    title, issn, material_id,
+                    publisher, publication_date, volume_no, issue_no,
+                    type, genre, periodical_source, periodical_condition,
+                    status, location, available_copies, total_copies,
+                    image_url
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                args: [
+                    data.title,
+                    data.issn || null,
+                    materialId,
+                    data.publisher || null,
+                    data.publication_date || null,
+                    data.volume_no || null,
+                    data.issue_no,
+                    data.type, // Magazine, Journal, Newspaper
+                    data.genre || null,
+                    data.periodical_source || data.source,
+                    data.periodical_condition || data.condition || 'New',
+                    data.status || 'Available',
+                    data.location || null,
+                    data.available_copies || data.copies || 1,
+                    data.total_copies || data.copies || 1,
+                    data.image_url || data.image || null
+                ]
+            });
+        }
+
+        // 3. Update Donation Record if donation_id exists AND it was a book
+        // (Currently DONATION table only links to BOOK via book_id)
+        if (data.donation_id && newBookId) {
             await db.execute({
                 sql: "UPDATE DONATION SET book_id = ? WHERE donation_id = ?",
                 args: [newBookId, data.donation_id]
             });
         }
 
-        res.json({ success: true, message: "Book added successfully." });
+        res.json({ success: true, message: "Item added successfully." });
     } catch (error) {
         console.error("Add Book Error:", error);
         res.status(500).json({ success: false, message: error.message });
