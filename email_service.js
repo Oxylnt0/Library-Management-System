@@ -83,7 +83,7 @@ async function sendPaymentReceipt(userEmail, receiptData) {
           
           <hr style="border: 0; border-top: 1px dashed #ccc; margin: 20px 0;">
           <p style="text-align: center; font-size: 14px;"><strong>Total Paid: ₱${receiptData.amount.toFixed(2)}</strong></p>
-          <p style="text-align: center; font-size: 12px; color: #888;">Payment Method: Cash</p>
+          <p style="text-align: center; font-size: 12px; color: #888;">Payment Method: ${receiptData.paymentMethod}</p>
           <p style="text-align: center; margin-top: 30px;">Thank you!</p>
         </div>
       `

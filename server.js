@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
+require('dotenv').config();
 const { db } = require('./db_config.js');
 
 const app = express();
@@ -469,6 +470,74 @@ app.get('/api/fines', async (req, res) => {
     }
 });
 
+// 13.1 POST /api/payment/paymongo/link (Create Payment Link)
+app.post('/api/payment/paymongo/link', async (req, res) => {
+    const { amount, description } = req.body;
+
+    if (amount < 100) {
+        return res.status(400).json({ success: false, message: "Amount must be at least ₱100.00 for PayMongo links." });
+    }
+
+    try {
+        const options = {
+            method: 'POST',
+            headers: {
+                accept: 'application/json',
+                'content-type': 'application/json',
+                authorization: 'Basic ' + Buffer.from(process.env.PAYMONGO_SECRET_KEY || '').toString('base64')
+            },
+            body: JSON.stringify({
+                data: {
+                    attributes: {
+                        amount: Math.round(amount * 100), // Convert to centavos
+                        description: description,
+                        remarks: 'Library Fine Payment'
+                    }
+                }
+            })
+        };
+
+        const response = await fetch('https://api.paymongo.com/v1/links', options);
+        const data = await response.json();
+        
+        if (data.errors) {
+            throw new Error(data.errors[0].detail);
+        }
+
+        res.json({ success: true, checkout_url: data.data.attributes.checkout_url, link_id: data.data.id });
+    } catch (error) {
+        console.error("Paymongo Link Error:", error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+// 13.2 GET /api/payment/paymongo/link/:id (Check Status)
+app.get('/api/payment/paymongo/link/:id', async (req, res) => {
+    const { id } = req.params;
+    try {
+        const options = {
+            method: 'GET',
+            headers: {
+                accept: 'application/json',
+                authorization: 'Basic ' + Buffer.from(process.env.PAYMONGO_SECRET_KEY || '').toString('base64')
+            }
+        };
+
+        const response = await fetch(`https://api.paymongo.com/v1/links/${id}`, options);
+        const data = await response.json();
+
+        if (data.errors) throw new Error(data.errors[0].detail);
+
+        const status = data.data.attributes.status; // 'unpaid' or 'paid'
+        const payments = data.data.attributes.payments || [];
+        const reference_number = payments.length > 0 ? payments[0].data.id : null;
+
+        res.json({ success: true, status, reference_number });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
 // 13.5 GET /api/settings/fines
 app.get('/api/settings/fines', async (req, res) => {
     try {
@@ -481,7 +550,7 @@ app.get('/api/settings/fines', async (req, res) => {
 
 // 14. POST /api/fines/pay
 app.post('/api/fines/pay', async (req, res) => {
-    const { fine_id, amount } = req.body;
+    const { fine_id, amount, payment_method, reference_number, remarks } = req.body;
     try {
         // 1. Get borrow_id associated with this fine
         const fineRes = await db.execute({
@@ -499,9 +568,9 @@ app.post('/api/fines/pay', async (req, res) => {
         // 3. Insert into PAYMENT table for audit/daily stats
         if (borrowId) {
             await db.execute({
-                sql: `INSERT INTO PAYMENT (borrow_id, fine_id, fine_amount, payment_status, payment_date, payment_method) 
-                      VALUES (?, ?, ?, 'Paid', DATE('now', '+8 hours'), 'Cash')`,
-                args: [borrowId, fine_id, amount]
+                sql: `INSERT INTO PAYMENT (borrow_id, fine_id, fine_amount, payment_status, payment_date, payment_method, or_number, remarks) 
+                      VALUES (?, ?, ?, 'Paid', DATE('now', '+8 hours'), ?, ?, ?)`,
+                args: [borrowId, fine_id, amount, payment_method || 'Cash', reference_number || null, remarks || null]
             });
         }
 

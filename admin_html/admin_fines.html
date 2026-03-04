@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' https:; script-src 'self' 'unsafe-inline' https://esm.run https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' http://localhost:3000;">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' https: http:; script-src 'self' 'unsafe-inline' https://esm.run https://cdn.jsdelivr.net https://unpkg.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' http://localhost:3000;">
     <title>Puerto Palabra - Fines Management</title>
 
     <link href="../output.css" rel="stylesheet">
@@ -82,6 +82,7 @@
                                         <th class="p-4 text-xs font-bold text-slate-500 uppercase border-b">Reason</th>
                                         <th class="p-4 text-xs font-bold text-slate-500 uppercase border-b">Due Date
                                         </th>
+                                        <th class="p-4 text-xs font-bold text-slate-500 uppercase border-b">Method</th>
                                         <th class="p-4 text-xs font-bold text-slate-500 uppercase border-b">Status</th>
                                         <th class="p-4 text-xs font-bold text-slate-500 uppercase border-b text-right">
                                             Actions</th>
@@ -211,6 +212,43 @@
         </div>
     </div>
 
+    <!-- E-Wallet Modal -->
+    <div id="ewallet-modal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center backdrop-blur-sm">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden transform transition-all scale-100">
+            <div class="bg-indigo-600 p-4 text-white flex justify-between items-center">
+                <h3 class="font-bold text-lg flex items-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
+                    Pay with E-Wallet
+                </h3>
+                <button onclick="closeEWalletModal()" class="text-white/70 hover:text-white">&times;</button>
+            </div>
+            <div class="p-6 space-y-6">
+                <div class="text-center">
+                    <p class="text-sm text-slate-500 mb-1">Total Amount Due</p>
+                    <p class="text-3xl font-bold text-slate-800" id="ewallet-amount">₱0.00</p>
+                    <p class="text-xs text-slate-400 mt-2" id="ewallet-desc">Fine Payment</p>
+                </div>
+
+                <div id="ewallet-step-1" class="space-y-4">
+                    <button onclick="generatePaymongoLink()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-lg shadow-md transition-colors flex justify-center items-center gap-2">
+                        Generate Payment Link
+                    </button>
+                </div>
+
+                <div id="ewallet-step-2" class="hidden space-y-4">
+                    <div class="bg-slate-50 p-4 rounded-lg border border-slate-200 text-center">
+                        <p class="text-sm text-slate-600 mb-3">Payment Link Created!</p>
+                        <a id="ewallet-link-btn" href="#" target="_blank" class="inline-block px-4 py-2 bg-white border border-slate-300 rounded-md text-indigo-600 font-bold text-sm hover:bg-slate-50 mb-2">Open Payment Page ↗</a>
+                        <p class="text-[10px] text-slate-400">Click above to open Paymongo checkout</p>
+                    </div>
+                    <button onclick="verifyPaymongoPayment()" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-lg shadow-md transition-colors">
+                        Verify Payment Status
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Receipt Modal -->
     <div id="receipt-modal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center backdrop-blur-sm">
         <div id="receipt-printable" class="bg-white p-8 w-[350px] shadow-2xl relative font-mono text-sm">
@@ -298,11 +336,13 @@
                         f.fine_id, f.amount, f.fine_type, f.status as fine_status,
                         b.borrow_id, b.due_date, b.return_date, b.status as borrow_status,
                         u.first_name, u.last_name, u.email,
-                        bk.title as book_title
+                        bk.title as book_title,
+                        p.payment_method
                     FROM FINE f
                     JOIN BORROW_TRANSACTION b ON f.borrow_id = b.borrow_id
                     JOIN USER u ON b.user_id = u.user_id
                     LEFT JOIN BOOK bk ON b.book_id = bk.book_id
+                    LEFT JOIN PAYMENT p ON f.fine_id = p.fine_id
                     ORDER BY f.status DESC, b.due_date ASC
                 `);
 
@@ -365,7 +405,10 @@
                     : 'bg-red-100 text-red-700 border-red-200';
 
                 const actionBtn = fine.fine_status === 'Unpaid'
-                    ? `<button onclick="openPaymentModal(${fine.fine_id})" class="text-xs font-bold text-white bg-green-600 hover:bg-green-700 px-3 py-1.5 rounded shadow-sm transition-colors flex items-center gap-1"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path></svg> Pay with Cash</button>`
+                    ? `<div class="flex gap-2 justify-end">
+                        <button onclick="openPaymentModal(${fine.fine_id})" class="text-xs font-bold text-white bg-green-600 hover:bg-green-700 px-3 py-1.5 rounded shadow-sm transition-colors flex items-center gap-1"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path></svg> Cash</button>
+                        <button onclick="openEWalletModal(${fine.fine_id})" class="text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 px-3 py-1.5 rounded shadow-sm transition-colors flex items-center gap-1"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg> E-Wallet</button>
+                       </div>`
                     : `<span class="text-xs text-slate-400 font-mono">PAID</span>`;
 
                 const reason = getFineReason(fine);
@@ -385,6 +428,7 @@
                         ${fine.book_title ? `<div class="text-[10px] text-slate-400">${fine.book_title}</div>` : ''}
                     </td>
                     <td class="p-4 text-slate-600">${new Date(displayDate).toLocaleDateString()}</td>
+                    <td class="p-4 text-slate-600 text-xs">${fine.payment_method || '-'}</td>
                     <td class="p-4">
                         <span class="px-2 py-1 rounded-full text-[10px] font-bold uppercase border ${statusColor}">
                             ${fine.fine_status}
@@ -515,7 +559,8 @@
                     amount: amount,
                     tendered: tendered,
                     change: tendered - amount,
-                    date: new Date().toLocaleDateString()
+                    date: new Date().toLocaleDateString(),
+                    paymentMethod: 'Cash'
                 };
 
                 // 5. Send Email (Async, don't block UI)
@@ -532,6 +577,125 @@
             } catch (error) {
                 console.error('Payment error:', error);
                 alert('Failed to process payment.');
+            }
+        }
+
+        // --- E-Wallet Logic ---
+        let currentEWalletFineId = null;
+        let currentEWalletAmount = 0;
+        let currentPaymongoLinkId = null;
+        let currentEWalletUserEmail = null;
+        let currentEWalletDetails = {};
+
+        window.openEWalletModal = function(fineId) {
+            const fine = allFines.find(f => f.fine_id === fineId);
+            if (!fine) return;
+
+            if (fine.amount < 100) {
+                alert("PayMongo requires a minimum amount of ₱100.00 for payment links. Please use Cash for this transaction.");
+                return;
+            }
+
+            currentEWalletFineId = fineId;
+            currentEWalletAmount = fine.amount;
+            currentEWalletUserEmail = fine.email;
+            currentEWalletDetails = {
+                user: `${fine.first_name} ${fine.last_name}`,
+                book: fine.book_title || 'N/A',
+                reason: getFineReason(fine)
+            };
+
+            document.getElementById('ewallet-amount').innerText = `₱${fine.amount.toFixed(2)}`;
+            document.getElementById('ewallet-desc').innerText = `${fine.book_title || 'Fine Payment'} - ${currentEWalletDetails.reason}`;
+            
+            // Reset UI
+            document.getElementById('ewallet-step-1').classList.remove('hidden');
+            document.getElementById('ewallet-step-2').classList.add('hidden');
+            document.getElementById('ewallet-modal').classList.remove('hidden');
+        }
+
+        window.closeEWalletModal = function() {
+            document.getElementById('ewallet-modal').classList.add('hidden');
+        }
+
+        window.generatePaymongoLink = async function() {
+            try {
+                const response = await fetch('http://localhost:3000/api/payment/paymongo/link', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        amount: currentEWalletAmount, 
+                        description: document.getElementById('ewallet-desc').innerText 
+                    })
+                });
+                const result = await response.json();
+
+                if (result.success) {
+                    currentPaymongoLinkId = result.link_id;
+                    const linkBtn = document.getElementById('ewallet-link-btn');
+                    linkBtn.href = result.checkout_url;
+                    
+                    document.getElementById('ewallet-step-1').classList.add('hidden');
+                    document.getElementById('ewallet-step-2').classList.remove('hidden');
+                    
+                    // Auto open in a maximized window
+                    const features = `width=${screen.availWidth},height=${screen.availHeight},top=0,left=0,scrollbars=yes,resizable=yes`;
+                    window.open(result.checkout_url, 'paymongoPayment', features);
+                } else {
+                    alert("Error creating link: " + result.message);
+                }
+            } catch (error) {
+                console.error(error);
+                alert("Failed to connect to payment server.");
+            }
+        }
+
+        window.verifyPaymongoPayment = async function() {
+            if (!currentPaymongoLinkId) return;
+
+            try {
+                const response = await fetch(`http://localhost:3000/api/payment/paymongo/link/${currentPaymongoLinkId}`);
+                const result = await response.json();
+
+                if (result.success && result.status === 'paid') {
+                    // Record in DB
+                    await fetch('http://localhost:3000/api/fines/pay', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ 
+                            fine_id: currentEWalletFineId, 
+                            amount: currentEWalletAmount,
+                            payment_method: 'E-Wallet (Paymongo)',
+                            reference_number: result.reference_number || currentPaymongoLinkId,
+                            remarks: 'Paid via Paymongo Link'
+                        })
+                    });
+
+                    // Send Receipt
+                    const receiptData = {
+                        orNumber: result.reference_number || 'PM-' + Date.now().toString().slice(-6),
+                        user: currentEWalletDetails.user,
+                        book: currentEWalletDetails.book,
+                        reason: currentEWalletDetails.reason,
+                        amount: currentEWalletAmount,
+                        tendered: currentEWalletAmount,
+                        change: 0,
+                        date: new Date().toLocaleDateString(),
+                        paymentMethod: 'E-Wallet (Paymongo)'
+                    };
+                    
+                    sendPaymentReceipt(currentEWalletUserEmail, receiptData);
+                    
+                    closeEWalletModal();
+                    showReceiptModal(receiptData);
+                    loadFines();
+                    loadStats();
+                } else {
+                    alert("Payment not yet detected. Status: " + (result.status || 'Unknown'));
+                }
+            } catch (error) {
+                console.error(error);
+                alert("Verification failed.");
             }
         }
 
