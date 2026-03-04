@@ -42,13 +42,13 @@
                 } else if (scanType === 'return') {
                     // Fetch Active Loans
                     const loanResult = await db.execute({
-                        sql: `SELECT bt.borrow_id, bt.book_id, bt.due_date, b.title 
+                        sql: `SELECT bt.borrow_id, bt.book_id, bt.due_date, b.title, b.author, b.image_url 
                               FROM BORROW_TRANSACTION bt 
                               JOIN BOOK b ON bt.book_id = b.book_id 
                               WHERE bt.user_id = ? AND bt.status IN ('Borrowed', 'Overdue')`,
                         args: [scannedUserId]
                     });
-                    renderReturnModal(user, scannedUserId, loanResult.rows);
+                    await renderReturnModal(user, scannedUserId, loanResult.rows);
                 }
             } catch (error) {
                 console.error("Error:", error);
@@ -93,13 +93,33 @@
             modal.classList.remove('hidden');
         }
 
-        function renderReturnModal(user, userId, loans) {
+        async function renderReturnModal(user, userId, loans) {
             const modal = document.getElementById('loan-modal');
             const content = document.getElementById('modal-content');
             
             // Set Header
             document.getElementById('modal-user-name').innerText = `${user.first_name} ${user.last_name}`;
             document.getElementById('modal-user-id').innerText = `User ID: ${userId}`;
+
+            content.innerHTML = '<div class="flex justify-center py-10"><div class="spinner text-[#183B5B]"></div></div>';
+            modal.classList.remove('hidden');
+
+            // Fetch Fine Settings
+            let settings = [];
+            try {
+                const settingsRes = await db.execute("SELECT * FROM FINE_SETTINGS");
+                settings = settingsRes.rows;
+            } catch (e) {
+                console.warn("Fine settings not found, using defaults");
+                settings = [
+                    { fine_type: 'Overdue (Daily)', fine_amount: 5.00 },
+                    { fine_type: 'Minor Damage', fine_amount: 30.00 },
+                    { fine_type: 'Moderate Damage', fine_amount: 150.00 }
+                ];
+            }
+            
+            const overdueSetting = settings.find(s => s.fine_type === 'Overdue (Daily)') || { fine_amount: 5.00 };
+            const damageSettings = settings.filter(s => s.fine_type !== 'Overdue (Daily)');
 
             content.innerHTML = '';
 
@@ -110,23 +130,89 @@
             if (loans.length === 0) {
                 section.innerHTML += `<p class="text-sm text-slate-400 italic text-center py-4">No active loans.</p>`;
             } else {
-                const list = document.createElement('div');
-                list.className = 'space-y-2';
-                loans.forEach(loan => {
-                    list.innerHTML += `
-                        <div class="bg-white p-3 rounded-lg border border-slate-100 shadow-sm flex justify-between items-center">
-                            <div>
-                                <p class="font-bold text-slate-800 text-sm">${loan.title}</p>
-                                <p class="text-xs text-slate-500">Due: ${new Date(loan.due_date).toLocaleDateString()}</p>
+                let html = '<div class="space-y-4">';
+                loans.forEach(borrow => {
+                    const dueDate = new Date(borrow.due_date);
+                    const today = new Date();
+                    dueDate.setHours(0,0,0,0);
+                    today.setHours(0,0,0,0);
+                    
+                    const diffTime = today - dueDate;
+                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
+                    const isOverdue = diffDays > 0;
+                    const overdueFee = isOverdue ? (diffDays * overdueSetting.fine_amount) : 0;
+
+                    let damageOptionsHtml = `
+                        <div class="mt-3 bg-white p-3 rounded-lg border border-slate-200">
+                            <p class="text-xs font-bold text-slate-700 uppercase mb-2">Condition Assessment</p>
+                            <div class="space-y-2">
+                                <label class="flex items-center justify-between cursor-pointer hover:bg-slate-50 p-1 rounded">
+                                    <div class="flex items-center">
+                                        <input type="radio" name="damage_${borrow.borrow_id}" value="0" checked 
+                                            class="accent-[#183B5B] w-4 h-4" onchange="updateTotal(${borrow.borrow_id}, 0)">
+                                        <span class="ml-2 text-sm text-slate-700">No Damage</span>
+                                    </div>
+                                    <span class="text-xs font-bold text-slate-500">₱0.00</span>
+                                </label>
+                    `;
+
+                    damageSettings.forEach(ds => {
+                        damageOptionsHtml += `
+                            <label class="flex items-center justify-between cursor-pointer hover:bg-slate-50 p-1 rounded">
+                                <div class="flex items-center">
+                                    <input type="radio" name="damage_${borrow.borrow_id}" value="${ds.fine_amount}" 
+                                        class="accent-[#183B5B] w-4 h-4" onchange="updateTotal(${borrow.borrow_id}, ${ds.fine_amount})">
+                                    <span class="ml-2 text-sm text-slate-700">${ds.fine_type}</span>
+                                </div>
+                                <span class="text-xs font-bold text-amber-600">+₱${ds.fine_amount.toFixed(2)}</span>
+                            </label>
+                        `;
+                    });
+                    damageOptionsHtml += `</div></div>`;
+
+                    html += `
+                        <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm flex flex-col md:flex-row gap-4">
+                            <div class="w-20 h-28 bg-slate-200 rounded-md shrink-0 overflow-hidden">
+                                ${borrow.image_url ? `<img src="${borrow.image_url}" class="w-full h-full object-cover">` : '<div class="w-full h-full flex items-center justify-center text-xs text-slate-400">No Cover</div>'}
                             </div>
-                            <button onclick="processReturn(${loan.borrow_id}, ${loan.book_id}, ${userId})" class="px-3 py-1.5 bg-[#183B5B] text-white text-xs font-bold rounded hover:bg-[#2E5F87] transition shadow-sm">Return</button>
-                        </div>`;
+                            <div class="flex-1">
+                                <h4 class="font-bold text-[#183B5B] text-lg">${borrow.title}</h4>
+                                <p class="text-sm text-slate-600 mb-2">${borrow.author || 'Unknown Author'}</p>
+                                <div class="flex gap-4 text-xs mb-3">
+                                    <div class="px-2 py-1 rounded bg-slate-100 border border-slate-200">
+                                        <span class="text-slate-500">Due:</span> 
+                                        <span class="font-bold ${isOverdue ? 'text-red-600' : 'text-slate-700'}">${new Date(borrow.due_date).toLocaleDateString()}</span>
+                                    </div>
+                                    ${isOverdue ? `<div class="px-2 py-1 rounded bg-red-100 border border-red-200 text-red-700 font-bold">${diffDays} Days Overdue</div>` : ''}
+                                </div>
+                                ${damageOptionsHtml}
+                                <div class="mt-4 flex justify-between items-center border-t pt-3">
+                                    <div>
+                                        <p class="text-xs text-slate-500">Total Fines</p>
+                                        <p class="text-xl font-bold text-red-600" id="total-fine-${borrow.borrow_id}">₱${overdueFee.toFixed(2)}</p>
+                                        <input type="hidden" id="base-overdue-${borrow.borrow_id}" value="${overdueFee}">
+                                    </div>
+                                    <button onclick="processReturn(${borrow.borrow_id}, ${borrow.book_id}, ${userId})" 
+                                        class="bg-[#183B5B] hover:bg-[#2E5F87] text-white px-6 py-2 rounded-lg font-bold shadow-md transition-colors">
+                                        Confirm Return
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
                 });
-                section.appendChild(list);
+                html += '</div>';
+                section.innerHTML += html;
             }
             content.appendChild(section);
 
             modal.classList.remove('hidden');
+        }
+
+        function updateTotal(borrowId, damageAmount) {
+            const baseOverdue = parseFloat(document.getElementById(`base-overdue-${borrowId}`).value);
+            const total = baseOverdue + parseFloat(damageAmount);
+            document.getElementById(`total-fine-${borrowId}`).innerText = `₱${total.toFixed(2)}`;
         }
 
         function closeLoanModal() {
@@ -215,7 +301,23 @@
         }
 
         async function processReturn(borrowId, bookId, userId) {
+            if (!confirm("Are you sure you want to return this book?")) return;
             try {
+                // Check for damage selection
+                const radios = document.getElementsByName(`damage_${borrowId}`);
+                let damageAmount = 0;
+                if (radios.length > 0) {
+                    for (const r of radios) {
+                        if (r.checked) {
+                            damageAmount = parseFloat(r.value);
+                            break;
+                        }
+                    }
+                }
+                
+                const baseOverdueEl = document.getElementById(`base-overdue-${borrowId}`);
+                const overdueAmount = baseOverdueEl ? parseFloat(baseOverdueEl.value) : 0;
+
                 // Update Borrow Transaction
                 await db.execute({
                     sql: "UPDATE BORROW_TRANSACTION SET status = 'Returned', return_date = DATE('now', '+8 hours') WHERE borrow_id = ?",
@@ -228,8 +330,16 @@
                     args: [bookId]
                 });
 
+                // Insert Fines
+                if (overdueAmount > 0) {
+                    await db.execute({ sql: "INSERT INTO FINE (borrow_id, amount, status) VALUES (?, ?, 'Unpaid')", args: [borrowId, overdueAmount] });
+                }
+                if (damageAmount > 0) {
+                    await db.execute({ sql: "INSERT INTO FINE (borrow_id, amount, status) VALUES (?, ?, 'Unpaid')", args: [borrowId, damageAmount] });
+                }
+
                 alert("Book returned successfully.");
-                onUserQrScanned(userId, 'return'); // Refresh modal
+                onUserQrScanned(userId, 'return'); 
                 fetchRecentActivity(); // Refresh sidebar
                 fetchLoanStats(); // Refresh stats
 
@@ -346,6 +456,7 @@
         window.processReturn = processReturn;
         window.closeLoanModal = closeLoanModal;
         window.sortActivity = sortActivity;
+        window.updateTotal = updateTotal;
     } catch (error) {
         console.error("Failed to initialize admin_loans.js:", error);
         alert("System Error: Failed to load loans module. " + error.message);
