@@ -767,6 +767,16 @@ video {
   margin-right: auto;
 }
 
+.my-2 {
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.my-4 {
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+}
+
 .my-6 {
   margin-top: 1.5rem;
   margin-bottom: 1.5rem;
@@ -1130,6 +1140,10 @@ video {
   width: 20rem;
 }
 
+.w-\[350px\] {
+  width: 350px;
+}
+
 .w-fit {
   width: -moz-fit-content;
   width: fit-content;
@@ -1393,6 +1407,12 @@ video {
   --tw-space-x-reverse: 0;
   margin-right: calc(1.5rem * var(--tw-space-x-reverse));
   margin-left: calc(1.5rem * calc(1 - var(--tw-space-x-reverse)));
+}
+
+.space-y-1 > :not([hidden]) ~ :not([hidden]) {
+  --tw-space-y-reverse: 0;
+  margin-top: calc(0.25rem * calc(1 - var(--tw-space-y-reverse)));
+  margin-bottom: calc(0.25rem * var(--tw-space-y-reverse));
 }
 
 .space-y-10 > :not([hidden]) ~ :not([hidden]) {
@@ -2419,6 +2439,10 @@ video {
   padding-left: 0.75rem;
 }
 
+.pl-7 {
+  padding-left: 1.75rem;
+}
+
 .pl-8 {
   padding-left: 2rem;
 }
@@ -2429,6 +2453,10 @@ video {
 
 .pr-2 {
   padding-right: 0.5rem;
+}
+
+.pr-3 {
+  padding-right: 0.75rem;
 }
 
 .pr-4 {
@@ -3174,6 +3202,11 @@ video {
 .hover\:bg-slate-50:hover {
   --tw-bg-opacity: 1;
   background-color: rgb(248 250 252 / var(--tw-bg-opacity, 1));
+}
+
+.hover\:bg-slate-700:hover {
+  --tw-bg-opacity: 1;
+  background-color: rgb(51 65 85 / var(--tw-bg-opacity, 1));
 }
 
 .hover\:bg-slate-900:hover {

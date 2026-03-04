@@ -181,17 +181,18 @@ async function createAllTables() {
         );
 
         CREATE TABLE PAYMENT (
-            payment_id INTEGER PRIMARY KEY AUTOINCREMENT,
-            borrow_id INT,
-            fine_id INT,
-            days_overdue INT,
-            fine_amount DECIMAL(10,2),
-            payment_status VARCHAR(20) CHECK (payment_status IN ('Paid', 'Unpaid')),
-            payment_date DATE DEFAULT CURRENT_DATE,
-            payment_method VARCHAR(30),
-            FOREIGN KEY (borrow_id) REFERENCES BORROW_TRANSACTION(borrow_id),
-            FOREIGN KEY (fine_id) REFERENCES FINE(fine_id)
-        );
+                    payment_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    borrow_id INT,
+                    fine_id INT,
+                    fine_amount DECIMAL(10,2),
+                    payment_status VARCHAR(20) CHECK (payment_status IN ('Paid', 'Unpaid')),
+                    payment_date DATE DEFAULT CURRENT_DATE,
+                    payment_method VARCHAR(30),
+                    or_number VARCHAR(50),      
+                    remarks VARCHAR(255),       
+                    FOREIGN KEY (borrow_id) REFERENCES BORROW_TRANSACTION(borrow_id),
+                    FOREIGN KEY (fine_id) REFERENCES FINE(fine_id)
+                );
 
         CREATE TABLE BAN_TERMINATION (
             ban_id INTEGER PRIMARY KEY AUTOINCREMENT,

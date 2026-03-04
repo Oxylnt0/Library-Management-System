@@ -14,6 +14,13 @@
         body {
             font-family: 'Inter', sans-serif;
         }
+        @media print {
+            body * { visibility: hidden; }
+            #receipt-modal, #receipt-modal * { visibility: visible; }
+            #receipt-modal { position: absolute; left: 0; top: 0; width: 100%; height: 100%; background: white; z-index: 9999; display: flex; align-items: flex-start; justify-content: center; padding-top: 20px; }
+            #receipt-printable { box-shadow: none; border: none; }
+            .no-print { display: none !important; }
+        }
     </style>
 </head>
 
@@ -137,10 +144,122 @@
 
                 </main>
 
+    <!-- Payment Modal -->
+    <div id="payment-modal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center backdrop-blur-sm">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden transform transition-all scale-100">
+            <div class="bg-[#183B5B] p-4 text-white flex justify-between items-center">
+                <h3 class="font-bold text-lg">Process Cash Payment</h3>
+                <button onclick="closePaymentModal()" class="text-white/70 hover:text-white">&times;</button>
+            </div>
+            <div class="p-6 space-y-4">
+                <!-- Read Only Info -->
+                <div class="bg-slate-50 p-3 rounded-lg border border-slate-200 text-sm space-y-1">
+                    <div class="flex justify-between"><span class="text-slate-500">Transaction ID:</span> <span class="font-mono font-bold text-slate-700" id="pay-borrow-id">#0</span></div>
+                    <div class="flex justify-between"><span class="text-slate-500">User:</span> <span class="font-bold text-slate-700" id="pay-user">User Name</span></div>
+                    <div class="flex justify-between"><span class="text-slate-500">Item:</span> <span class="font-bold text-slate-700 truncate max-w-[200px]" id="pay-book">Book Title</span></div>
+                    <div class="flex justify-between"><span class="text-slate-500">Reason:</span> <span class="text-slate-700" id="pay-reason">Reason</span></div>
+                    <div class="border-t border-slate-200 my-2 pt-2 flex justify-between items-center">
+                        <span class="text-slate-500 font-bold">Total Due:</span> 
+                        <span class="text-xl font-bold text-[#C05640]" id="pay-amount-display">₱0.00</span>
+                    </div>
+                </div>
+
+                <!-- Inputs -->
+                <form id="payment-form" onsubmit="event.preventDefault(); processPayment();">
+                    <input type="hidden" id="pay-fine-id">
+                    <input type="hidden" id="pay-amount-val">
+                    <input type="hidden" id="pay-email">
+                    
+                    <div class="grid grid-cols-2 gap-4 mb-4">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 mb-1">Amount Tendered</label>
+                            <div class="relative">
+                                <span class="absolute left-3 top-2 text-slate-400">₱</span>
+                                <input type="number" id="pay-tendered" step="0.01" required min="0" 
+                                    class="w-full pl-7 pr-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#183B5B] focus:border-[#183B5B] font-bold text-slate-700"
+                                    oninput="calculateChange()">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 mb-1">Change</label>
+                            <div class="relative">
+                                <span class="absolute left-3 top-2 text-slate-400">₱</span>
+                                <input type="text" id="pay-change" readonly 
+                                    class="w-full pl-7 pr-3 py-2 bg-slate-100 border border-slate-200 rounded-lg text-slate-500 font-mono">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="block text-xs font-bold text-slate-500 mb-1">OR Number</label>
+                        <input type="text" id="pay-or" required placeholder="e.g. OR-2023-001"
+                            class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#183B5B] focus:border-[#183B5B]">
+                    </div>
+
+                    <div class="mb-6">
+                        <label class="block text-xs font-bold text-slate-500 mb-1">Remarks / Notes</label>
+                        <textarea id="pay-remarks" rows="2" placeholder="Optional notes..."
+                            class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#183B5B] focus:border-[#183B5B] text-sm"></textarea>
+                    </div>
+
+                    <button type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-lg shadow-md transition-colors flex justify-center items-center gap-2">
+                        <span>Process Payment</span>
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Receipt Modal -->
+    <div id="receipt-modal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center backdrop-blur-sm">
+        <div id="receipt-printable" class="bg-white p-8 w-[350px] shadow-2xl relative font-mono text-sm">
+            <div class="text-center mb-6">
+                <h2 class="font-bold text-xl uppercase tracking-wider mb-1">Puerto Palabra</h2>
+                <p class="text-xs text-slate-500">Library Management System</p>
+                <div class="border-b border-dashed border-slate-300 my-4"></div>
+            </div>
+            
+            <div class="space-y-2 mb-6">
+                <div class="flex justify-between"><span>OR No:</span> <span class="font-bold" id="rec-or"></span></div>
+                <div class="flex justify-between"><span>Date:</span> <span id="rec-date"></span></div>
+                <div class="flex justify-between"><span>User:</span> <span class="font-bold" id="rec-user"></span></div>
+            </div>
+
+            <table class="w-full mb-6">
+                <tr class="border-b border-dashed border-slate-300">
+                    <td class="py-2 text-left">Description</td>
+                    <td class="py-2 text-right">Amount</td>
+                </tr>
+                <tr>
+                    <td class="py-2" id="rec-desc">Fine Payment</td>
+                    <td class="py-2 text-right font-bold" id="rec-amount"></td>
+                </tr>
+            </table>
+
+            <div class="border-t border-dashed border-slate-300 pt-4 space-y-1">
+                <div class="flex justify-between text-lg font-bold"><span>TOTAL</span> <span id="rec-total"></span></div>
+                <div class="flex justify-between text-xs text-slate-500"><span>Cash Tendered</span> <span id="rec-tendered"></span></div>
+                <div class="flex justify-between text-xs text-slate-500"><span>Change</span> <span id="rec-change"></span></div>
+            </div>
+
+            <div class="mt-8 text-center text-xs text-slate-400">
+                <p>Thank you for your payment.</p>
+                <p>A copy has been sent to your email.</p>
+            </div>
+
+            <div class="mt-8 flex gap-2 no-print">
+                <button onclick="window.print()" class="flex-1 bg-slate-800 text-white py-2 rounded hover:bg-slate-700 font-bold">Print</button>
+                <button onclick="closeReceiptModal()" class="flex-1 bg-slate-200 text-slate-700 py-2 rounded hover:bg-slate-300 font-bold">Close</button>
+            </div>
+        </div>
+    </div>
+
     <script>
       {
         const path = require('path');
         const { db } = require(path.join(process.cwd(), 'db_config.js'));
+        const { sendPaymentReceipt } = require(path.join(process.cwd(), 'email_service.js'));
 
         let allFines = [];
         let fineSettings = [];
@@ -195,6 +314,21 @@
             }
         }
 
+        function getFineReason(fine) {
+            let reason = fine.fine_type;
+            if (!reason) {
+                const match = fineSettings.find(s => s.fine_amount == fine.amount && !s.fine_type.toLowerCase().includes('overdue'));
+                reason = match ? match.fine_type : 'Overdue Fine';
+            }
+            if (reason.toLowerCase().includes('overdue') && fine.due_date) {
+                const dueDate = new Date(fine.due_date);
+                const returnDate = fine.return_date ? new Date(fine.return_date) : new Date();
+                const diffDays = Math.ceil((returnDate - dueDate) / (1000 * 60 * 60 * 24));
+                if (diffDays > 0) reason += ` (${diffDays} days)`;
+            }
+            return reason;
+        }
+
         function renderFines(fines) {
             const tableBody = document.getElementById('fines-table-body');
             tableBody.innerHTML = '';
@@ -231,14 +365,10 @@
                     : 'bg-red-100 text-red-700 border-red-200';
 
                 const actionBtn = fine.fine_status === 'Unpaid'
-                    ? `<button onclick="payFine(${fine.fine_id}, ${fine.amount})" class="text-xs font-bold text-white bg-green-600 hover:bg-green-700 px-3 py-1.5 rounded shadow-sm transition-colors">Mark Paid</button>`
+                    ? `<button onclick="openPaymentModal(${fine.fine_id})" class="text-xs font-bold text-white bg-green-600 hover:bg-green-700 px-3 py-1.5 rounded shadow-sm transition-colors flex items-center gap-1"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path></svg> Pay with Cash</button>`
                     : `<span class="text-xs text-slate-400 font-mono">PAID</span>`;
 
-                let reason = fine.fine_type;
-                if (!reason) {
-                    const match = fineSettings.find(s => s.fine_amount == fine.amount && !s.fine_type.toLowerCase().includes('overdue'));
-                    reason = match ? match.fine_type : 'Overdue Fine';
-                }
+                const reason = getFineReason(fine);
 
                 const displayDate = fine.return_date || fine.due_date;
 
@@ -285,16 +415,81 @@
             renderFines(allFines);
         }
 
-        async function payFine(fineId, amount) {
-            if (!confirm(`Confirm payment of ₱${amount.toFixed(2)}?`)) return;
+        // --- Payment Modal Logic ---
+
+        window.openPaymentModal = function(fineId) {
+            const fine = allFines.find(f => f.fine_id === fineId);
+            if (!fine) return;
+
+            // Determine Reason
+            const reason = getFineReason(fine);
+
+            // Populate Fields
+            document.getElementById('pay-fine-id').value = fine.fine_id;
+            document.getElementById('pay-amount-val').value = fine.amount;
+            document.getElementById('pay-email').value = fine.email;
+            
+            document.getElementById('pay-borrow-id').innerText = `#${fine.borrow_id}`;
+            document.getElementById('pay-user').innerText = `${fine.first_name} ${fine.last_name}`;
+            document.getElementById('pay-book').innerText = fine.book_title || 'N/A';
+            document.getElementById('pay-reason').innerText = reason;
+            document.getElementById('pay-amount-display').innerText = `₱${fine.amount.toFixed(2)}`;
+
+            // Reset Inputs
+            document.getElementById('pay-tendered').value = '';
+            document.getElementById('pay-change').value = '';
+            document.getElementById('pay-or').value = '';
+            document.getElementById('pay-remarks').value = '';
+
+            document.getElementById('payment-modal').classList.remove('hidden');
+        }
+
+        window.closePaymentModal = function() {
+            document.getElementById('payment-modal').classList.add('hidden');
+        }
+
+        window.calculateChange = function() {
+            const amount = parseFloat(document.getElementById('pay-amount-val').value) || 0;
+            const tendered = parseFloat(document.getElementById('pay-tendered').value) || 0;
+            const change = tendered - amount;
+            
+            const changeEl = document.getElementById('pay-change');
+            if (tendered >= amount) {
+                changeEl.value = change.toFixed(2);
+                changeEl.classList.remove('text-red-500');
+                changeEl.classList.add('text-slate-500');
+            } else {
+                changeEl.value = "Insufficient";
+                changeEl.classList.add('text-red-500');
+                changeEl.classList.remove('text-slate-500');
+            }
+        }
+
+        window.processPayment = async function() {
+            const fineId = document.getElementById('pay-fine-id').value;
+            const amount = parseFloat(document.getElementById('pay-amount-val').value);
+            const tendered = parseFloat(document.getElementById('pay-tendered').value);
+            const orNumber = document.getElementById('pay-or').value;
+            const remarks = document.getElementById('pay-remarks').value;
+            const userEmail = document.getElementById('pay-email').value;
+
+            if (!tendered || tendered < amount) {
+                alert("Amount tendered is insufficient.");
+                return;
+            }
+            if (!orNumber) {
+                alert("Please enter an OR Number.");
+                return;
+            }
 
             try {
                 // 1. Get borrow_id
                 const fineRes = await db.execute({
-                    sql: "SELECT borrow_id FROM FINE WHERE fine_id = ?",
+                    sql: "SELECT borrow_id, fine_type FROM FINE WHERE fine_id = ?",
                     args: [fineId]
                 });
                 const borrowId = fineRes.rows[0]?.borrow_id;
+                const fineType = fineRes.rows[0]?.fine_type || 'Fine Payment';
 
                 // 2. Update Fine
                 await db.execute({
@@ -302,24 +497,60 @@
                     args: [fineId]
                 });
 
-                // 3. Insert Payment
+                // 3. Insert Payment with OR and Remarks
                 if (borrowId) {
                     await db.execute({
-                        sql: `INSERT INTO PAYMENT (borrow_id, fine_id, fine_amount, payment_status, payment_date, payment_method) 
-                              VALUES (?, ?, ?, 'Paid', DATE('now', '+8 hours'), 'Cash')`,
-                        args: [borrowId, fineId, amount]
+                        sql: `INSERT INTO PAYMENT (borrow_id, fine_id, fine_amount, payment_status, payment_date, payment_method, or_number, remarks) 
+                              VALUES (?, ?, ?, 'Paid', DATE('now', '+8 hours'), 'Cash', ?, ?)`,
+                        args: [borrowId, fineId, amount, orNumber, remarks]
                     });
                 }
 
-                alert('Payment recorded successfully!');
+                // 4. Prepare Receipt Data
+                const receiptData = {
+                    orNumber: orNumber,
+                    user: document.getElementById('pay-user').innerText,
+                    book: document.getElementById('pay-book').innerText,
+                    reason: document.getElementById('pay-reason').innerText,
+                    amount: amount,
+                    tendered: tendered,
+                    change: tendered - amount,
+                    date: new Date().toLocaleDateString()
+                };
+
+                // 5. Send Email (Async, don't block UI)
+                sendPaymentReceipt(userEmail, receiptData);
+
+                // 6. Show Receipt Modal
+                closePaymentModal();
+                showReceiptModal(receiptData);
+
+                // 7. Refresh Data
                 loadFines();
                 loadStats();
+
             } catch (error) {
                 console.error('Payment error:', error);
                 alert('Failed to process payment.');
             }
         }
-        window.payFine = payFine;
+
+        window.showReceiptModal = function(data) {
+            document.getElementById('rec-or').innerText = data.orNumber;
+            document.getElementById('rec-date').innerText = data.date;
+            document.getElementById('rec-user').innerText = data.user;
+            document.getElementById('rec-desc').innerText = `${data.book} (${data.reason})`;
+            document.getElementById('rec-amount').innerText = `₱${data.amount.toFixed(2)}`;
+            document.getElementById('rec-total').innerText = `₱${data.amount.toFixed(2)}`;
+            document.getElementById('rec-tendered').innerText = `₱${data.tendered.toFixed(2)}`;
+            document.getElementById('rec-change').innerText = `₱${data.change.toFixed(2)}`;
+            
+            document.getElementById('receipt-modal').classList.remove('hidden');
+        }
+
+        window.closeReceiptModal = function() {
+            document.getElementById('receipt-modal').classList.add('hidden');
+        }
 
         async function loadStats() {
             try {
