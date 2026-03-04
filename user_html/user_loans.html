@@ -256,6 +256,7 @@
                         bt.borrow_id,
                         bt.borrow_date,
                         bt.due_date,
+                        bt.expires_at,
                         bt.return_date,
                         bt.status,
                         b.title,
@@ -264,7 +265,7 @@
                         b.image_url
                     FROM BORROW_TRANSACTION bt
                     JOIN BOOK b ON bt.book_id = b.book_id
-                    WHERE bt.user_id = ? AND bt.status IN ('Borrowed', 'Overdue', 'Returned')
+                    WHERE bt.user_id = ? AND bt.status IN ('Borrowed', 'Overdue', 'Returned', 'Pending')
                     ORDER BY bt.borrow_date DESC
                 `;
 
@@ -289,7 +290,7 @@
                     today.setHours(0,0,0,0);
                     dueDate.setHours(0,0,0,0);
                     
-                    const isOverdue = loan.status === 'Overdue' || (loan.status !== 'Returned' && today > dueDate);
+                    const isOverdue = loan.status === 'Overdue' || (loan.status !== 'Returned' && loan.status !== 'Pending' && today > dueDate);
                     const isDueSoon = !isOverdue && loan.status !== 'Returned' && ((dueDate - today) / (1000 * 60 * 60 * 24) <= 3);
                     
                     let statusLabel = 'On Time';
@@ -300,6 +301,10 @@
                         statusLabel = 'Returned';
                         statusClasses = 'bg-slate-100 text-slate-600 border-slate-200';
                         dueDateClass = 'text-slate-400';
+                    } else if (loan.status === 'Pending') {
+                        statusLabel = 'Pending Hold';
+                        statusClasses = 'bg-blue-50 text-blue-700 border-blue-100';
+                        dueDateClass = 'text-blue-600';
                     } else if (isOverdue) {
                         statusLabel = 'Overdue';
                         statusClasses = 'bg-[#C05640]/10 text-[#C05640] border-[#C05640]/20';
@@ -311,8 +316,15 @@
                     }
 
                     // Format dates
-                    const borrowDateStr = new Date(loan.borrow_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-                    const dueDateStr = new Date(loan.due_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+                    const borrowDateStr = loan.borrow_date ? new Date(loan.borrow_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '-';
+                    
+                    let dueDateStr = '-';
+                    if (loan.status === 'Pending' && loan.expires_at) {
+                        dueDateStr = "Expires: " + new Date(loan.expires_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                    } else if (loan.due_date) {
+                        dueDateStr = new Date(loan.due_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+                    }
+                    
                     const returnDateStr = loan.return_date ? new Date(loan.return_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '-';
 
                     // Image handling
@@ -329,7 +341,9 @@
                     // Actions
                     let actionButtons = `<button onclick="openLoanDetailsPanel('${safeTitle}', '${safeAuthor}', '${borrowDateStr}', '${dueDateStr}', '${statusLabel}')" class="px-3 py-1.5 bg-[#183B5B] text-white text-xs font-semibold rounded-lg hover:bg-[#2E5F87] transition-colors shadow-sm">View Details</button>`;
                     
-                    if (loan.status !== 'Returned') {
+                    if (loan.status === 'Pending') {
+                        actionButtons = `<button onclick="cancelHold(${loan.borrow_id})" class="px-3 py-1.5 bg-red-50 border border-red-200 text-red-600 text-xs font-semibold rounded-lg hover:bg-red-100 transition-colors shadow-sm">Cancel Hold</button>`;
+                    } else if (loan.status !== 'Returned') {
                         if (!isOverdue) {
                             actionButtons += `<button onclick="openExtensionPanel('${safeTitle}', '${dueDateStr}')" class="px-3 py-1.5 bg-white/80 border border-white/30 text-[#1A202C] text-xs font-semibold rounded-lg hover:bg-white hover:text-[#183B5B] transition-colors shadow-sm ml-3">Request Extension</button>`;
                         } else {
@@ -358,6 +372,28 @@
                 tbody.innerHTML = `<tr><td colspan="9" class="px-6 py-4 text-center text-red-500">Error loading data: ${error.message}</td></tr>`;
             }
         }
+
+        window.cancelHold = async function(borrowId) {
+            if (!confirm("Are you sure you want to cancel this hold?")) return;
+
+            try {
+                const response = await fetch('http://localhost:3000/api/borrow/cancel', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ borrow_id: borrowId })
+                });
+                const result = await response.json();
+                if (result.success) {
+                    loadUserLoans(); // Refresh table
+                } else {
+                    alert("Error: " + result.message);
+                }
+            } catch (error) {
+                console.error("Cancel error:", error);
+                alert("Failed to cancel hold.");
+            }
+        }
+
         loadUserLoans();
       }
     </script>

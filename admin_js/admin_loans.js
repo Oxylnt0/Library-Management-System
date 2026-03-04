@@ -42,7 +42,7 @@
                 } else if (scanType === 'return') {
                     // Fetch Active Loans
                     const loanResult = await db.execute({
-                        sql: `SELECT bt.borrow_id, bt.book_id, bt.due_date, b.title, b.author, b.image_url 
+                        sql: `SELECT bt.borrow_id, bt.book_id, bt.borrow_date, bt.due_date, b.title, b.author, b.image_url 
                               FROM BORROW_TRANSACTION bt 
                               JOIN BOOK b ON bt.book_id = b.book_id 
                               WHERE bt.user_id = ? AND bt.status IN ('Borrowed', 'Overdue')`,
@@ -121,6 +121,10 @@
             const overdueSetting = settings.find(s => s.fine_type === 'Overdue (Daily)') || { fine_amount: 5.00 };
             const damageSettings = settings.filter(s => s.fine_type !== 'Overdue (Daily)');
 
+            // Fetch Loan Period
+            const policyRes = await db.execute("SELECT policy_value FROM LENDING_POLICIES WHERE policy_name = 'Standard Loan Period'");
+            const loanPeriod = policyRes.rows[0]?.policy_value || 7; // Default to 7 days
+
             content.innerHTML = '';
 
             const section = document.createElement('div');
@@ -178,13 +182,21 @@
                             <div class="flex-1">
                                 <h4 class="font-bold text-[#183B5B] text-lg">${borrow.title}</h4>
                                 <p class="text-sm text-slate-600 mb-2">${borrow.author || 'Unknown Author'}</p>
-                                <div class="flex gap-4 text-xs mb-3">
+                                <div class="flex flex-wrap gap-2 text-xs mb-3">
+                                    <div class="px-2 py-1 rounded bg-slate-100 border border-slate-200">
+                                        <span class="text-slate-500">Borrowed:</span> 
+                                        <span class="font-bold text-slate-700">${new Date(borrow.borrow_date).toLocaleDateString()}</span>
+                                    </div>
                                     <div class="px-2 py-1 rounded bg-slate-100 border border-slate-200">
                                         <span class="text-slate-500">Due:</span> 
                                         <span class="font-bold ${isOverdue ? 'text-red-600' : 'text-slate-700'}">${new Date(borrow.due_date).toLocaleDateString()}</span>
                                     </div>
-                                    ${isOverdue ? `<div class="px-2 py-1 rounded bg-red-100 border border-red-200 text-red-700 font-bold">${diffDays} Days Overdue</div>` : ''}
+                                    <div class="px-2 py-1 rounded bg-slate-100 border border-slate-200">
+                                        <span class="text-slate-500">Loan Period:</span> 
+                                        <span class="font-bold text-slate-700">${loanPeriod} Days</span>
+                                    </div>
                                 </div>
+                                ${isOverdue ? `<div class="w-full text-center px-2 py-1 rounded bg-red-100 border border-red-200 text-red-700 font-bold text-xs mb-3">${diffDays} Days Overdue</div>` : ''}
                                 ${damageOptionsHtml}
                                 <div class="mt-4 flex justify-between items-center border-t pt-3">
                                     <div>
@@ -239,8 +251,8 @@
                 // Step 2: Create Borrow Transaction
                 await db.execute({
                     sql: `INSERT INTO BORROW_TRANSACTION 
-                        (user_id, book_id, material_id, borrow_date, due_date, status, borrow_type) 
-                        VALUES (?, ?, ?, DATE('now', '+8 hours'), DATE('now', '+8 hours', '+7 days'), 'Borrowed', 'Outside Library')`,
+                        (user_id, book_id, material_id, borrow_date, borrow_time, due_date, status, borrow_type) 
+                        VALUES (?, ?, ?, DATE('now', '+8 hours'), TIME('now', '+8 hours'), DATE('now', '+8 hours', '+7 days'), 'Borrowed', 'Outside Library')`,
                     args: [userId, bookId, materialId]
                 });
 
@@ -266,7 +278,7 @@
             try {
                 await db.execute({
                     sql: `UPDATE BORROW_TRANSACTION 
-                          SET status = 'Borrowed', borrow_date = DATE('now', '+8 hours'), due_date = DATE('now', '+8 hours', '+7 days'), expires_at = NULL 
+                          SET status = 'Borrowed', borrow_date = DATE('now', '+8 hours'), borrow_time = TIME('now', '+8 hours'), due_date = DATE('now', '+8 hours', '+7 days'), expires_at = NULL 
                           WHERE borrow_id = ?`,
                     args: [borrowId]
                 });

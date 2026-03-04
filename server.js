@@ -350,6 +350,40 @@ app.post('/api/borrow/kiosk', async (req, res) => {
     }
 });
 
+// 10.5 POST /api/borrow/cancel
+app.post('/api/borrow/cancel', async (req, res) => {
+    const { borrow_id } = req.body;
+    try {
+        // Get book_id from transaction to update inventory
+        const transRes = await db.execute({
+            sql: "SELECT book_id FROM BORROW_TRANSACTION WHERE borrow_id = ? AND status = 'Pending'",
+            args: [borrow_id]
+        });
+        
+        if (transRes.rows.length === 0) {
+            return res.status(400).json({ success: false, message: "Transaction not found or not pending." });
+        }
+        const bookId = transRes.rows[0].book_id;
+
+        // Update Transaction to Cancelled
+        await db.execute({
+            sql: "UPDATE BORROW_TRANSACTION SET status = 'Cancelled' WHERE borrow_id = ?",
+            args: [borrow_id]
+        });
+
+        // Update Book Inventory (Make available again)
+        await db.execute({
+            sql: "UPDATE BOOK SET status = 'Available', available_copies = available_copies + 1 WHERE book_id = ?",
+            args: [bookId]
+        });
+
+        res.json({ success: true, message: "Hold cancelled successfully." });
+    } catch (error) {
+        console.error("Cancel Hold Error:", error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
 // 11. POST /api/waitlist
 app.post('/api/waitlist', async (req, res) => {
     const { book_id, user_id } = req.body;
