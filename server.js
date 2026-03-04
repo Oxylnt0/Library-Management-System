@@ -501,6 +501,46 @@ app.get('/api/fines/stats', async (req, res) => {
     }
 });
 
+// 15.5 GET /api/fines/user/:userId
+app.get('/api/fines/user/:userId', async (req, res) => {
+    const { userId } = req.params;
+    try {
+        const result = await db.execute({
+            sql: `
+                SELECT 
+                    f.fine_id,
+                    f.amount,
+                    f.fine_type,
+                    f.status,
+                    b.borrow_id,
+                    b.due_date,
+                    b.return_date,
+                    bk.title as book_title,
+                    u.first_name,
+                    u.last_name
+                FROM FINE f
+                JOIN BORROW_TRANSACTION b ON f.borrow_id = b.borrow_id
+                JOIN USER u ON b.user_id = u.user_id
+                LEFT JOIN BOOK bk ON b.book_id = bk.book_id
+                WHERE b.user_id = ?
+                ORDER BY f.status DESC, b.return_date DESC
+            `,
+            args: [userId]
+        });
+
+        const fines = result.rows.map(row => ({
+            ...row,
+            fine_date: row.return_date || row.due_date,
+            reason: row.fine_type || (row.amount % 5 === 0 ? 'Overdue Fine' : 'Damage/Loss Fee')
+        }));
+
+        res.json({ success: true, data: fines });
+    } catch (error) {
+        console.error("Fetch User Fines Error:", error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
 // 16. GET /api/user/:id
 app.get('/api/user/:id', async (req, res) => {
     const { id } = req.params;

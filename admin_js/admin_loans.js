@@ -148,7 +148,7 @@
                             <div class="space-y-2">
                                 <label class="flex items-center justify-between cursor-pointer hover:bg-slate-50 p-1 rounded">
                                     <div class="flex items-center">
-                                        <input type="radio" name="damage_${borrow.borrow_id}" value="0" checked 
+                                        <input type="radio" name="damage_${borrow.borrow_id}" value="0|None" checked 
                                             class="accent-[#183B5B] w-4 h-4" onchange="updateTotal(${borrow.borrow_id}, 0)">
                                         <span class="ml-2 text-sm text-slate-700">No Damage</span>
                                     </div>
@@ -160,7 +160,7 @@
                         damageOptionsHtml += `
                             <label class="flex items-center justify-between cursor-pointer hover:bg-slate-50 p-1 rounded">
                                 <div class="flex items-center">
-                                    <input type="radio" name="damage_${borrow.borrow_id}" value="${ds.fine_amount}" 
+                                    <input type="radio" name="damage_${borrow.borrow_id}" value="${ds.fine_amount}|${ds.fine_type}" 
                                         class="accent-[#183B5B] w-4 h-4" onchange="updateTotal(${borrow.borrow_id}, ${ds.fine_amount})">
                                     <span class="ml-2 text-sm text-slate-700">${ds.fine_type}</span>
                                 </div>
@@ -306,10 +306,14 @@
                 // Check for damage selection
                 const radios = document.getElementsByName(`damage_${borrowId}`);
                 let damageAmount = 0;
+                let damageType = null;
+
                 if (radios.length > 0) {
                     for (const r of radios) {
                         if (r.checked) {
-                            damageAmount = parseFloat(r.value);
+                            const parts = r.value.split('|');
+                            damageAmount = parseFloat(parts[0]);
+                            damageType = parts[1];
                             break;
                         }
                     }
@@ -332,10 +336,10 @@
 
                 // Insert Fines
                 if (overdueAmount > 0) {
-                    await db.execute({ sql: "INSERT INTO FINE (borrow_id, amount, status) VALUES (?, ?, 'Unpaid')", args: [borrowId, overdueAmount] });
+                    await db.execute({ sql: "INSERT INTO FINE (borrow_id, amount, fine_type, status) VALUES (?, ?, 'Overdue', 'Unpaid')", args: [borrowId, overdueAmount] });
                 }
                 if (damageAmount > 0) {
-                    await db.execute({ sql: "INSERT INTO FINE (borrow_id, amount, status) VALUES (?, ?, 'Unpaid')", args: [borrowId, damageAmount] });
+                    await db.execute({ sql: "INSERT INTO FINE (borrow_id, amount, fine_type, status) VALUES (?, ?, ?, 'Unpaid')", args: [borrowId, damageAmount, damageType] });
                 }
 
                 alert("Book returned successfully.");

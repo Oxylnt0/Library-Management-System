@@ -85,6 +85,7 @@
                     <thead class="bg-white/50 text-[#1A202C]">
                         <tr>
                             <th class="text-left px-5 py-3">Book</th>
+                            <th class="text-left px-5 py-3">Borrow ID</th>
                             <th class="text-left px-5 py-3">Reason</th>
                             <th class="text-left px-5 py-3">Due Date</th>
                             <th class="text-left px-5 py-3">Amount</th>
@@ -92,7 +93,7 @@
                     </thead>
                     <tbody id="unpaid-fines-body">
                         <tr>
-                            <td colspan="4" class="px-5 py-4 text-center text-slate-500 italic">No unpaid fines. Good job!</td>
+                            <td colspan="5" class="px-5 py-4 text-center text-slate-500 italic">No unpaid fines. Good job!</td>
                         </tr>
                     </tbody>
                 </table>
@@ -108,6 +109,7 @@
                     <thead class="bg-white/50 text-[#1A202C]">
                         <tr>
                             <th class="text-left px-5 py-3">Book</th>
+                            <th class="text-left px-5 py-3">Borrow ID</th>
                             <th class="text-left px-5 py-3">Reason</th>
                             <th class="text-left px-5 py-3">Paid On</th>
                             <th class="text-left px-5 py-3">Amount</th>
@@ -116,7 +118,7 @@
                     </thead>
                     <tbody id="payment-history-body">
                         <tr>
-                            <td colspan="5" class="px-5 py-4 text-center text-slate-500 italic">No payment history available.</td>
+                            <td colspan="6" class="px-5 py-4 text-center text-slate-500 italic">No payment history available.</td>
                         </tr>
                     </tbody>
                 </table>
@@ -124,28 +126,67 @@
         </section>
 
         <script>
-            document.addEventListener('DOMContentLoaded', () => {
-                loadFines();
-            });
+            {
+            const path = require('path');
+            const { db } = require(path.join(process.cwd(), 'db_config.js'));
+
+            function getCurrentUserId() {
+                const stored = localStorage.getItem('userId');
+                return stored ? parseInt(stored) : null;
+            }
 
             async function loadFines() {
-                const userId = localStorage.getItem('userId');
+                const userId = getCurrentUserId();
+                const unpaidBody = document.getElementById('unpaid-fines-body');
+                const historyBody = document.getElementById('payment-history-body');
+                
+                // Set loading state
+                unpaidBody.innerHTML = '<tr><td colspan="5" class="px-5 py-4 text-center text-slate-500">Loading fines...</td></tr>';
+                historyBody.innerHTML = '<tr><td colspan="6" class="px-5 py-4 text-center text-slate-500">Loading history...</td></tr>';
+
                 if (!userId) {
-                    console.error("No User ID found in localStorage");
+                    unpaidBody.innerHTML = '<tr><td colspan="5" class="px-5 py-4 text-center text-red-500">Please log in to view fines.</td></tr>';
+                    historyBody.innerHTML = '<tr><td colspan="6" class="px-5 py-4 text-center text-red-500">Please log in to view history.</td></tr>';
                     return;
                 }
 
                 try {
-                    const response = await fetch(`http://localhost:3000/api/fines/user/${userId}`);
-                    const result = await response.json();
+                    const query = `
+                        SELECT 
+                            f.fine_id,
+                            f.amount,
+                            f.fine_type,
+                            f.status,
+                            b.borrow_id,
+                            b.due_date,
+                            b.return_date,
+                            bk.title as book_title,
+                            u.first_name,
+                            u.last_name
+                        FROM FINE f
+                        JOIN BORROW_TRANSACTION b ON f.borrow_id = b.borrow_id
+                        JOIN USER u ON b.user_id = u.user_id
+                        LEFT JOIN BOOK bk ON b.book_id = bk.book_id
+                        WHERE b.user_id = ?
+                        ORDER BY f.status DESC, b.return_date DESC
+                    `;
 
-                    if (result.success) {
-                        renderFines(result.data);
-                    } else {
-                        console.error('Failed to load fines:', result.message);
-                    }
+                    const result = await db.execute({
+                        sql: query,
+                        args: [userId]
+                    });
+
+                    const fines = result.rows.map(row => ({
+                        ...row,
+                        fine_date: row.return_date || row.due_date,
+                        reason: row.fine_type || (row.amount % 5 === 0 ? 'Overdue Fine' : 'Damage/Loss Fee')
+                    }));
+
+                    renderFines(fines);
+
                 } catch (error) {
                     console.error('Error fetching fines:', error);
+                    unpaidBody.innerHTML = `<tr><td colspan="5" class="px-5 py-4 text-center text-red-500">Error: ${error.message}</td></tr>`;
                 }
             }
 
@@ -163,7 +204,7 @@
 
                 fines.forEach(fine => {
                     const amount = parseFloat(fine.amount);
-                    const date = new Date(fine.fine_date || fine.created_at).toLocaleDateString();
+                    const date = new Date(fine.fine_date).toLocaleDateString();
                     
                     if (fine.status === 'Unpaid') {
                         totalUnpaid += amount;
@@ -172,19 +213,21 @@
                         unpaidBody.innerHTML += `
                             <tr class="border-t border-white/20">
                                 <td class="px-5 py-4 text-[#1A202C]">${fine.book_title || 'N/A'}</td>
-                                <td class="px-5 py-4 text-[#C05640]">${fine.reason || fine.fine_type}</td>
+                                <td class="px-5 py-4 text-slate-500 text-xs">#${fine.borrow_id}</td>
+                                <td class="px-5 py-4 text-[#C05640]">${fine.reason}</td>
                                 <td class="px-5 py-4 text-[#2E5F87]">${date}</td>
                                 <td class="px-5 py-4 font-medium text-[#1A202C]">₱${amount.toFixed(2)}</td>
                             </tr>`;
                     } else {
                         totalPaid += amount;
                         paidCount++;
-                        const paidDate = fine.payment_date ? new Date(fine.payment_date).toLocaleDateString() : date;
+                        // Using fine date as proxy for paid date if payment table isn't joined
                         historyBody.innerHTML += `
                             <tr class="border-t border-white/20">
                                 <td class="px-5 py-4 text-[#1A202C]">${fine.book_title || 'N/A'}</td>
-                                <td class="px-5 py-4 text-[#2E5F87]">${fine.reason || fine.fine_type}</td>
-                                <td class="px-5 py-4 text-[#2E5F87]">${paidDate}</td>
+                                <td class="px-5 py-4 text-slate-500 text-xs">#${fine.borrow_id}</td>
+                                <td class="px-5 py-4 text-[#2E5F87]">${fine.reason}</td>
+                                <td class="px-5 py-4 text-[#2E5F87]">${date}</td>
                                 <td class="px-5 py-4 text-[#1A202C]">₱${amount.toFixed(2)}</td>
                                 <td class="px-5 py-4">
                                     <span class="px-3 py-1 text-xs rounded-full bg-[#5B8C5A]/10 text-[#5B8C5A]">Paid</span>
@@ -198,7 +241,7 @@
                 } else {
                     unpaidBody.innerHTML += `
                         <tr class="bg-[#183B5B]/5 font-bold border-t-2 border-[#183B5B]/10">
-                            <td colspan="3" class="px-5 py-4 text-right text-[#183B5B]">Total Unpaid:</td>
+                            <td colspan="4" class="px-5 py-4 text-right text-[#183B5B]">Total Unpaid:</td>
                             <td class="px-5 py-4 text-[#C05640]">₱${totalUnpaid.toFixed(2)}</td>
                         </tr>`;
                 }
@@ -208,15 +251,23 @@
                 } else {
                     historyBody.innerHTML += `
                         <tr class="bg-[#183B5B]/5 font-bold border-t-2 border-[#183B5B]/10">
-                            <td colspan="3" class="px-5 py-4 text-right text-[#183B5B]">Total Paid:</td>
+                            <td colspan="4" class="px-5 py-4 text-right text-[#183B5B]">Total Paid:</td>
                             <td class="px-5 py-4 text-[#5B8C5A]">₱${totalPaid.toFixed(2)}</td>
                             <td></td>
                         </tr>`;
                 }
 
-                document.getElementById('summary-unpaid').textContent = `₱${totalUnpaid.toFixed(2)}`;
-                document.getElementById('summary-paid').textContent = `₱${totalPaid.toFixed(2)}`;
-                document.getElementById('summary-outstanding').textContent = outstandingCount;
+                const summaryUnpaid = document.getElementById('summary-unpaid');
+                const summaryPaid = document.getElementById('summary-paid');
+                const summaryOutstanding = document.getElementById('summary-outstanding');
+
+                if(summaryUnpaid) summaryUnpaid.textContent = `₱${totalUnpaid.toFixed(2)}`;
+                if(summaryPaid) summaryPaid.textContent = `₱${totalPaid.toFixed(2)}`;
+                if(summaryOutstanding) summaryOutstanding.textContent = outstandingCount;
+            }
+            
+            // Execute immediately
+            loadFines();
             }
         </script>
 
