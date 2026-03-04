@@ -59,39 +59,59 @@
                         </div>
                     </div>
 
-                    <div
-                        class="flex-1 bg-white rounded-xl shadow-md border border-slate-200 overflow-hidden flex flex-col">
-                        <div class="overflow-y-auto flex-1">
-                            <table class="w-full text-left border-collapse">
-                                <thead class="bg-slate-50 sticky top-0 z-10">
-                                    <tr>
-                                        <th class="p-4 text-xs font-bold text-slate-500 uppercase border-b">Book Details
-                                        </th>
-                                        <th class="p-4 text-xs font-bold text-slate-500 uppercase border-b">Requested By
-                                        </th>
-                                        <th class="p-4 text-xs font-bold text-slate-500 uppercase border-b">Date
-                                            Requested</th>
-                                        <th class="p-4 text-xs font-bold text-slate-500 uppercase border-b">Pickup
-                                            Deadline</th>
-                                        <th class="p-4 text-xs font-bold text-slate-500 uppercase border-b">Status</th>
-                                        <th class="p-4 text-xs font-bold text-slate-500 uppercase border-b text-right">
-                                            Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="reservations-list" class="divide-y divide-slate-100 text-sm">
-                                    <!-- Rows injected by JS -->
-                                </tbody>
-                            </table>
-                        </div>
-
-                        <div
-                            class="bg-slate-50 p-4 border-t border-slate-200 flex justify-between items-center text-xs text-slate-500 shrink-0">
-                            <span>Showing 1-3 pending requests</span>
-                            <div class="flex gap-2">
-                                <button class="px-3 py-1 bg-white border rounded hover:bg-slate-100">Previous</button>
-                                <button class="px-3 py-1 bg-white border rounded hover:bg-slate-100">Next</button>
+                    <div class="flex-1 overflow-y-auto space-y-6">
+                        
+                        <!-- Table 1: Ready to Process -->
+                        <div class="bg-white rounded-xl shadow-md border border-green-200 overflow-hidden flex flex-col">
+                            <div class="p-4 bg-green-50 border-b border-green-100 flex justify-between items-center">
+                                <h3 class="font-bold text-green-800 flex items-center gap-2">
+                                    <span class="w-2 h-2 rounded-full bg-green-500"></span>
+                                    Ready to Process (Actionable)
+                                </h3>
+                                <span class="text-xs text-green-600 font-medium" id="count-ready">0 items</span>
+                            </div>
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-left border-collapse">
+                                    <thead class="bg-slate-50 text-xs font-bold text-slate-500 uppercase">
+                                        <tr>
+                                            <th class="p-4 border-b">ID</th>
+                                            <th class="p-4 border-b">Book Title</th>
+                                            <th class="p-4 border-b">Requested By</th>
+                                            <th class="p-4 border-b">Date Requested</th>
+                                            <th class="p-4 border-b text-right">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="table-ready" class="divide-y divide-slate-100 text-sm"></tbody>
+                                </table>
                             </div>
                         </div>
+
+                        <!-- Table 2: Waitlist -->
+                        <div class="bg-white rounded-xl shadow-md border border-slate-200 overflow-hidden flex flex-col">
+                            <div class="p-4 bg-slate-50 border-b border-slate-200 flex justify-between items-center">
+                                <h3 class="font-bold text-slate-700 flex items-center gap-2">
+                                    <span class="w-2 h-2 rounded-full bg-amber-500"></span>
+                                    Waitlist (View Only)
+                                </h3>
+                                <span class="text-xs text-slate-500 font-medium" id="count-waitlist">0 items</span>
+                            </div>
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-left border-collapse">
+                                    <thead class="bg-slate-50 text-xs font-bold text-slate-500 uppercase">
+                                        <tr>
+                                            <th class="p-4 border-b">ID</th>
+                                            <th class="p-4 border-b">Book Title</th>
+                                            <th class="p-4 border-b">Requested By</th>
+                                            <th class="p-4 border-b">Book Status</th>
+                                            <th class="p-4 border-b">Priority</th>
+                                            <th class="p-4 border-b">Date Requested</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="table-waitlist" class="divide-y divide-slate-100 text-sm"></tbody>
+                                </table>
+                            </div>
+                        </div>
+
                     </div>
                 </div>
 
@@ -139,83 +159,87 @@
 
         async function fetchReservations() {
             try {
-                let sql = `
-                    SELECT r.reservation_id, r.reservation_date, r.status, r.user_id, r.book_id,
-                           b.title, b.isbn,
-                           u.first_name, u.last_name
-                    FROM RESERVATION r
-                    JOIN BOOK b ON r.book_id = b.book_id
-                    JOIN USER u ON r.user_id = u.user_id
-                `;
-                
-                const args = [];
-                if (currentSearchTerm) {
-                    sql += " WHERE (b.title LIKE ? OR u.first_name LIKE ? OR u.last_name LIKE ?)";
-                    const term = `%${currentSearchTerm}%`;
-                    args.push(term, term, term);
-                }
+                const response = await fetch('http://localhost:3000/api/admin/reservations');
+                const result = await response.json();
 
-                sql += " ORDER BY r.reservation_date DESC";
-
-                const result = await db.execute({ sql, args });
-                const list = document.getElementById('reservations-list');
-                
-                if (!list) return;
-                list.innerHTML = '';
-
-                if (result.rows.length === 0) {
-                    list.innerHTML = '<tr><td colspan="6" class="p-4 text-center text-slate-500">No reservations found.</td></tr>';
-                    return;
-                }
-
-                result.rows.forEach(res => {
-                    const initials = ((res.first_name?.[0] || '') + (res.last_name?.[0] || '')).toUpperCase();
+                if (result.success) {
+                    renderReadyTable(result.readyToProcess);
+                    renderWaitlistTable(result.waitlist);
                     
-                    // Calculate Pickup Deadline (Reservation Date + 3 Days)
-                    const resDate = new Date(res.reservation_date);
-                    const deadline = new Date(resDate);
-                    deadline.setDate(deadline.getDate() + 3);
-
-                    let statusBadge = '';
-                    let actions = '';
-
-                    if (res.status === 'Pending') {
-                        statusBadge = '<span class="bg-blue-100 text-blue-700 px-2 py-1 rounded-full text-xs font-bold">Pending</span>';
-                        actions = `
-                            <button onclick="declineReservation(${res.reservation_id})" class="bg-red-100 hover:bg-red-200 text-red-700 p-1.5 rounded-lg transition-colors" title="Decline">Decline</button>
-                        `;
-                    } else if (res.status === 'Fulfilled') {
-                        statusBadge = '<span class="bg-green-100 text-green-700 px-2 py-1 rounded-full text-xs font-bold">Approved</span>';
-                        actions = '<span class="text-xs text-slate-400">Completed</span>';
-                    } else if (res.status === 'Cancelled') {
-                        statusBadge = '<span class="bg-red-100 text-red-700 px-2 py-1 rounded-full text-xs font-bold">Rejected</span>';
-                        actions = '<span class="text-xs text-slate-400">Cancelled</span>';
-                    }
-
-                    const row = `
-                        <tr class="hover:bg-slate-50 transition-colors">
-                            <td class="p-4">
-                                <div class="font-bold text-slate-800">${res.title}</div>
-                                <div class="text-xs text-slate-500">ISBN: ${res.isbn || 'N/A'}</div>
-                            </td>
-                            <td class="p-4">
-                                <div class="flex items-center gap-2">
-                                    <div class="w-6 h-6 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-xs font-bold">${initials}</div>
-                                    <span class="font-medium">${res.first_name} ${res.last_name}</span>
-                                </div>
-                            </td>
-                            <td class="p-4 text-slate-600">${resDate.toLocaleDateString()}</td>
-                            <td class="p-4 text-slate-600">${deadline.toLocaleDateString()}</td>
-                            <td class="p-4">${statusBadge}</td>
-                            <td class="p-4 text-right flex justify-end gap-2">${actions}</td>
-                        </tr>
-                    `;
-                    list.insertAdjacentHTML('beforeend', row);
-                });
-
+                    document.getElementById('count-ready').innerText = `${result.readyToProcess.length} items`;
+                    document.getElementById('count-waitlist').innerText = `${result.waitlist.length} items`;
+                } else {
+                    console.error(result.message);
+                }
             } catch (error) {
                 console.error("Error fetching reservations:", error);
             }
+        }
+
+        function renderReadyTable(data) {
+            const tbody = document.getElementById('table-ready');
+            tbody.innerHTML = '';
+            if (data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="p-4 text-center text-slate-400 italic">No actionable reservations.</td></tr>';
+                return;
+            }
+            data.forEach(row => {
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-green-50/50 transition-colors border-b border-slate-100';
+                
+                let actionBtn = '';
+                if (row.status === 'Pending') {
+                    actionBtn = `
+                        <button onclick="approveReservation(${row.reservation_id})" 
+                            class="bg-green-100 hover:bg-green-200 text-green-700 px-3 py-1 rounded-lg text-xs font-bold transition-colors">
+                            Approve
+                        </button>`;
+                } else if (row.status === 'Approved') {
+                    actionBtn = `
+                        <button onclick="claimBook(${row.reservation_id}, ${row.user_id}, ${row.book_id})" 
+                            class="bg-[#183B5B] hover:bg-[#2E5F87] text-white px-3 py-1 rounded-lg text-xs font-bold transition-colors shadow-sm flex items-center gap-1">
+                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                            Claim Book
+                        </button>`;
+                }
+
+                tr.innerHTML = `
+                    <td class="p-4 font-mono text-xs text-slate-500">#${row.reservation_id}</td>
+                    <td class="p-4 font-bold text-slate-700">${row.title}</td>
+                    <td class="p-4">${row.first_name} ${row.last_name}</td>
+                    <td class="p-4 text-slate-500 text-xs">${new Date(row.reservation_date).toLocaleDateString()}</td>
+                    <td class="p-4 text-right flex justify-end gap-2">
+                        ${actionBtn}
+                        <button onclick="declineReservation(${row.reservation_id})" 
+                            class="bg-red-50 hover:bg-red-100 text-red-600 px-3 py-1 rounded-lg text-xs font-bold transition-colors">
+                            Decline
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function renderWaitlistTable(data) {
+            const tbody = document.getElementById('table-waitlist');
+            tbody.innerHTML = '';
+            if (data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" class="p-4 text-center text-slate-400 italic">Waitlist is empty.</td></tr>';
+                return;
+            }
+            data.forEach(row => {
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-slate-50 transition-colors border-b border-slate-100';
+                tr.innerHTML = `
+                    <td class="p-4 font-mono text-xs text-slate-500">#${row.reservation_id}</td>
+                    <td class="p-4 font-medium text-slate-700">${row.title}</td>
+                    <td class="p-4">${row.first_name} ${row.last_name}</td>
+                    <td class="p-4"><span class="px-2 py-1 bg-slate-100 text-slate-600 rounded text-xs">${row.book_status}</span></td>
+                    <td class="p-4 text-center font-mono font-bold text-slate-600">${row.priority_no}</td>
+                    <td class="p-4 text-slate-500 text-xs">${new Date(row.reservation_date).toLocaleDateString()}</td>
+                `;
+                tbody.appendChild(tr);
+            });
         }
 
         async function fetchStats() {
@@ -232,11 +256,25 @@
             }
         }
 
-        window.approveReservation = async function(reservationId, userId, bookId) {
-            if(!confirm("Approve this reservation? This will mark it as borrowed.")) return;
+        window.approveReservation = async function(reservationId) {
             try {
+                await db.execute({ sql: "UPDATE RESERVATION SET status = 'Approved' WHERE reservation_id = ?", args: [reservationId] });
+                fetchReservations();
+            } catch(e) { alert("Error: " + e.message); }
+        }
+
+        window.claimBook = async function(reservationId, userId, bookId) {
+            if(!confirm("Confirm book claim? This will start the loan period.")) return;
+            try {
+                // Fetch material_id
+                const bookRes = await db.execute({ sql: "SELECT material_id FROM BOOK WHERE book_id = ?", args: [bookId] });
+                const materialId = bookRes.rows[0]?.material_id;
+
                 await db.execute({ sql: "UPDATE RESERVATION SET status = 'Fulfilled' WHERE reservation_id = ?", args: [reservationId] });
-                await db.execute({ sql: "INSERT INTO BORROW_TRANSACTION (user_id, book_id, borrow_date, due_date, status, borrow_type) VALUES (?, ?, DATE('now'), DATE('now', '+7 days'), 'Borrowed', 'Outside Library')", args: [userId, bookId] });
+                await db.execute({ 
+                    sql: "INSERT INTO BORROW_TRANSACTION (user_id, book_id, material_id, borrow_date, borrow_time, due_date, status, borrow_type) VALUES (?, ?, ?, DATE('now', '+8 hours'), TIME('now', '+8 hours'), DATE('now', '+8 hours', '+7 days'), 'Borrowed', 'Outside Library')", 
+                    args: [userId, bookId, materialId] 
+                });
                 await db.execute({ sql: "UPDATE BOOK SET status = 'Borrowed' WHERE book_id = ?", args: [bookId] });
                 fetchReservations(); fetchStats();
             } catch(e) { alert("Error: " + e.message); }

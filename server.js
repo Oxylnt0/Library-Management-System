@@ -62,6 +62,38 @@ app.get('/api/reservations/:userId', async (req, res) => {
     }
 });
 
+// 2.5 GET /api/admin/reservations (Two-Table Approach)
+app.get('/api/admin/reservations', async (req, res) => {
+    try {
+        // Array 1: Ready to Process (Pending OR Approved Reservation + Available Book)
+        const readyRes = await db.execute({
+            sql: `SELECT r.reservation_id, r.user_id, r.book_id, r.reservation_date, r.status, 
+                         u.first_name, u.last_name, b.title 
+                  FROM RESERVATION r
+                  JOIN BOOK b ON r.book_id = b.book_id
+                  JOIN USER u ON r.user_id = u.user_id
+                  WHERE r.status IN ('Pending', 'Approved') AND b.status = 'Available'
+                  ORDER BY r.status ASC, r.reservation_date ASC`
+        });
+
+        // Array 2: Waitlist (Pending Reservation + Book NOT Available)
+        const waitlistRes = await db.execute({
+            sql: `SELECT r.reservation_id, r.user_id, r.book_id, r.reservation_date, r.priority_no,
+                         u.first_name, u.last_name, b.title, b.status as book_status
+                  FROM RESERVATION r
+                  JOIN BOOK b ON r.book_id = b.book_id
+                  JOIN USER u ON r.user_id = u.user_id
+                  WHERE r.status = 'Pending' AND b.status != 'Available'
+                  ORDER BY r.priority_no ASC, r.reservation_date ASC`
+        });
+
+        res.json({ success: true, readyToProcess: readyRes.rows, waitlist: waitlistRes.rows });
+    } catch (error) {
+        console.error("Admin Reservations Error:", error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
 // 3. POST /api/checkout
 app.post('/api/checkout', async (req, res) => {
     const { reservationId, userId, bookId } = req.body;
