@@ -5,6 +5,7 @@ async function createAllTables() {
 
     // STEP 1: DROP ALL EXISTING TABLES
     const dropSchema = `
+        DROP TABLE IF EXISTS LENDING_POLICIES;
         DROP TABLE IF EXISTS FINE_SETTINGS;
         DROP TABLE IF EXISTS DONATION;
         DROP TABLE IF EXISTS RESERVATION;
@@ -158,8 +159,15 @@ async function createAllTables() {
 
         CREATE TABLE FINE_SETTINGS (
             setting_id INTEGER PRIMARY KEY AUTOINCREMENT,
-            damage_level VARCHAR(50) NOT NULL UNIQUE,
+            fine_type VARCHAR(50) NOT NULL UNIQUE,
             fine_amount DECIMAL(10,2) NOT NULL,
+            description VARCHAR(255)
+        );
+        
+        CREATE TABLE LENDING_POLICIES (
+            policy_id INTEGER PRIMARY KEY AUTOINCREMENT,
+            policy_name VARCHAR(50) NOT NULL UNIQUE,
+            policy_value INT NOT NULL,
             description VARCHAR(255)
         );
 
@@ -249,11 +257,15 @@ async function createAllTables() {
 
     // STEP 3: PRE-LOAD DEFAULT SETTINGS
     const seedSettings = `
-        INSERT INTO FINE_SETTINGS (damage_level, fine_amount, description) VALUES 
-        ('Minor', 30.00, 'Folded pages, small tear (1-2 pages), pencil marks'),
-        ('Moderate', 150.00, 'Multiple torn pages, ink or highlighter marks, loose binding'),
-        ('Severe', 0.00, 'System will compute full book price for missing pages or heavy water damage'),
-        ('Overdue', 5.00, 'Daily fine per day overdue (example value)');
+        INSERT INTO FINE_SETTINGS (fine_type, fine_amount, description) VALUES 
+        ('Minor Damage', 30.00, 'Folded pages, small tear (1-2 pages), pencil marks'),
+        ('Moderate Damage', 150.00, 'Multiple torn pages, ink or highlighter marks, loose binding'),
+        ('Severe Damage', 0.00, 'System will compute full book price for missing pages or heavy water damage'),
+        ('Overdue (Daily)', 5.00, 'Daily fine per day overdue');
+        
+        INSERT INTO LENDING_POLICIES (policy_name, policy_value, description) VALUES
+        ('Max Books Per Student', 3, 'Maximum number of books a student can borrow at the same time'),
+        ('Standard Loan Period', 7, 'Number of days a student can keep a borrowed book before it is overdue');
     `;
 
     try {
@@ -272,8 +284,13 @@ async function createAllTables() {
         }
         
         // Run seeds
-        console.log("⚙️ Inserting default fine settings...");
-        await db.execute(seedSettings);
+        console.log("⚙️ Inserting default fine and lending settings...");
+        
+        // Since there are two separate INSERT statements, split them so LibSQL handles them correctly
+        const seedStatements = seedSettings.split(';').filter(stmt => stmt.trim() !== '');
+        for (const statement of seedStatements) {
+            await db.execute(statement);
+        }
 
         console.log("✅ SUCCESS: All tables created and settings loaded cleanly!");
         
