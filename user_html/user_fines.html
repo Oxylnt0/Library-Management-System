@@ -151,6 +151,10 @@
                 }
 
                 try {
+                    // Fetch settings for fallback logic
+                    const settingsRes = await db.execute("SELECT * FROM FINE_SETTINGS");
+                    const settings = settingsRes.rows;
+
                     const query = `
                         SELECT 
                             f.fine_id,
@@ -176,11 +180,18 @@
                         args: [userId]
                     });
 
-                    const fines = result.rows.map(row => ({
-                        ...row,
-                        fine_date: row.return_date || row.due_date,
-                        reason: row.fine_type || (row.amount % 5 === 0 ? 'Overdue Fine' : 'Damage/Loss Fee')
-                    }));
+                    const fines = result.rows.map(row => {
+                        let reason = row.fine_type;
+                        if (!reason) {
+                            const match = settings.find(s => s.fine_amount == row.amount && !s.fine_type.toLowerCase().includes('overdue'));
+                            reason = match ? match.fine_type : 'Overdue Fine';
+                        }
+                        return {
+                            ...row,
+                            fine_date: row.return_date || row.due_date,
+                            reason: reason
+                        };
+                    });
 
                     renderFines(fines);
 

@@ -1,4 +1,5 @@
 let allFines = [];
+let fineSettings = [];
 let showUnpaidOnly = false;
 
 function initFinesPage() {
@@ -35,11 +36,17 @@ async function loadFines() {
     tableBody.innerHTML = '<tr><td colspan="8" class="p-4 text-center text-slate-500">Loading fines...</td></tr>';
 
     try {
-        const response = await fetch('http://localhost:3000/api/fines');
-        const result = await response.json();
+        const [finesRes, settingsRes] = await Promise.all([
+            fetch('http://localhost:3000/api/fines'),
+            fetch('http://localhost:3000/api/settings/fines')
+        ]);
+
+        const result = await finesRes.json();
+        const settingsResult = await settingsRes.json();
 
         if (result.success) {
             allFines = result.data;
+            fineSettings = settingsResult.success ? settingsResult.data : [];
             renderFines(allFines);
         } else {
             tableBody.innerHTML = `<tr><td colspan="8" class="p-4 text-center text-red-500">${result.message}</td></tr>`;
@@ -91,6 +98,16 @@ function renderFines(fines) {
             ? `<button onclick="payFine(${fine.fine_id}, ${fine.amount})" class="text-xs font-bold text-white bg-green-600 hover:bg-green-700 px-3 py-1.5 rounded shadow-sm transition-colors">Mark Paid</button>`
             : `<span class="text-xs text-slate-400 font-mono">PAID</span>`;
 
+        let reason = fine.fine_type;
+        if (!reason) {
+            // Fallback: Check if amount matches a known damage fee in settings (ignoring Overdue types)
+            // Using loose equality (==) to handle potential string/number mismatch from DB
+            const match = fineSettings.find(s => s.fine_amount == fine.amount && !s.fine_type.toLowerCase().includes('overdue'));
+            reason = match ? match.fine_type : 'Overdue Fine';
+        }
+
+        const displayDate = fine.return_date || fine.due_date;
+
         row.innerHTML = `
             <td class="p-4"><input type="checkbox" class="form-checkbox h-4 w-4 text-[#183B5B] rounded border-slate-300"></td>
             <td class="p-4 font-mono text-slate-600">#${fine.borrow_id}</td>
@@ -100,9 +117,10 @@ function renderFines(fines) {
             </td>
             <td class="p-4 font-bold text-slate-700">₱${fine.amount.toFixed(2)}</td>
             <td class="p-4 text-slate-600 text-xs max-w-[200px] truncate" title="${fine.book_title || 'N/A'}">
-                ${fine.book_title ? 'Overdue: ' + fine.book_title : 'Miscellaneous Fee'}
+                <div class="font-medium text-slate-700">${reason}</div>
+                ${fine.book_title ? `<div class="text-[10px] text-slate-400">${fine.book_title}</div>` : ''}
             </td>
-            <td class="p-4 text-slate-600">${new Date(fine.due_date).toLocaleDateString()}</td>
+            <td class="p-4 text-slate-600">${new Date(displayDate).toLocaleDateString()}</td>
             <td class="p-4">
                 <span class="px-2 py-1 rounded-full text-[10px] font-bold uppercase border ${statusColor}">
                     ${fine.fine_status}

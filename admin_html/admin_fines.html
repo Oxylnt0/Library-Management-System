@@ -143,6 +143,7 @@
         const { db } = require(path.join(process.cwd(), 'db_config.js'));
 
         let allFines = [];
+        let fineSettings = [];
         let showUnpaidOnly = false;
 
         // Initialize
@@ -170,10 +171,13 @@
             tableBody.innerHTML = '<tr><td colspan="8" class="p-4 text-center text-slate-500">Loading fines...</td></tr>';
 
             try {
+                const settingsRes = await db.execute("SELECT * FROM FINE_SETTINGS");
+                fineSettings = settingsRes.rows;
+
                 const result = await db.execute(`
                     SELECT 
-                        f.fine_id, f.amount, f.status as fine_status,
-                        b.borrow_id, b.due_date, b.status as borrow_status,
+                        f.fine_id, f.amount, f.fine_type, f.status as fine_status,
+                        b.borrow_id, b.due_date, b.return_date, b.status as borrow_status,
                         u.first_name, u.last_name, u.email,
                         bk.title as book_title
                     FROM FINE f
@@ -230,6 +234,14 @@
                     ? `<button onclick="payFine(${fine.fine_id}, ${fine.amount})" class="text-xs font-bold text-white bg-green-600 hover:bg-green-700 px-3 py-1.5 rounded shadow-sm transition-colors">Mark Paid</button>`
                     : `<span class="text-xs text-slate-400 font-mono">PAID</span>`;
 
+                let reason = fine.fine_type;
+                if (!reason) {
+                    const match = fineSettings.find(s => s.fine_amount == fine.amount && !s.fine_type.toLowerCase().includes('overdue'));
+                    reason = match ? match.fine_type : 'Overdue Fine';
+                }
+
+                const displayDate = fine.return_date || fine.due_date;
+
                 row.innerHTML = `
                     <td class="p-4"><input type="checkbox" class="form-checkbox h-4 w-4 text-[#183B5B] rounded border-slate-300"></td>
                     <td class="p-4 font-mono text-slate-600">#${fine.borrow_id}</td>
@@ -239,9 +251,10 @@
                     </td>
                     <td class="p-4 font-bold text-slate-700">₱${fine.amount.toFixed(2)}</td>
                     <td class="p-4 text-slate-600 text-xs max-w-[200px] truncate" title="${fine.book_title || 'N/A'}">
-                        ${fine.book_title ? 'Overdue: ' + fine.book_title : 'Miscellaneous Fee'}
+                        <div class="font-medium text-slate-700">${reason}</div>
+                        ${fine.book_title ? `<div class="text-[10px] text-slate-400">${fine.book_title}</div>` : ''}
                     </td>
-                    <td class="p-4 text-slate-600">${new Date(fine.due_date).toLocaleDateString()}</td>
+                    <td class="p-4 text-slate-600">${new Date(displayDate).toLocaleDateString()}</td>
                     <td class="p-4">
                         <span class="px-2 py-1 rounded-full text-[10px] font-bold uppercase border ${statusColor}">
                             ${fine.fine_status}

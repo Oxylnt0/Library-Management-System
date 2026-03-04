@@ -411,9 +411,11 @@ app.get('/api/fines', async (req, res) => {
                 SELECT 
                     f.fine_id,
                     f.amount,
+                    f.fine_type,
                     f.status as fine_status,
                     b.borrow_id,
                     b.due_date,
+                    b.return_date,
                     b.status as borrow_status,
                     u.first_name,
                     u.last_name,
@@ -429,6 +431,16 @@ app.get('/api/fines', async (req, res) => {
         res.json({ success: true, data: result.rows });
     } catch (error) {
         console.error("Fetch Fines Error:", error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+// 13.5 GET /api/settings/fines
+app.get('/api/settings/fines', async (req, res) => {
+    try {
+        const result = await db.execute("SELECT * FROM FINE_SETTINGS");
+        res.json({ success: true, data: result.rows });
+    } catch (error) {
         res.status(500).json({ success: false, message: error.message });
     }
 });
