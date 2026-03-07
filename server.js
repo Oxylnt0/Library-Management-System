@@ -67,12 +67,19 @@ app.get('/api/admin/reservations', async (req, res) => {
     try {
         // Array 1: Ready to Process (Pending OR Approved Reservation + Available Book)
         const readyRes = await db.execute({
-            sql: `SELECT r.reservation_id, r.user_id, r.book_id, r.reservation_date, r.status, 
+            sql: `SELECT r.reservation_id, r.user_id, r.book_id, r.reservation_date, r.status, r.priority_no,
                          u.first_name, u.last_name, b.title 
                   FROM RESERVATION r
                   JOIN BOOK b ON r.book_id = b.book_id
                   JOIN USER u ON r.user_id = u.user_id
-                  WHERE r.status IN ('Pending', 'Approved') AND b.status = 'Available'
+                  WHERE r.status IN ('Pending', 'Approved') 
+                  AND b.status = 'Available'
+                  AND r.priority_no = (
+                      SELECT MIN(priority_no) 
+                      FROM RESERVATION r2 
+                      WHERE r2.book_id = r.book_id 
+                      AND r2.status IN ('Pending', 'Approved')
+                  )
                   ORDER BY r.status ASC, r.reservation_date ASC`
         });
 
@@ -83,7 +90,17 @@ app.get('/api/admin/reservations', async (req, res) => {
                   FROM RESERVATION r
                   JOIN BOOK b ON r.book_id = b.book_id
                   JOIN USER u ON r.user_id = u.user_id
-                  WHERE r.status = 'Pending' AND b.status != 'Available'
+                  WHERE r.status = 'Pending' 
+                  AND (
+                      b.status != 'Available' 
+                      OR 
+                      r.priority_no > (
+                          SELECT MIN(priority_no) 
+                          FROM RESERVATION r2 
+                          WHERE r2.book_id = r.book_id 
+                          AND r2.status IN ('Pending', 'Approved')
+                      )
+                  )
                   ORDER BY r.priority_no ASC, r.reservation_date ASC`
         });
 
@@ -101,10 +118,15 @@ app.post('/api/checkout', async (req, res) => {
     try {
         // Fetch material_id
         const bookRes = await db.execute({
-            sql: "SELECT material_id FROM BOOK WHERE book_id = ?",
+            sql: "SELECT material_id, available_copies FROM BOOK WHERE book_id = ?",
             args: [bookId]
         });
-        const materialId = bookRes.rows[0]?.material_id;
+        if (bookRes.rows.length === 0) return res.status(404).json({ success: false, message: "Book not found." });
+
+        const materialId = bookRes.rows[0].material_id;
+        const currentCopies = bookRes.rows[0].available_copies;
+
+        if (currentCopies <= 0) return res.status(400).json({ success: false, message: "No copies available." });
 
         // Step 1: Mark Reservation as Fulfilled
         await db.execute({
@@ -122,9 +144,10 @@ app.post('/api/checkout', async (req, res) => {
         });
 
         // Step 3: Update Book Status
+        const newStatus = (currentCopies - 1 === 0) ? 'Borrowed' : 'Available';
         await db.execute({
-            sql: "UPDATE BOOK SET status = 'Borrowed' WHERE book_id = ?",
-            args: [bookId]
+            sql: "UPDATE BOOK SET available_copies = available_copies - 1, status = ? WHERE book_id = ?",
+            args: [newStatus, bookId]
         });
 
         res.json({ success: true, message: "Checkout processed successfully." });
@@ -456,10 +479,14 @@ app.get('/api/books', async (req, res) => {
                 (SELECT COUNT(*) FROM BORROW_TRANSACTION bt 
                  WHERE bt.book_id = b.book_id 
                  AND bt.user_id = ? 
-                 AND bt.status IN ('Pending', 'Borrowed')) as user_already_has_it
+                 AND bt.status IN ('Pending', 'Borrowed')) as user_already_has_it,
+                (SELECT COUNT(*) FROM RESERVATION r 
+                 WHERE r.book_id = b.book_id 
+                 AND r.user_id = ? 
+                 AND r.status = 'Pending') as user_is_waitlisted
                 FROM BOOK b
             `;
-            args = [userId];
+            args = [userId, userId];
         }
 
         const result = await db.execute({ sql, args });

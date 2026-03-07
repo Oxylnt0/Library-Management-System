@@ -25,6 +25,8 @@ async function createAllTables() {
         DROP TABLE IF EXISTS MATERIAL;
         DROP TABLE IF EXISTS ADMIN_AUDIT_LOG;
         DROP TABLE IF EXISTS ADMIN;
+        DROP TABLE IF EXISTS LENDING_POLICIES;
+        DROP TABLE IF EXISTS FINE_SETTINGS; 
     `;
 
     // STEP 2: CREATE NEW TABLES
@@ -262,7 +264,7 @@ async function createAllTables() {
         INSERT INTO FINE_SETTINGS (fine_type, fine_amount, description) VALUES 
         ('Minor Damage', 30.00, 'Folded pages, small tear (1-2 pages), pencil marks'),
         ('Moderate Damage', 150.00, 'Multiple torn pages, ink or highlighter marks, loose binding'),
-        ('Severe Damage', 0.00, 'System will compute full book price for missing pages or heavy water damage'),
+        ('Severe Damage', 500.00, 'Missing pages or heavy water damage'),
         ('Overdue (Daily)', 5.00, 'Daily fine per day overdue');
         
         INSERT INTO LENDING_POLICIES (policy_name, policy_value, description) VALUES

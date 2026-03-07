@@ -77,6 +77,7 @@
                                             <th class="p-4 border-b">ID</th>
                                             <th class="p-4 border-b">Book Title</th>
                                             <th class="p-4 border-b">Requested By</th>
+                                            <th class="p-4 border-b">Priority</th>
                                             <th class="p-4 border-b">Date Requested</th>
                                             <th class="p-4 border-b text-right">Actions</th>
                                         </tr>
@@ -180,7 +181,7 @@
             const tbody = document.getElementById('table-ready');
             tbody.innerHTML = '';
             if (data.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="5" class="p-4 text-center text-slate-400 italic">No actionable reservations.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="6" class="p-4 text-center text-slate-400 italic">No actionable reservations.</td></tr>';
                 return;
             }
             data.forEach(row => {
@@ -207,6 +208,7 @@
                     <td class="p-4 font-mono text-xs text-slate-500">#${row.reservation_id}</td>
                     <td class="p-4 font-bold text-slate-700">${row.title}</td>
                     <td class="p-4">${row.first_name} ${row.last_name}</td>
+                    <td class="p-4 font-mono font-bold text-slate-600">${row.priority_no}</td>
                     <td class="p-4 text-slate-500 text-xs">${new Date(row.reservation_date).toLocaleDateString()}</td>
                     <td class="p-4 text-right flex justify-end gap-2">
                         ${actionBtn}
@@ -266,16 +268,23 @@
         window.claimBook = async function(reservationId, userId, bookId) {
             if(!confirm("Confirm book claim? This will start the loan period.")) return;
             try {
-                // Fetch material_id
-                const bookRes = await db.execute({ sql: "SELECT material_id FROM BOOK WHERE book_id = ?", args: [bookId] });
-                const materialId = bookRes.rows[0]?.material_id;
+                // Fetch material_id and available_copies
+                const bookRes = await db.execute({ sql: "SELECT material_id, available_copies FROM BOOK WHERE book_id = ?", args: [bookId] });
+                if (bookRes.rows.length === 0) throw new Error("Book not found.");
+                
+                const materialId = bookRes.rows[0].material_id;
+                const currentCopies = bookRes.rows[0].available_copies;
+
+                if (currentCopies <= 0) throw new Error("No copies available to claim.");
 
                 await db.execute({ sql: "UPDATE RESERVATION SET status = 'Fulfilled' WHERE reservation_id = ?", args: [reservationId] });
                 await db.execute({ 
                     sql: "INSERT INTO BORROW_TRANSACTION (user_id, book_id, material_id, borrow_date, borrow_time, due_date, status, borrow_type) VALUES (?, ?, ?, DATE('now', '+8 hours'), TIME('now', '+8 hours'), DATE('now', '+8 hours', '+7 days'), 'Borrowed', 'Outside Library')", 
                     args: [userId, bookId, materialId] 
                 });
-                await db.execute({ sql: "UPDATE BOOK SET status = 'Borrowed' WHERE book_id = ?", args: [bookId] });
+                
+                const newStatus = (currentCopies - 1 === 0) ? 'Borrowed' : 'Available';
+                await db.execute({ sql: "UPDATE BOOK SET available_copies = available_copies - 1, status = ? WHERE book_id = ?", args: [newStatus, bookId] });
                 fetchReservations(); fetchStats();
             } catch(e) { alert("Error: " + e.message); }
         }

@@ -237,10 +237,15 @@
             try {
                 // Fetch material_id
                 const bookRes = await db.execute({
-                    sql: "SELECT material_id FROM BOOK WHERE book_id = ?",
+                    sql: "SELECT material_id, available_copies FROM BOOK WHERE book_id = ?",
                     args: [bookId]
                 });
-                const materialId = bookRes.rows[0]?.material_id;
+                if (bookRes.rows.length === 0) throw new Error("Book not found.");
+
+                const materialId = bookRes.rows[0].material_id;
+                const currentCopies = bookRes.rows[0].available_copies;
+
+                if (currentCopies <= 0) throw new Error("No copies available.");
 
                 // Step 1: Mark Reservation as Fulfilled
                 await db.execute({
@@ -257,9 +262,10 @@
                 });
 
                 // Step 3: Update Book Status
+                const newStatus = (currentCopies - 1 === 0) ? 'Borrowed' : 'Available';
                 await db.execute({
-                    sql: "UPDATE BOOK SET status = 'Borrowed' WHERE book_id = ?",
-                    args: [bookId]
+                    sql: "UPDATE BOOK SET available_copies = available_copies - 1, status = ? WHERE book_id = ?",
+                    args: [newStatus, bookId]
                 });
 
                 alert("Checkout Approved! Book is now borrowed.");

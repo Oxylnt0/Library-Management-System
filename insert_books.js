@@ -21,7 +21,21 @@ const booksToInsert = [
     book_category: "Fiction", book_source: "Donated", book_condition: "Damaged", status: "Available",
     location: "Fiction Section, Shelf C", page_count: 180, age_restriction: 13, available_copies: 1, total_copies: 2,
     image_url: "https://covers.openlibrary.org/b/isbn/9780743273565-L.jpg"
-  }
+  },
+  {
+    isbn: "9780590353427", title: "Harry Potter and the Sorcerer's Stone", author: "J.K. Rowling",
+    publisher: "Scholastic", publication_year: 1998, dewey_decimal: "823.914", genre: "Fantasy",
+    book_category: "Fiction", book_source: "Purchased", book_condition: "Good", status: "Available",
+    location: "Fiction Section, Shelf H", page_count: 309, age_restriction: 9, available_copies: 3, total_copies: 3,
+    image_url: "https://covers.openlibrary.org/b/isbn/9780590353427-L.jpg"
+  },
+  {
+    isbn: "9780735211292", title: "Atomic Habits", author: "James Clear",
+    publisher: "Avery", publication_year: 2018, dewey_decimal: "158.1", genre: "Self-Help",
+    book_category: "Non-Fiction", book_source: "Purchased", book_condition: "New", status: "Available",
+    location: "Self-Help Section, Shelf A", page_count: 320, age_restriction: 13, available_copies: 2, total_copies: 2,
+    image_url: "https://covers.openlibrary.org/b/isbn/9780735211292-L.jpg"
+  },
 ];
 
 async function seedBooks() {

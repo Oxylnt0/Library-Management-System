@@ -308,6 +308,7 @@
     </div>
 
     <script>
+      {
         const path = require('path');
         const { login } = require(path.join(process.cwd(), 'auth.js'));
 
@@ -368,7 +369,6 @@
             }
         }
 
-        {
         // Navbar Particles
         document.addEventListener('DOMContentLoaded', () => {
             const container = document.getElementById('particles-container');
@@ -386,7 +386,7 @@
                 container.appendChild(particle);
             }
         });
-        }
+      }
     </script>
     </div>
 

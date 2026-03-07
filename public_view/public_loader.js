@@ -48,12 +48,24 @@ async function navigateTo(url) {
         const doc = parser.parseFromString(html, 'text/html');
         const newPageContainer = doc.getElementById('page-container');
         const newTitle = doc.querySelector('title').innerText;
+        const newStyles = doc.querySelectorAll('head style');
 
         setTimeout(() => {
             if (newPageContainer) {
                 pageContainer.innerHTML = newPageContainer.innerHTML;
                 document.title = newTitle;
                 window.history.pushState({ path: url }, newTitle, url);
+
+                // Remove previously injected styles
+                document.querySelectorAll('style[data-loader-injected="true"]').forEach(el => el.remove());
+
+                // Inject new styles
+                newStyles.forEach(style => {
+                    const newStyle = document.createElement('style');
+                    newStyle.textContent = style.textContent;
+                    newStyle.setAttribute('data-loader-injected', 'true');
+                    document.head.appendChild(newStyle);
+                });
 
                 // Re-run scripts from the new content to initialize animations/logic
                 Array.from(pageContainer.querySelectorAll('script')).forEach(oldScript => {

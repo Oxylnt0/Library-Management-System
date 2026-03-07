@@ -107,11 +107,15 @@
             const available = book.available_copies || 0;
             const total = book.total_copies || 0;
             const userHasIt = book.user_already_has_it > 0;
+            const userWaitlisted = book.user_is_waitlisted > 0;
             let btnHtml = '';
 
             if (userHasIt) {
                 // STATE 1: User already has the book (Pending or Borrowed)
                 btnHtml = `<button class="w-full py-2.5 rounded-lg bg-slate-200 text-slate-500 text-sm font-semibold cursor-not-allowed shadow-sm" disabled>✅ Pending - Go to Desk</button>`;
+            } else if (userWaitlisted) {
+                // STATE 1.5: User is on waitlist
+                btnHtml = `<button class="w-full py-2.5 rounded-lg bg-slate-200 text-slate-500 text-sm font-semibold cursor-not-allowed shadow-sm" disabled>⏳ Waitlisted</button>`;
             } else if (available > 0) {
                 // STATE 2: Available to borrow
                 btnHtml = `<button class="dynamic-action-btn w-full py-2.5 rounded-lg bg-emerald-600 text-white text-sm font-semibold hover:bg-emerald-700 transition-all shadow-sm" data-action="borrow" data-id="${book.book_id}">Borrow (30 Min Hold)</button>`;
@@ -265,6 +269,12 @@
             const result = await response.json();
 
             if (result.success) {
+                if (action === 'waitlist') {
+                    btn.innerText = "Waitlisted";
+                    btn.classList.remove('bg-amber-500', 'hover:bg-amber-600', 'text-white');
+                    btn.classList.add('bg-slate-200', 'text-slate-500', 'cursor-not-allowed');
+                }
+
                 const msg = action === 'borrow'
                     ? "Hold placed! Please proceed to the front desk within 30 minutes." 
                     : "You have been added to the waitlist.";

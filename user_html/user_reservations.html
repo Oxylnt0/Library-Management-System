@@ -87,6 +87,7 @@
                             <th class="text-left px-5 py-3">Title</th>
                             <th class="text-left px-5 py-3">Author</th>
                             <th class="text-left px-5 py-3">Reserved On</th>
+                            <th class="text-left px-5 py-3">Priority</th>
                             <th class="text-left px-5 py-3">Status</th>
                             <th class="text-center px-5 py-3">Actions</th>
                         </tr>
@@ -139,17 +140,17 @@
         async function loadReservations() {
             const userId = getCurrentUserId();
             const tbody = document.getElementById('reservations-tbody');
-            tbody.innerHTML = '<tr><td colspan="5" class="px-5 py-4 text-center text-slate-500">Loading reservations...</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="6" class="px-5 py-4 text-center text-slate-500">Loading reservations...</td></tr>';
 
             if (!userId) {
-                tbody.innerHTML = '<tr><td colspan="5" class="px-5 py-4 text-center text-red-500">Please log in to view your reservations.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="6" class="px-5 py-4 text-center text-red-500">Please log in to view your reservations.</td></tr>';
                 return;
             }
 
             try {
                 const query = `
                     SELECT
-                        r.reservation_id, b.title, b.author, r.reservation_date, r.status
+                        r.reservation_id, b.title, b.author, r.reservation_date, r.status, r.priority_no
                     FROM RESERVATION r
                     JOIN BOOK b ON r.book_id = b.book_id
                     WHERE r.user_id = ? AND r.status = 'Pending'
@@ -161,7 +162,7 @@
                 tbody.innerHTML = '';
 
                 if (reservations.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="5" class="px-5 py-4 text-center text-slate-500">You have no pending reservations.</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="6" class="px-5 py-4 text-center text-slate-500">You have no pending reservations.</td></tr>';
                     return;
                 }
 
@@ -173,6 +174,7 @@
                             <td class="px-5 py-4 text-[#1A202C] font-semibold">${res.title}</td>
                             <td class="px-5 py-4 text-[#2E5F87]">${res.author}</td>
                             <td class="px-5 py-4 text-[#2E5F87]">${reservedDate}</td>
+                            <td class="px-5 py-4 text-[#1A202C] font-bold">#${res.priority_no}</td>
                             <td class="px-5 py-4">${statusHtml}</td>
                             <td class="px-5 py-4 text-center"><button class="text-xs text-red-600 hover:text-red-800 font-bold">Cancel</button></td>
                         </tr>`;
@@ -180,7 +182,7 @@
                 });
             } catch (error) {
                 console.error("Error loading reservations:", error);
-                tbody.innerHTML = `<tr><td colspan="5" class="px-5 py-4 text-center text-red-500">Error loading data: ${error.message}</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="6" class="px-5 py-4 text-center text-red-500">Error loading data: ${error.message}</td></tr>`;
             }
         }
         loadReservations();
