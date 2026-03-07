@@ -38,7 +38,7 @@
                     <div class="flex justify-between items-center mb-6 shrink-0">
                         <div>
                             <h2 class="text-2xl font-bold text-slate-800">Outbound Donations</h2>
-                            <p class="text-sm text-slate-500">Identify and process books for donation (5+ years old)</p>
+                            <p class="text-sm text-slate-500">Identify and process books for donation (Outdated / Obsolete)</p>
                         </div>
 
                         <div class="flex gap-3">
@@ -55,10 +55,14 @@
                             <table class="w-full text-left border-collapse">
                                 <thead class="bg-slate-50 sticky top-0 z-10">
                                     <tr>
+                                        <th class="p-4 border-b w-10">
+                                            <input type="checkbox" id="select-all" class="w-4 h-4 rounded border-slate-300 text-[#183B5B] focus:ring-[#183B5B]">
+                                        </th>
                                         <th class="p-4 text-xs font-bold text-slate-500 uppercase border-b">Book Title</th>
                                         <th class="p-4 text-xs font-bold text-slate-500 uppercase border-b">Category</th>
+                                        <th class="p-4 text-xs font-bold text-slate-500 uppercase border-b">Condition</th>
+                                        <th class="p-4 text-xs font-bold text-slate-500 uppercase border-b">Status</th>
                                         <th class="p-4 text-xs font-bold text-slate-500 uppercase border-b">Date Added</th>
-                                        <th class="p-4 text-xs font-bold text-slate-500 uppercase border-b text-right">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody id="eligible-list" class="divide-y divide-slate-100 text-sm">
@@ -66,8 +70,17 @@
                                 </tbody>
                             </table>
                             <div id="no-eligible-msg" class="hidden text-center py-12 text-slate-500">
-                                No books found eligible for donation (older than 5 years).
+                                No books found eligible for donation.
                             </div>
+                        </div>
+                        
+                        <!-- Bulk Action Footer -->
+                        <div class="p-4 border-t border-slate-200 bg-slate-50 flex justify-between items-center">
+                            <span class="text-sm text-slate-600" id="selection-count">0 items selected</span>
+                            <button id="btn-donate-selected" disabled onclick="openBulkModal()" class="bg-[#183B5B] hover:bg-[#2E5F87] disabled:opacity-50 disabled:cursor-not-allowed text-white px-6 py-2 rounded-lg font-bold shadow-sm transition-colors flex items-center gap-2">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"></path></svg>
+                                Donate Selected
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -87,12 +100,10 @@
             <h3 class="text-xl font-bold text-[#183B5B] mb-4">Process Outbound Donation</h3>
             
             <form id="outbound-form" class="space-y-4">
-                <input type="hidden" id="out-book-id">
-                <input type="hidden" id="out-category">
-                
                 <div>
-                    <label class="block text-sm font-medium text-slate-700 mb-1">Selected Book</label>
-                    <input type="text" id="out-book-title" readonly class="w-full px-3 py-2 bg-slate-100 border border-slate-300 rounded-lg text-slate-600 focus:outline-none">
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Selected Items</label>
+                    <div id="modal-selected-count" class="text-lg font-bold text-[#183B5B]">0 Books</div>
+                    <p class="text-xs text-slate-500">These items will be archived and marked as donated.</p>
                 </div>
 
                 <div>
@@ -111,6 +122,189 @@
 
     <script src="../admin_js/dashboard_loader.js"></script>
     <script src="../admin_js/admin_renderer.js"></script>
-    <script src="../admin_js/outbound.js"></script>
+    <script>
+      {
+        const path = require('path');
+        const { db } = require(path.join(process.cwd(), 'db_config.js'));
+
+        let eligibleBooks = [];
+        let selectedBooks = new Set();
+
+        async function fetchEligibleBooks() {
+            try {
+                const response = await fetch('http://localhost:3000/api/donations/eligible');
+                const result = await response.json();
+                
+                if (result.success) {
+                    eligibleBooks = result.data;
+                    renderTable();
+                } else {
+                    console.error(result.message);
+                }
+            } catch (error) {
+                console.error("Error fetching eligible books:", error);
+            }
+        }
+
+        async function runAutoWeeding() {
+            try {
+                const notification = document.createElement('div');
+                notification.className = 'fixed bottom-4 right-4 bg-slate-800 text-white px-4 py-2 rounded-lg shadow-lg text-xs z-50 transition-opacity duration-500';
+                notification.innerText = 'Scanning catalog for outdated items...';
+                document.body.appendChild(notification);
+
+                const response = await fetch('http://localhost:3000/api/admin/weeding/process', { method: 'POST' });
+                const result = await response.json();
+                
+                notification.innerText = result.message;
+                setTimeout(() => { notification.style.opacity = '0'; setTimeout(() => notification.remove(), 500); }, 3000);
+                fetchEligibleBooks(); // Refresh list to show newly tagged items
+            } catch (err) {
+                console.error("Error running weeding:", err);
+            }
+        }
+
+        function renderTable() {
+            const tbody = document.getElementById('eligible-list');
+            const noMsg = document.getElementById('no-eligible-msg');
+            tbody.innerHTML = '';
+
+            if (eligibleBooks.length === 0) {
+                noMsg.classList.remove('hidden');
+                return;
+            }
+            noMsg.classList.add('hidden');
+
+            eligibleBooks.forEach(book => {
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-slate-50 transition-colors';
+                const isChecked = selectedBooks.has(book.book_id);
+                
+                // Condition Badge
+                let condBadge = `<span class="px-2 py-1 rounded text-xs font-bold bg-slate-100 text-slate-600">${book.book_condition}</span>`;
+                if(book.book_condition === 'Obsolete') condBadge = `<span class="px-2 py-1 rounded text-xs font-bold bg-red-100 text-red-700 border border-red-200">Obsolete</span>`;
+                else if(book.book_condition === 'Outdated') condBadge = `<span class="px-2 py-1 rounded text-xs font-bold bg-amber-100 text-amber-700 border border-amber-200">Outdated</span>`;
+
+                const statusBadge = `<span class="px-2 py-1 rounded text-xs font-bold ${book.status === 'Available' ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-500'}">${book.status}</span>`;
+
+                tr.innerHTML = `
+                    <td class="p-4 border-b">
+                        <input type="checkbox" class="book-checkbox w-4 h-4 rounded border-slate-300 text-[#183B5B] focus:ring-[#183B5B]" 
+                            value="${book.book_id}" ${isChecked ? 'checked' : ''} onchange="toggleSelection(${book.book_id})">
+                    </td>
+                    <td class="p-4 border-b font-medium text-slate-800">${book.title}</td>
+                    <td class="p-4 border-b text-slate-600">${book.book_category}</td>
+                    <td class="p-4 border-b">${condBadge}</td>
+                    <td class="p-4 border-b">${statusBadge}</td>
+                    <td class="p-4 border-b text-slate-500 text-xs">${new Date(book.date_added).toLocaleDateString()}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+            updateSelectionUI();
+        }
+
+        window.toggleSelection = function(bookId) {
+            if (selectedBooks.has(bookId)) {
+                selectedBooks.delete(bookId);
+            } else {
+                selectedBooks.add(bookId);
+            }
+            updateSelectionUI();
+        }
+
+        function updateSelectionUI() {
+            const count = selectedBooks.size;
+            document.getElementById('selection-count').innerText = `${count} items selected`;
+            document.getElementById('btn-donate-selected').disabled = count === 0;
+            
+            // Update Select All Checkbox state
+            const selectAll = document.getElementById('select-all');
+            if (eligibleBooks.length > 0 && count === eligibleBooks.length) {
+                selectAll.checked = true;
+                selectAll.indeterminate = false;
+            } else if (count > 0) {
+                selectAll.checked = false;
+                selectAll.indeterminate = true;
+            } else {
+                selectAll.checked = false;
+                selectAll.indeterminate = false;
+            }
+        }
+
+        // Select All Logic
+        document.getElementById('select-all').addEventListener('change', (e) => {
+            if (e.target.checked) {
+                eligibleBooks.forEach(b => selectedBooks.add(b.book_id));
+            } else {
+                selectedBooks.clear();
+            }
+            renderTable();
+        });
+
+        // Modal Logic
+        window.openBulkModal = function() {
+            if (selectedBooks.size === 0) return;
+            document.getElementById('modal-selected-count').innerText = `${selectedBooks.size} Books`;
+            document.getElementById('out-recipient').value = '';
+            document.getElementById('outbound-modal').classList.remove('hidden');
+        }
+
+        window.closeOutboundModal = function() {
+            document.getElementById('outbound-modal').classList.add('hidden');
+        }
+
+        // Form Submit
+        document.getElementById('outbound-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const recipient = document.getElementById('out-recipient').value;
+            const btn = e.target.querySelector('button[type="submit"]');
+            
+            if (!recipient) return;
+
+            // Prepare data
+            const booksToDonate = eligibleBooks
+                .filter(b => selectedBooks.has(b.book_id))
+                .map(b => ({
+                    book_id: b.book_id,
+                    book_title: b.title,
+                    category: b.book_category
+                }));
+
+            btn.disabled = true;
+            btn.innerText = "Processing...";
+
+            try {
+                const response = await fetch('http://localhost:3000/api/donations/outbound/bulk', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        books: booksToDonate,
+                        recipient_organization: recipient
+                    })
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                    alert(result.message);
+                    closeOutboundModal();
+                    selectedBooks.clear();
+                    fetchEligibleBooks(); // Refresh list
+                } else {
+                    throw new Error(result.message);
+                }
+            } catch (error) {
+                alert("Error: " + error.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerText = "Confirm Outbound Donation";
+            }
+        });
+
+        // Initial Load
+        fetchEligibleBooks().then(() => {
+            runAutoWeeding();
+        });
+      }
+    </script>
 </body>
 </html>

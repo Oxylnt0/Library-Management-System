@@ -178,12 +178,12 @@ app.post('/api/donations/inbound', async (req, res) => {
 // 5. GET /api/donations/eligible
 app.get('/api/donations/eligible', async (req, res) => {
     try {
-        // Fetch books older than 5 years that are currently available
+        // Fetch books marked as Outdated or Obsolete
         const result = await db.execute({
-            sql: `SELECT book_id, title, book_category, date_added 
+            sql: `SELECT book_id, title, book_category, book_condition, date_added, status 
                   FROM BOOK 
-                  WHERE date_added <= date('now', '+8 hours', '-5 years') 
-                  AND status = 'Available'`
+                  WHERE book_condition IN ('Outdated', 'Obsolete') 
+                  AND status IN ('Available', 'Archived')`
         });
 
         res.json({ success: true, data: result.rows });
@@ -200,7 +200,7 @@ app.post('/api/donations/outbound', async (req, res) => {
     try {
         // 1. Update Book Status
         await db.execute({
-            sql: "UPDATE BOOK SET status = 'Archived', book_condition = 'Outdated' WHERE book_id = ?",
+            sql: "UPDATE BOOK SET status = 'Donated Outbound', book_condition = 'Outdated' WHERE book_id = ?",
             args: [book_id]
         });
 
@@ -214,6 +214,33 @@ app.post('/api/donations/outbound', async (req, res) => {
         res.json({ success: true, message: "Outbound donation processed successfully." });
     } catch (error) {
         console.error("Outbound Donation Error:", error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+// 6.5 POST /api/donations/outbound/bulk
+app.post('/api/donations/outbound/bulk', async (req, res) => {
+    const { books, recipient_organization } = req.body; // books is array of { book_id, book_title, category }
+
+    try {
+        for (const book of books) {
+             // 1. Update Book Status
+            await db.execute({
+                sql: "UPDATE BOOK SET status = 'Donated Outbound' WHERE book_id = ?",
+                args: [book.book_id]
+            });
+
+            // 2. Insert Donation Record
+            await db.execute({
+                sql: `INSERT INTO DONATION (donation_type, recipient_organization, book_id, book_title, category, quantity, donation_date) 
+                      VALUES ('Outbound', ?, ?, ?, ?, 1, DATE('now', '+8 hours'))`,
+                args: [recipient_organization, book.book_id, book.book_title, book.category]
+            });
+        }
+       
+        res.json({ success: true, message: `Successfully donated ${books.length} items.` });
+    } catch (error) {
+        console.error("Bulk Outbound Donation Error:", error);
         res.status(500).json({ success: false, message: error.message });
     }
 });
@@ -809,6 +836,84 @@ app.get('/api/books/public', async (req, res) => {
         res.json({ success: true, data: result.rows });
     } catch (error) {
         console.error("Fetch Public Books Error:", error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+// 21. POST /api/admin/weeding/process (CREW Method Automation)
+app.post('/api/admin/weeding/process', async (req, res) => {
+    try {
+        // 1. Mark OBSOLETE (5 Years+)
+        // Genres: Computer Science, Almanac, Medicine, Law
+        const obsoleteSql = `
+            UPDATE BOOK 
+            SET book_condition = 'Obsolete'
+            WHERE status = 'Available' AND (
+                (genre IN ('Computer Science & Technology', 'Almanac', 'Medicine & Health', 'Law & Politics') 
+                 AND (CAST(strftime('%Y', 'now', '+8 hours') AS INTEGER) - publication_year) >= 5)
+            )`;
+        await db.execute(obsoleteSql);
+
+        // 2. Mark OUTDATED (3 to 4 Years Fast Moving)
+                // Genres: Computer Science, Almanac
+                // FIX: Added a strict ceiling (< 5) so it doesn't overwrite Obsolete books!
+                const outdatedFastSql = `
+                    UPDATE BOOK 
+                    SET book_condition = 'Outdated'
+                    WHERE status = 'Available' AND (
+                        genre IN ('Computer Science & Technology', 'Almanac') 
+                        AND (CAST(strftime('%Y', 'now', '+8 hours') AS INTEGER) - publication_year) >= 3
+                        AND (CAST(strftime('%Y', 'now', '+8 hours') AS INTEGER) - publication_year) < 5
+                    )`;
+                await db.execute(outdatedFastSql);
+
+        // 3. Mark OUTDATED (10 Years+ Medium Moving)
+        const outdatedMedSql = `
+            UPDATE BOOK 
+            SET book_condition = 'Outdated'
+            WHERE status = 'Available' AND book_condition != 'Obsolete' AND (
+                (genre IN ('Business & Economics', 'Biology & Life Sciences', 'Chemistry & Physics', 
+                           'Engineering', 'Education & Teaching', 'Atlas & Maps', 'Encyclopedia') 
+                 AND (CAST(strftime('%Y', 'now', '+8 hours') AS INTEGER) - publication_year) >= 10)
+            )`;
+        await db.execute(outdatedMedSql);
+
+        // 4. Mark OUTDATED (15 Years+ Slow Moving)
+        const outdatedSlowSql = `
+            UPDATE BOOK 
+            SET book_condition = 'Outdated'
+            WHERE status = 'Available' AND book_condition != 'Obsolete' AND (
+                (genre IN ('History & Geography', 'Self-Help & Motivation') 
+                 AND (CAST(strftime('%Y', 'now', '+8 hours') AS INTEGER) - publication_year) >= 15)
+            )`;
+        await db.execute(outdatedSlowSql);
+
+        // 5. Apply similar logic to PERIODICALS (using publication_date)
+        // Assuming Periodicals follow the 'Fast Moving' rule generally if they match the genre
+        // or just general obsolescence for news/magazines > 5 years
+        await db.execute(`UPDATE PERIODICAL SET periodical_condition = 'Obsolete' WHERE status = 'Available' AND (CAST(strftime('%Y', 'now', '+8 hours') AS INTEGER) - CAST(strftime('%Y', publication_date) AS INTEGER)) >= 5`);
+
+        res.json({ success: true, message: "Weeding scan completed. Items tagged as Outdated/Obsolete." });
+    } catch (error) {
+        console.error("Weeding Error:", error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+// 22. POST /api/admin/weeding/archive-all (Bulk Archive)
+app.post('/api/admin/weeding/archive-all', async (req, res) => {
+    try {
+        await db.execute(`
+            UPDATE BOOK SET status = 'Archived' 
+            WHERE book_condition IN ('Outdated', 'Obsolete') AND status = 'Available'
+        `);
+        await db.execute(`
+            UPDATE PERIODICAL SET status = 'Archived' 
+            WHERE periodical_condition IN ('Outdated', 'Obsolete') AND status = 'Available'
+        `);
+        res.json({ success: true, message: "All outdated and obsolete items have been archived." });
+    } catch (error) {
+        console.error("Bulk Archive Error:", error);
         res.status(500).json({ success: false, message: error.message });
     }
 });

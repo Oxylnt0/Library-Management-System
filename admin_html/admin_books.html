@@ -54,6 +54,17 @@
                             <option value="Periodical">Periodicals</option>
                         </select>
 
+                        <select id="filter-condition" onchange="loadBooks()" class="bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 px-3 py-2 rounded-lg font-medium shadow-sm outline-none focus:ring-2 focus:ring-[#183B5B] transition-colors cursor-pointer">
+                            <option value="all">All Conditions</option>
+                            <option value="weeding">⚠️ Weeding Candidates</option>
+                            <option value="New">New</option>
+                            <option value="Good">Good</option>
+                        </select>
+
+                        <button onclick="archiveAllOutdated()" class="bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 px-3 py-2 rounded-lg font-medium shadow-sm transition-colors flex items-center gap-2" title="Archive all Outdated/Obsolete items">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"></path></svg>
+                        </button>
+
                         <button onclick="loadBooks()" class="bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 px-3 py-2 rounded-lg font-medium shadow-sm transition-colors" title="Refresh Catalog">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
                         </button>
@@ -130,7 +141,53 @@
                                 </div>
                                 <div>
                                     <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Genre</label>
-                                    <input type="text" id="edit-genre" class="w-full p-2 rounded border border-slate-300 focus:ring-2 focus:ring-[#183B5B] outline-none">
+                                    <select id="edit-genre" class="w-full p-2 rounded border border-slate-300 focus:ring-2 focus:ring-[#183B5B] outline-none">
+                                        <option value="" disabled selected>Select Genre</option>
+                                        <optgroup label="Fiction & Literature">
+                                            <option value="Action & Adventure">Action & Adventure</option>
+                                            <option value="Classic Fiction">Classic Fiction</option>
+                                            <option value="Fantasy">Fantasy</option>
+                                            <option value="Historical Fiction">Historical Fiction</option>
+                                            <option value="Mystery & Thriller">Mystery & Thriller</option>
+                                            <option value="Romance">Romance</option>
+                                            <option value="Science Fiction (Sci-Fi)">Science Fiction (Sci-Fi)</option>
+                                            <option value="Young Adult (YA)">Young Adult (YA)</option>
+                                            <option value="Children's Literature">Children's Literature</option>
+                                            <option value="Graphic Novel / Comic">Graphic Novel / Comic</option>
+                                        </optgroup>
+                                        <optgroup label="General Non-Fiction">
+                                            <option value="Biography & Autobiography">Biography & Autobiography</option>
+                                            <option value="Self-Help & Motivation">Self-Help & Motivation</option>
+                                            <option value="Business & Economics">Business & Economics</option>
+                                            <option value="History & Geography">History & Geography</option>
+                                            <option value="Philosophy & Psychology">Philosophy & Psychology</option>
+                                            <option value="Religion & Theology">Religion & Theology</option>
+                                            <option value="True Crime">True Crime</option>
+                                            <option value="Arts & Music">Arts & Music</option>
+                                        </optgroup>
+                                        <optgroup label="Academic & Sciences">
+                                            <option value="Computer Science & Technology">Computer Science & Technology</option>
+                                            <option value="Medicine & Health">Medicine & Health</option>
+                                            <option value="Biology & Life Sciences">Biology & Life Sciences</option>
+                                            <option value="Chemistry & Physics">Chemistry & Physics</option>
+                                            <option value="Mathematics">Mathematics</option>
+                                            <option value="Engineering">Engineering</option>
+                                            <option value="Law & Politics">Law & Politics</option>
+                                            <option value="Education & Teaching">Education & Teaching</option>
+                                        </optgroup>
+                                        <optgroup label="Reference Materials">
+                                            <option value="Dictionary">Dictionary</option>
+                                            <option value="Encyclopedia">Encyclopedia</option>
+                                            <option value="Atlas & Maps">Atlas & Maps</option>
+                                            <option value="Almanac">Almanac</option>
+                                            <option value="Thesaurus">Thesaurus</option>
+                                        </optgroup>
+                                        <optgroup label="Special Collections">
+                                            <option value="Filipiniana">Filipiniana</option>
+                                            <option value="Periodical / Journal">Periodical / Journal</option>
+                                            <option value="Thesis / Dissertation">Thesis / Dissertation</option>
+                                        </optgroup>
+                                    </select>
                                 </div>
                             </div>
 
@@ -145,7 +202,7 @@
                                 </div>
                                 <div>
                                     <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Status</label>
-                                    <select id="edit-status" class="w-full p-2 rounded border border-slate-300 focus:ring-2 focus:ring-[#183B5B] outline-none">
+                                    <select id="edit-status" disabled class="w-full p-2 rounded border border-slate-300 bg-slate-100 cursor-not-allowed outline-none">
                                         <option value="Available">Available</option>
                                         <option value="Borrowed">Borrowed</option>
                                         <option value="Archived">Archived</option>
@@ -184,7 +241,7 @@
                                 </div>
                                 <div>
                                     <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Source</label>
-                                    <select id="edit-source" class="w-full p-2 rounded border border-slate-300 focus:ring-2 focus:ring-[#183B5B] outline-none">
+                                    <select id="edit-source" disabled class="w-full p-2 rounded border border-slate-300 bg-slate-100 cursor-not-allowed outline-none">
                                         <option value="Purchased">Purchased</option>
                                         <option value="Donated">Donated</option>
                                     </select>
@@ -193,8 +250,9 @@
                                     <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Condition</label>
                                     <select id="edit-condition" class="w-full p-2 rounded border border-slate-300 focus:ring-2 focus:ring-[#183B5B] outline-none">
                                         <option value="New">New</option>
-                                        <option value="Good">Good</option>
-                                        <option value="Damaged">Damaged</option>
+                                        <option value="Minor Damage">Minor Damage</option>
+                                        <option value="Moderate Damage">Moderate Damage</option>
+                                        <option value="Severe Damage">Severe Damage</option>
                                         <option value="Outdated">Outdated</option>
                                         <option value="Obsolete">Obsolete</option>
                                     </select>
@@ -369,6 +427,7 @@
             const grid = document.getElementById('books-grid');
             const footerCount = document.getElementById('books-count');
             const filterType = document.getElementById('filter-material-type') ? document.getElementById('filter-material-type').value : 'all';
+            const filterCondition = document.getElementById('filter-condition') ? document.getElementById('filter-condition').value : 'all';
             
             grid.innerHTML = '<p class="text-slate-500 col-span-full text-center py-10">Loading books...</p>';
             
@@ -383,7 +442,7 @@
                 // 1. Fetch Books
                 if (filterType === 'all' || filterType === 'Book') {
                     let sql = "SELECT *, 'Book' as material_type FROM BOOK WHERE ";
-                    sql += isArchivedView ? "status = 'Archived'" : "status != 'Archived'";
+                    sql += isArchivedView ? "status IN ('Archived', 'Donated Outbound')" : "status NOT IN ('Archived', 'Donated Outbound')";
 
                     const args = [];
                     if (currentSearchTerm) {
@@ -397,7 +456,7 @@
                 // 2. Fetch Periodicals
                 if (filterType === 'all' || filterType === 'Periodical') {
                     let sql = "SELECT *, 'Periodical' as material_type FROM PERIODICAL WHERE ";
-                    sql += isArchivedView ? "status = 'Archived'" : "status != 'Archived'";
+                    sql += isArchivedView ? "status IN ('Archived', 'Donated Outbound')" : "status NOT IN ('Archived', 'Donated Outbound')";
 
                     const args = [];
                     if (currentSearchTerm) {
@@ -406,6 +465,17 @@
                     }
                     const res = await db.execute({ sql, args });
                     allItems = allItems.concat(res.rows);
+                }
+
+                // Filter by Condition
+                if (filterCondition !== 'all') {
+                    if (filterCondition === 'weeding') {
+                        allItems = allItems.filter(item => ['Outdated', 'Obsolete'].includes(item.book_condition || item.periodical_condition));
+                    } else {
+                        allItems = allItems.filter(item => 
+                            (item.book_condition === filterCondition || item.periodical_condition === filterCondition)
+                        );
+                    }
                 }
 
                 // Sort by date_added descending
@@ -424,9 +494,17 @@
                 allItems.forEach(item => {
                     // Determine Status Color
                     let statusColor = 'bg-green-500';
-                    if (item.available_copies === 0) statusColor = 'bg-red-500';
+                    if (item.status === 'Archived') statusColor = 'bg-slate-400';
+                    else if (item.status === 'Donated Outbound') statusColor = 'bg-purple-500';
+                    else if (item.available_copies === 0) statusColor = 'bg-red-500';
                     else if (item.available_copies < 3) statusColor = 'bg-amber-500';
                     
+                    // Weeding Status (From DB now)
+                    const condition = item.book_condition || item.periodical_condition;
+                    let weedingStatus = null;
+                    if (condition === 'Obsolete') weedingStatus = 'Obsolete';
+                    else if (condition === 'Outdated') weedingStatus = 'Outdated';
+
                     // Handle Image
                     let imageHtml = '';
                     if (item.image_url) {
@@ -443,18 +521,27 @@
                     // Normalize Display Fields
                     const authorOrPub = item.material_type === 'Book' ? item.author : (item.publisher || 'Unknown Publisher');
                     const idLabel = item.material_type === 'Book' ? (item.isbn || 'No ISBN') : (item.issn || 'No ISSN');
-                    const genre = item.genre || 'General';
+                    const displayGenre = item.genre || 'General';
                     const typeBadge = item.material_type === 'Periodical' 
                         ? `<span class="bg-purple-50 text-purple-700 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide border border-purple-100">${item.type || 'Periodical'}</span>`
-                        : `<span class="bg-blue-50 text-blue-700 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide border border-blue-100">${genre}</span>`;
+                        : `<span class="bg-blue-50 text-blue-700 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide border border-blue-100">${displayGenre}</span>`;
 
                     const card = document.createElement('div');
-                    card.className = 'bg-white rounded-xl shadow-sm border border-slate-200 p-4 flex flex-col gap-4 hover:shadow-md transition-shadow group';
+                    let cardBg = 'bg-white border-slate-200';
+                    if (weedingStatus === 'Obsolete') cardBg = 'bg-red-50 border-red-200';
+                    else if (weedingStatus === 'Outdated') cardBg = 'bg-amber-50 border-amber-200';
+
+                    card.className = `${cardBg} rounded-xl shadow-sm border p-4 flex flex-col gap-4 hover:shadow-md transition-shadow group`;
                     
                     // Escape strings for HTML attributes
                     const safeItem = JSON.stringify(item).replace(/'/g, "&#39;").replace(/"/g, "&quot;");
-                    const safeTitle = item.title.replace(/'/g, "\\'");
+                    const safeTitle = (item.title || 'Untitled').replace(/'/g, "\\'");
                     const itemId = item.book_id || item.periodical_id;
+
+                    // Determine Action Button (Archive vs Restore)
+                    let actionButton = isArchivedView 
+                        ? `<button onclick="openRestoreModal(${itemId}, '${safeTitle}')" class="text-slate-400 hover:text-green-600 transition-colors" title="Restore Book"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg></button>`
+                        : `<button onclick="openArchiveModal(${itemId}, '${safeTitle}')" class="${weedingStatus ? 'text-red-500 hover:text-red-700' : 'text-slate-400 hover:text-amber-600'} transition-colors" title="${weedingStatus ? 'Archive Candidate' : 'Archive Book'}"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"></path></svg></button>`;
 
                     card.innerHTML = `
                         <div class="flex gap-4">
@@ -476,8 +563,10 @@
                         </div>
                         
                         <div class="pt-3 border-t border-slate-100 flex items-center justify-between">
-                            <div class="text-xs text-slate-500">
-                                <span class="font-bold text-slate-700">${item.available_copies}</span> / ${item.total_copies} Copies
+                            <div class="text-xs text-slate-500 flex items-center gap-2">
+                                <span><span class="font-bold text-slate-700">${item.available_copies}</span> / ${item.total_copies} Copies</span>
+                                ${weedingStatus === 'Obsolete' ? `<span class="px-1.5 py-0.5 rounded bg-red-100 text-red-700 font-bold text-[10px] border border-red-200">🚨 OBSOLETE</span>` : ''}
+                                ${weedingStatus === 'Outdated' ? `<span class="px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 font-bold text-[10px] border border-amber-200">⚠️ OUTDATED</span>` : ''}
                             </div>
                             <div class="flex items-center gap-2">
                                 <button onclick='openBookDetails(${safeItem})' 
@@ -486,10 +575,7 @@
                                 </button>
                                 <div class="h-4 w-px bg-slate-200 mx-1"></div>
                                 <button onclick='openBookEdit(${safeItem})' class="text-slate-400 hover:text-blue-600 transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg></button>
-                                ${isArchivedView 
-                                    ? `<button onclick="openRestoreModal(${itemId}, '${safeTitle}')" class="text-slate-400 hover:text-green-600 transition-colors" title="Restore Book"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg></button>`
-                                    : `<button onclick="openArchiveModal(${itemId}, '${safeTitle}')" class="text-slate-400 hover:text-amber-600 transition-colors" title="Archive Book"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"></path></svg></button>`
-                                }
+                                ${actionButton}
                             </div>
                         </div>
                     `;
@@ -677,8 +763,41 @@
         }
         window.restoreBook = restoreBook;
 
+        async function runAutoWeeding() {
+            try {
+                // Automatically process weeding in the background
+                const notification = document.createElement('div');
+                notification.className = 'fixed bottom-4 right-4 bg-slate-800 text-white px-4 py-2 rounded-lg shadow-lg text-xs z-50 transition-opacity duration-500';
+                notification.innerText = 'Scanning catalog for outdated items...';
+                document.body.appendChild(notification);
+
+                const response = await fetch('http://localhost:3000/api/admin/weeding/process', { method: 'POST' });
+                const result = await response.json();
+                
+                notification.innerText = result.message;
+                setTimeout(() => { notification.style.opacity = '0'; setTimeout(() => notification.remove(), 500); }, 3000);
+                loadBooks();
+            } catch (err) {
+                console.error("Error running weeding:", err);
+            }
+        }
+        window.runAutoWeeding = runAutoWeeding;
+
+        async function archiveAllOutdated() {
+            if(!confirm("Are you sure you want to ARCHIVE ALL items currently tagged as 'Outdated' or 'Obsolete'?\n\nThis will hide them from the public catalog.")) return;
+            try {
+                const response = await fetch('http://localhost:3000/api/admin/weeding/archive-all', { method: 'POST' });
+                const result = await response.json();
+                alert(result.message);
+                loadBooks();
+            } catch (err) { alert("Error: " + err.message); }
+        }
+        window.archiveAllOutdated = archiveAllOutdated;
+
         // Initial Load
-        loadBooks();
+        loadBooks().then(() => {
+            runAutoWeeding(); // Run automatic weeding process after initial load
+        });
       }
     </script>
 
