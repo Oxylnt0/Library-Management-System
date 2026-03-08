@@ -40,7 +40,7 @@ async function registerUser(userData) {
 
         await sendLibraryCard(userData.email, userId, userData.firstName);
 
-        return { success: true, message: "User registered successfully!" };
+        return { success: true, message: "Registration successful! Please wait for admin approval." };
     } catch (error) {
         console.error("Registration Error:", error);
         return { success: false, message: error.message };
@@ -101,7 +101,7 @@ async function registerGuardian(guardianData, childData) {
         const childId = childResult.rows[0].user_id;
         await sendLibraryCard(guardianData.email, childId, childData.firstName);
 
-        return { success: true, message: "Guardian and Child registered successfully!" };
+        return { success: true, message: "Registration successful! Please wait for admin approval." };
     } catch (error) {
         console.error("Registration Error:", error);
         return { success: false, message: error.message };
@@ -117,7 +117,11 @@ async function login(email, password) {
         });
 
         if (userResult.rows.length > 0) {
-            return { success: true, role: 'user', user: userResult.rows[0] };
+            const user = userResult.rows[0];
+            if (user.status === 'Pending') return { success: false, message: "Account is pending approval." };
+            if (user.status === 'Rejected') return { success: false, message: "Account has been rejected." };
+            if (user.status === 'Suspended') return { success: false, message: "Account is suspended." };
+            return { success: true, role: 'user', user };
         }
 
         // Check Guardian Table
@@ -127,7 +131,11 @@ async function login(email, password) {
         });
 
         if (guardianResult.rows.length > 0) {
-            return { success: true, role: 'guardian', user: guardianResult.rows[0] };
+            const guardian = guardianResult.rows[0];
+            if (guardian.status === 'Pending') return { success: false, message: "Account is pending approval." };
+            if (guardian.status === 'Rejected') return { success: false, message: "Account has been rejected." };
+            if (guardian.status === 'Suspended') return { success: false, message: "Account is suspended." };
+            return { success: true, role: 'guardian', user: guardian };
         }
 
         return { success: false, message: "Invalid email or password." };

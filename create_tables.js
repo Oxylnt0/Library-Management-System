@@ -1,9 +1,8 @@
 const { db } = require('./db_config.js');
 
 async function createAllTables() {
-    console.log("🚀 Starting Fresh Database Setup...");
+    console.log("🚀 Starting Database Setup (Preserving Admin Data)...");
 
-    // STEP 1: DROP ALL EXISTING TABLES
     const dropSchema = `
         DROP TABLE IF EXISTS LENDING_POLICIES;
         DROP TABLE IF EXISTS FINE_SETTINGS;
@@ -24,20 +23,26 @@ async function createAllTables() {
         DROP TABLE IF EXISTS GUARDIAN_NAME;
         DROP TABLE IF EXISTS MATERIAL;
         DROP TABLE IF EXISTS ADMIN_AUDIT_LOG;
-        DROP TABLE IF EXISTS ADMIN;
-        DROP TABLE IF EXISTS LENDING_POLICIES;
-        DROP TABLE IF EXISTS FINE_SETTINGS; 
+        DROP TABLE IF EXISTS OTP_VERIFICATION;
     `;
 
-    // STEP 2: CREATE NEW TABLES
     const createSchema = `
-        CREATE TABLE ADMIN (
+        CREATE TABLE IF NOT EXISTS ADMIN (
             admin_id INTEGER PRIMARY KEY AUTOINCREMENT,
             full_name VARCHAR(100) NOT NULL,
             role VARCHAR(50) CHECK (role IN ('Administrator', 'Librarian', 'Assistant Librarian')),
             status VARCHAR(20) DEFAULT 'Active' CHECK (status IN ('Active', 'Inactive')),
             email VARCHAR(100) NOT NULL UNIQUE,
             password VARCHAR(255) NOT NULL
+        );
+
+        CREATE TABLE IF NOT EXISTS OTP_VERIFICATION (
+            otp_id INTEGER PRIMARY KEY AUTOINCREMENT,
+            email VARCHAR(255) NOT NULL,
+            otp_code VARCHAR(6) NOT NULL,
+            expires_at DATETIME NOT NULL,
+            is_used INTEGER DEFAULT 0 CHECK (is_used IN (0, 1)),
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
         );
 
         CREATE TABLE ADMIN_AUDIT_LOG (
@@ -57,6 +62,7 @@ async function createAllTables() {
             status VARCHAR(20) DEFAULT 'Available' CHECK (status IN ('Available', 'Borrowed', 'Archived', 'Lost'))
         );
 
+        -- UPDATED: Added status column with 'Pending' default
         CREATE TABLE GUARDIAN_NAME (
             guardian_id INTEGER PRIMARY KEY AUTOINCREMENT,
             first_name VARCHAR(50) NOT NULL,
@@ -67,9 +73,11 @@ async function createAllTables() {
             contact_number VARCHAR(20),
             address VARCHAR(255),
             password VARCHAR(255),
+            status VARCHAR(20) DEFAULT 'Pending' CHECK (status IN ('Pending', 'Active', 'Rejected', 'Suspended')),
             date_created DATETIME DEFAULT CURRENT_TIMESTAMP
         );
 
+        -- UPDATED: Added status column with 'Pending' default
         CREATE TABLE USER (
             user_id INTEGER PRIMARY KEY AUTOINCREMENT,
             guardian_id INT,
@@ -81,6 +89,7 @@ async function createAllTables() {
             address VARCHAR(255),
             birth_date DATE,
             password VARCHAR(255),
+            status VARCHAR(20) DEFAULT 'Pending' CHECK (status IN ('Pending', 'Active', 'Rejected', 'Suspended')),
             date_created DATETIME DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (guardian_id) REFERENCES GUARDIAN_NAME(guardian_id)
         );
@@ -183,18 +192,18 @@ async function createAllTables() {
         );
 
         CREATE TABLE PAYMENT (
-                    payment_id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    borrow_id INT,
-                    fine_id INT,
-                    fine_amount DECIMAL(10,2),
-                    payment_status VARCHAR(20) CHECK (payment_status IN ('Paid', 'Unpaid')),
-                    payment_date DATE DEFAULT CURRENT_DATE,
-                    payment_method VARCHAR(30),
-                    or_number VARCHAR(50),      
-                    remarks VARCHAR(255),       
-                    FOREIGN KEY (borrow_id) REFERENCES BORROW_TRANSACTION(borrow_id),
-                    FOREIGN KEY (fine_id) REFERENCES FINE(fine_id)
-                );
+            payment_id INTEGER PRIMARY KEY AUTOINCREMENT,
+            borrow_id INT,
+            fine_id INT,
+            fine_amount DECIMAL(10,2),
+            payment_status VARCHAR(20) CHECK (payment_status IN ('Paid', 'Unpaid')),
+            payment_date DATE DEFAULT CURRENT_DATE,
+            payment_method VARCHAR(30),
+            or_number VARCHAR(50),      
+            remarks VARCHAR(255),       
+            FOREIGN KEY (borrow_id) REFERENCES BORROW_TRANSACTION(borrow_id),
+            FOREIGN KEY (fine_id) REFERENCES FINE(fine_id)
+        );
 
         CREATE TABLE BAN_TERMINATION (
             ban_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -259,7 +268,6 @@ async function createAllTables() {
         );
     `;
 
-    // STEP 3: PRE-LOAD DEFAULT SETTINGS
     const seedSettings = `
         INSERT INTO FINE_SETTINGS (fine_type, fine_amount, description) VALUES 
         ('Minor Damage', 30.00, 'Folded pages, small tear (1-2 pages), pencil marks'),
@@ -273,34 +281,25 @@ async function createAllTables() {
     `;
 
     try {
-        // Run drops first
-        console.log("🧹 Wiping old tables and data...");
+        console.log("🧹 Wiping old tables (Admin data is safe)...");
         const dropStatements = dropSchema.split(';').filter(stmt => stmt.trim() !== '');
         for (const statement of dropStatements) {
             await db.execute(statement);
         }
 
-        // Run creations
-        console.log("🏗️ Creating fresh tables...");
+        console.log("🏗️ Creating fresh tables with Registration Statuses...");
         const createStatements = createSchema.split(';').filter(stmt => stmt.trim() !== '');
         for (const statement of createStatements) {
             await db.execute(statement);
         }
         
-        // Run seeds
         console.log("⚙️ Inserting default fine and lending settings...");
-        
-        // Since there are two separate INSERT statements, split them so LibSQL handles them correctly
         const seedStatements = seedSettings.split(';').filter(stmt => stmt.trim() !== '');
         for (const statement of seedStatements) {
             await db.execute(statement);
         }
 
-        console.log("✅ SUCCESS: All tables created and settings loaded cleanly!");
-        
-        // Verification
-        const check = await db.execute("SELECT name FROM sqlite_schema WHERE type='table' AND name NOT LIKE 'sqlite_%'");
-        console.log("📋 Tables currently in DB:", check.rows.map(r => r.name).join(', '));
+        console.log("✅ SUCCESS: Setup complete! Status columns added.");
 
     } catch (error) {
         console.error("❌ SETUP FAILED:", error);

@@ -63,6 +63,7 @@
                                 <div id="filter-menu" class="hidden absolute right-0 top-full mt-2 w-48 bg-white rounded-xl shadow-xl border border-slate-200 z-50 overflow-hidden">
                                     <button onclick="setFilter('all')" class="w-full text-left px-4 py-3 hover:bg-slate-50 text-sm text-slate-700 border-b border-slate-50">All Users</button>
                                     <button onclick="setFilter('child')" class="w-full text-left px-4 py-3 hover:bg-slate-50 text-sm text-slate-700 border-b border-slate-50">Children Only</button>
+                                    <button onclick="setFilter('pending')" class="w-full text-left px-4 py-3 hover:bg-slate-50 text-sm text-amber-700 border-b border-slate-50">Pending Approval</button>
                                     <button onclick="setFilter('active')" class="w-full text-left px-4 py-3 hover:bg-slate-50 text-sm text-green-700 border-b border-slate-50">Active Status</button>
                                     <button onclick="setFilter('suspended')" class="w-full text-left px-4 py-3 hover:bg-slate-50 text-sm text-red-700">Suspended</button>
                                 </div>
@@ -94,6 +95,7 @@
                                         <th class="p-4 text-xs font-bold text-slate-500 uppercase border-b">Email</th>
                                         <th class="p-4 text-xs font-bold text-slate-500 uppercase border-b">Contact Number</th>
                                         <th class="p-4 text-xs font-bold text-slate-500 uppercase border-b">Status</th>
+                                        <th class="p-4 text-xs font-bold text-slate-500 uppercase border-b text-right">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y divide-slate-100 text-sm">
@@ -187,7 +189,7 @@
         window.searchUsers = searchUsers;
 
         async function loadUsers() {
-            const tbody = document.querySelector('tbody');
+            const tbody = document.getElementById('users-table-body') || document.querySelector('tbody');
             tbody.innerHTML = '<tr><td colspan="4" class="p-4 text-center">Loading users...</td></tr>';
 
             try {
@@ -210,6 +212,8 @@
 
                 if (currentFilter === 'child') {
                     conditions.push("u.guardian_id IS NOT NULL");
+                } else if (currentFilter === 'pending') {
+                    conditions.push("u.status = 'Pending'");
                 } else if (currentFilter === 'active') {
                     conditions.push("(SELECT COUNT(*) FROM BAN_TERMINATION b WHERE b.user_id = u.user_id AND (b.end_date IS NULL OR b.end_date > DATE('now'))) = 0");
                 } else if (currentFilter === 'suspended') {
@@ -236,7 +240,7 @@
                 tbody.innerHTML = '';
 
                 if (users.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="4" class="p-4 text-center">No users found.</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="5" class="p-4 text-center">No users found.</td></tr>';
                     updateStats(0, 0);
                     return;
                 }
@@ -247,9 +251,14 @@
                     const isBanned = user.is_banned > 0;
                     if (isBanned) suspendedCount++;
 
-                    const statusHtml = isBanned 
-                        ? '<span class="bg-red-100 text-red-700 px-2 py-1 rounded-full text-xs font-bold">Suspended</span>'
-                        : '<span class="bg-green-100 text-green-700 px-2 py-1 rounded-full text-xs font-bold">Active</span>';
+                    let statusHtml = '';
+                    if (user.status === 'Pending') {
+                        statusHtml = '<span class="bg-amber-100 text-amber-700 px-2 py-1 rounded-full text-xs font-bold">Pending</span>';
+                    } else if (isBanned) {
+                        statusHtml = '<span class="bg-red-100 text-red-700 px-2 py-1 rounded-full text-xs font-bold">Suspended</span>';
+                    } else {
+                        statusHtml = '<span class="bg-green-100 text-green-700 px-2 py-1 rounded-full text-xs font-bold">Active</span>';
+                    }
 
                     const initials = ((user.first_name?.[0] || '') + (user.last_name?.[0] || '')).toUpperCase();
                     
@@ -267,6 +276,18 @@
                             <td class="p-4 text-slate-600">${user.email || 'No Email'}</td>
                             <td class="p-4 text-slate-600">${user.contact_number || 'No Contact'}</td>
                             <td class="p-4">${statusHtml}</td>
+                            <td class="p-4 text-right">
+                                ${user.status === 'Pending' ? `
+                                    <div class="flex justify-end gap-2">
+                                        <button onclick="updateUserStatus(${user.user_id}, 'Active')" class="p-1.5 rounded bg-green-100 text-green-600 hover:bg-green-200 transition-colors" title="Accept">
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                                        </button>
+                                        <button onclick="updateUserStatus(${user.user_id}, 'Rejected')" class="p-1.5 rounded bg-red-100 text-red-600 hover:bg-red-200 transition-colors" title="Reject">
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                                        </button>
+                                    </div>
+                                ` : ''}
+                            </td>
                         </tr>
                     `;
                     tbody.insertAdjacentHTML('beforeend', row);
@@ -277,9 +298,26 @@
 
             } catch (err) {
                 console.error(err);
-                tbody.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-red-500">Error: ${err.message}</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-red-500">Error: ${err.message}</td></tr>`;
             }
         }
+
+        window.updateUserStatus = async function(userId, status) {
+            if (!confirm(`Are you sure you want to ${status === 'Active' ? 'APPROVE' : 'REJECT'} this user?`)) return;
+
+            try {
+                const response = await fetch('http://localhost:3000/api/admin/user/status', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ userId, status })
+                });
+                const result = await response.json();
+                alert(result.message);
+                loadUsers();
+            } catch (error) {
+                alert("Error: " + error.message);
+            }
+        };
 
         function updateStats(total, suspended) {
             document.getElementById('stat-total-users').innerText = total;

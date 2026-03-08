@@ -3,7 +3,7 @@ const cors = require('cors');
 const path = require('path');
 require('dotenv').config();
 const { db } = require('./db_config.js');
-const { sendAdminWelcomeEmail } = require('./email_service.js');
+const { sendAdminWelcomeEmail, sendOtpEmail, sendAccountStatusEmail } = require('./email_service.js');
 
 const app = express();
 const PORT = 3000;
@@ -1057,6 +1057,198 @@ app.delete('/api/admin/:id', async (req, res) => {
         res.json({ success: true, message: "Admin deleted successfully." });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+// --- AUTH RECOVERY ENDPOINTS ---
+
+// 30. Forgot Email - Search User
+app.post('/api/auth/forgot-email/search', async (req, res) => {
+    const { firstName, lastName, birthDate } = req.body;
+    try {
+        const userRes = await db.execute({
+            sql: "SELECT user_id FROM USER WHERE first_name = ? AND last_name = ? AND birth_date = ?",
+            args: [firstName, lastName, birthDate]
+        });
+        
+        if (userRes.rows.length === 0) {
+            return res.json({ success: false, message: "No matching student found." });
+        }
+        
+        const userId = userRes.rows[0].user_id;
+        
+        // Fetch Questions (Q1 & Q2)
+        const qRes = await db.execute({
+            sql: "SELECT question_1, question_2 FROM SECURITY_QUESTIONS WHERE user_id = ?",
+            args: [userId]
+        });
+        
+        if (qRes.rows.length === 0) {
+            return res.json({ success: false, message: "Security questions not set for this user." });
+        }
+        
+        res.json({ 
+            success: true, 
+            userId, 
+            questions: [
+                { key: 'answer_1', text: qRes.rows[0].question_1 },
+                { key: 'answer_2', text: qRes.rows[0].question_2 }
+            ]
+        });
+    } catch (e) { res.status(500).json({ success: false, message: e.message }); }
+});
+
+// 31. Forgot Email - Verify & Reveal
+app.post('/api/auth/forgot-email/verify', async (req, res) => {
+    const { userId, answers } = req.body;
+    try {
+        const qRes = await db.execute({
+            sql: "SELECT answer_1, answer_2, u.email FROM SECURITY_QUESTIONS sq JOIN USER u ON sq.user_id = u.user_id WHERE sq.user_id = ?",
+            args: [userId]
+        });
+        
+        if (qRes.rows.length === 0) return res.json({ success: false, message: "User not found." });
+        
+        const row = qRes.rows[0];
+        if (row.answer_1.toLowerCase().trim() === answers.answer_1.toLowerCase().trim() &&
+            row.answer_2.toLowerCase().trim() === answers.answer_2.toLowerCase().trim()) {
+            
+            // Mask Email
+            const email = row.email || "";
+            const [local, domain] = email.split('@');
+            const maskedLocal = local.length > 3 ? local.substring(0, 3) + '*'.repeat(local.length - 3) : local + '***';
+            const maskedEmail = `${maskedLocal}@${domain}`;
+            
+            res.json({ success: true, email: maskedEmail });
+        } else {
+            res.json({ success: false, message: "Incorrect answers." });
+        }
+    } catch (e) { res.status(500).json({ success: false, message: e.message }); }
+});
+
+// 32. Forgot Password - Init (OTP)
+app.post('/api/auth/forgot-password/init', async (req, res) => {
+    const { email } = req.body;
+    try {
+        const userRes = await db.execute({ sql: "SELECT user_id FROM USER WHERE email = ?", args: [email] });
+        if (userRes.rows.length === 0) return res.json({ success: false, message: "Email not found." });
+        
+        const otp = Math.floor(100000 + Math.random() * 900000).toString();
+        
+        await db.execute({
+            sql: "INSERT INTO OTP_VERIFICATION (email, otp_code, expires_at) VALUES (?, ?, DATETIME('now', '+10 minutes'))",
+            args: [email, otp]
+        });
+        
+        await sendOtpEmail(email, otp);
+        res.json({ success: true });
+    } catch (e) { res.status(500).json({ success: false, message: e.message }); }
+});
+
+// 33. Forgot Password - Verify OTP
+app.post('/api/auth/forgot-password/verify-otp', async (req, res) => {
+    const { email, otp } = req.body;
+    try {
+        const resOtp = await db.execute({
+            sql: "SELECT * FROM OTP_VERIFICATION WHERE email = ? AND otp_code = ? AND is_used = 0 AND expires_at > DATETIME('now') ORDER BY created_at DESC LIMIT 1",
+            args: [email, otp]
+        });
+        
+        if (resOtp.rows.length > 0) {
+            await db.execute({ sql: "UPDATE OTP_VERIFICATION SET is_used = 1 WHERE otp_id = ?", args: [resOtp.rows[0].otp_id] });
+            res.json({ success: true });
+        } else {
+            res.json({ success: false, message: "Invalid or expired OTP." });
+        }
+    } catch (e) { res.status(500).json({ success: false, message: e.message }); }
+});
+
+// 34. Forgot Password - Get Questions (Fallback)
+app.post('/api/auth/forgot-password/questions', async (req, res) => {
+    const { email } = req.body;
+    try {
+        const qRes = await db.execute({
+            sql: "SELECT question_1, question_2, answer_1, answer_2 FROM SECURITY_QUESTIONS sq JOIN USER u ON sq.user_id = u.user_id WHERE u.email = ?",
+            args: [email]
+        });
+        
+        if (qRes.rows.length === 0) return res.json({ success: false, message: "No security questions found." });
+        
+        res.json({ success: true, questions: [{ text: qRes.rows[0].question_1 }, { text: qRes.rows[0].question_2 }] });
+    } catch (e) { res.status(500).json({ success: false, message: e.message }); }
+});
+
+// 35. Forgot Password - Verify Questions & Reset
+app.post('/api/auth/reset-password', async (req, res) => {
+    const { email, newPassword, answers } = req.body; // answers optional if OTP used
+    try {
+        // If answers provided, verify them first (Path B)
+        if (answers) {
+            const qRes = await db.execute({
+                sql: "SELECT answer_1, answer_2 FROM SECURITY_QUESTIONS sq JOIN USER u ON sq.user_id = u.user_id WHERE u.email = ?",
+                args: [email]
+            });
+            if (qRes.rows.length === 0) return res.json({ success: false, message: "User not found." });
+            const row = qRes.rows[0];
+            if (row.answer_1.toLowerCase().trim() !== answers.answer_1.toLowerCase().trim() ||
+                row.answer_2.toLowerCase().trim() !== answers.answer_2.toLowerCase().trim()) {
+                return res.json({ success: false, message: "Incorrect security answers." });
+            }
+        }
+        // Update Password
+        await db.execute({ sql: "UPDATE USER SET password = ? WHERE email = ?", args: [newPassword, email] });
+        res.json({ success: true, message: "Password updated successfully." });
+    } catch (e) { res.status(500).json({ success: false, message: e.message }); }
+});
+
+// 36. POST /api/admin/user/status
+app.post('/api/admin/user/status', async (req, res) => {
+    const { userId, status } = req.body; // status: 'Active' or 'Rejected'
+    try {
+        // 1. Fetch User to get email and guardian info
+        const userRes = await db.execute({
+            sql: "SELECT * FROM USER WHERE user_id = ?",
+            args: [userId]
+        });
+        
+        if (userRes.rows.length === 0) return res.status(404).json({ success: false, message: "User not found." });
+        const user = userRes.rows[0];
+        
+        // 2. Update User Status
+        await db.execute({
+            sql: "UPDATE USER SET status = ? WHERE user_id = ?",
+            args: [status, userId]
+        });
+
+        let emailToSend = user.email;
+        let nameToSend = user.first_name;
+
+        // 3. If Child (has guardian), update Guardian Status too
+        if (user.guardian_id) {
+            await db.execute({
+                sql: "UPDATE GUARDIAN_NAME SET status = ? WHERE guardian_id = ?",
+                args: [status, user.guardian_id]
+            });
+            
+            // If user has no email (child), fetch guardian email
+            if (!emailToSend) {
+                const guardRes = await db.execute({
+                    sql: "SELECT email FROM GUARDIAN_NAME WHERE guardian_id = ?",
+                    args: [user.guardian_id]
+                });
+                if (guardRes.rows.length > 0) emailToSend = guardRes.rows[0].email;
+            }
+        }
+
+        // 4. Send Email
+        if (emailToSend) {
+            await sendAccountStatusEmail(emailToSend, nameToSend, status);
+        }
+
+        res.json({ success: true, message: `User status updated to ${status}.` });
+    } catch (e) {
+        console.error("Update Status Error:", e);
+        res.status(500).json({ success: false, message: e.message });
     }
 });
 

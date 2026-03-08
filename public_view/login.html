@@ -5,6 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - Puerto Palabra Library</title>
+    <!-- Add CSP -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' https:; script-src 'self' 'unsafe-inline' https://esm.run https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' http://localhost:3000;">
 
     <link href="../output.css" rel="stylesheet">
     <link
@@ -294,6 +296,7 @@
                     <div class="text-center text-sm text-slate-500 mt-auto">
                         <p>Don't have an account?</p>
                         <a href="register.html" class="nav-link text-[#183B5B] font-bold hover:text-[#D6A84A] transition-colors">Register Here</a>
+                        <button onclick="openRecoveryModal()" class="block w-full text-center text-[#183B5B] font-bold hover:text-[#D6A84A] transition-colors mt-2">Forgot Password or Email?</button>
                     </div>
                 </div>
                 <div class="back">
@@ -386,8 +389,349 @@
                 container.appendChild(particle);
             }
         });
+
+        // --- RECOVERY LOGIC ---
+        let recoveryEmail = "";
+        let recoveryUserId = null;
+
+        window.openRecoveryModal = function() {
+            document.getElementById('recovery-modal').classList.remove('hidden');
+            showRecoveryStep('choice');
+        }
+
+        window.closeRecoveryModal = function() {
+            document.getElementById('recovery-modal').classList.add('hidden');
+        }
+
+        window.showRecoveryStep = function(stepId) {
+            document.querySelectorAll('.recovery-step').forEach(el => el.classList.add('hidden'));
+            document.getElementById(`step-${stepId}`).classList.remove('hidden');
+        }
+
+        // FLOW 1: FORGOT EMAIL
+        window.startForgotEmail = function() {
+            showRecoveryStep('email-search');
+        }
+
+        window.searchUserForEmail = async function() {
+            const fname = document.getElementById('rec-fname').value;
+            const lname = document.getElementById('rec-lname').value;
+            const dob = document.getElementById('rec-dob').value;
+
+            if(!fname || !lname || !dob) return showCustomAlert("Please fill all fields.");
+
+            const res = await fetch('http://localhost:3000/api/auth/forgot-email/search', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ firstName: fname, lastName: lname, birthDate: dob })
+            });
+            const data = await res.json();
+
+            if(data.success) {
+                recoveryUserId = data.userId;
+                document.getElementById('q1-text-email').innerText = data.questions[0].text;
+                document.getElementById('q2-text-email').innerText = data.questions[1].text;
+                showRecoveryStep('email-challenge');
+            } else {
+                showCustomAlert(data.message);
+            }
+        }
+
+        window.verifyEmailChallenge = async function() {
+            const a1 = document.getElementById('rec-ans1-email').value;
+            const a2 = document.getElementById('rec-ans2-email').value;
+
+            const res = await fetch('http://localhost:3000/api/auth/forgot-email/verify', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ userId: recoveryUserId, answers: { answer_1: a1, answer_2: a2 } })
+            });
+            const data = await res.json();
+
+            if(data.success) {
+                document.getElementById('revealed-email').innerText = data.email;
+                showRecoveryStep('email-result');
+            } else {
+                showCustomAlert(data.message);
+            }
+        }
+
+        // FLOW 2: FORGOT PASSWORD
+        window.startForgotPassword = function() {
+            showRecoveryStep('pass-init');
+        }
+
+        window.sendOtp = async function() {
+            const email = document.getElementById('rec-email-input').value;
+            if(!email) return showCustomAlert("Enter email.");
+            recoveryEmail = email;
+
+            const btn = document.getElementById('btn-send-otp');
+            btn.disabled = true; btn.innerText = "Sending...";
+
+            const res = await fetch('http://localhost:3000/api/auth/forgot-password/init', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ email })
+            });
+            const data = await res.json();
+            btn.disabled = false; btn.innerText = "Send Code";
+
+            if(data.success) {
+                showRecoveryStep('pass-otp');
+            } else {
+                showCustomAlert(data.message);
+            }
+        }
+
+        window.verifyOtp = async function() {
+            const otp = document.getElementById('rec-otp-input').value;
+            const res = await fetch('http://localhost:3000/api/auth/forgot-password/verify-otp', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ email: recoveryEmail, otp })
+            });
+            const data = await res.json();
+
+            if(data.success) {
+                showRecoveryStep('pass-reset'); // Go to reset screen (Path A)
+            } else {
+                showCustomAlert(data.message);
+            }
+        }
+
+        window.switchToQuestions = async function() {
+            const res = await fetch('http://localhost:3000/api/auth/forgot-password/questions', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ email: recoveryEmail })
+            });
+            const data = await res.json();
+
+            if(data.success) {
+                document.getElementById('q1-text-pass').innerText = data.questions[0].text;
+                document.getElementById('q2-text-pass').innerText = data.questions[1].text;
+                showRecoveryStep('pass-challenge');
+            } else {
+                showCustomAlert(data.message);
+            }
+        }
+
+        window.togglePassword = function(fieldId) {
+            const field = document.getElementById(fieldId);
+            if (field.type === "password") {
+                field.type = "text";
+            } else {
+                field.type = "password";
+            }
+        }
+
+        window.checkRecoveryPasswordStrength = function(password) {
+            const strengthBox = document.getElementById('rec-password-strength');
+            const reqLength = document.getElementById('rec-req-length');
+            const reqCapital = document.getElementById('rec-req-capital');
+            const reqNumber = document.getElementById('rec-req-number');
+            const reqSpecial = document.getElementById('rec-req-special');
+
+            if (password.length > 0) {
+                strengthBox.classList.remove('hidden');
+            } else {
+                strengthBox.classList.add('hidden');
+                return;
+            }
+
+            const setValid = (el, valid) => {
+                const dot = el.querySelector('span');
+                el.className = valid ? "flex items-center gap-2 text-green-600 font-bold transition-colors" : "flex items-center gap-2 text-slate-500 transition-colors";
+                dot.className = valid ? "w-2 h-2 rounded-full bg-green-600" : "w-1.5 h-1.5 rounded-full bg-slate-300";
+            };
+
+            setValid(reqLength, password.length >= 12);
+            setValid(reqCapital, /[A-Z]/.test(password));
+            setValid(reqNumber, /\d/.test(password));
+            setValid(reqSpecial, /[^A-Za-z0-9]/.test(password));
+        }
+
+        window.verifyPassChallenge = async function() {
+            // For Path B, we verify answers AND reset password in one go, or verify then show reset screen.
+            // To reuse the 'pass-reset' screen, we'll just verify here locally (conceptually) by checking if server accepts answers.
+            // Actually, let's just move to reset screen but store a flag that we are using answers?
+            // Simpler: Just call the reset endpoint with answers included.
+            // So, show reset screen, but modify the submit behavior? 
+            // Let's just show the reset screen. The reset screen will check if we have OTP verified (server state? no) or answers.
+            // We will store the answers in a variable to send with the new password.
+            
+            window.recoveryAnswers = {
+                answer_1: document.getElementById('rec-ans1-pass').value,
+                answer_2: document.getElementById('rec-ans2-pass').value
+            };
+            showRecoveryStep('pass-reset');
+        }
+
+        window.submitNewPassword = async function() {
+            const newPass = document.getElementById('rec-new-pass').value;
+            const confirmPass = document.getElementById('rec-confirm-pass').value;
+            
+            if(!newPass) return showCustomAlert("Enter new password.");
+
+            // Strength Validation
+            const lengthValid = newPass.length >= 12;
+            const capitalValid = /[A-Z]/.test(newPass);
+            const numberValid = /\d/.test(newPass);
+            const specialValid = /[^A-Za-z0-9]/.test(newPass);
+
+            if (!lengthValid || !capitalValid || !numberValid || !specialValid) {
+                showCustomAlert("Password must be at least 12 characters long, contain at least 1 capital letter, 1 number, and 1 special character.");
+                return;
+            }
+
+            if (newPass !== confirmPass) {
+                showCustomAlert("Passwords do not match!");
+                return;
+            }
+
+            const payload = { email: recoveryEmail, newPassword: newPass };
+            if(window.recoveryAnswers) {
+                payload.answers = window.recoveryAnswers;
+            }
+
+            try {
+                const res = await fetch('http://localhost:3000/api/auth/reset-password', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+
+                if(data.success) {
+                    closeRecoveryModal();
+                    showCustomAlert("Password reset successful! Please login.", () => {
+                        window.recoveryAnswers = null;
+                    });
+                } else {
+                    showCustomAlert(data.message);
+                }
+            } catch (error) {
+                showCustomAlert("An error occurred: " + error.message);
+            }
+        }
       }
     </script>
+    </div>
+
+    <!-- Recovery Modal -->
+    <div id="recovery-modal" class="fixed inset-0 z-[100] hidden flex items-center justify-center bg-black/60 backdrop-blur-sm">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-md p-6 relative">
+            <button onclick="closeRecoveryModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600">✕</button>
+            
+            <!-- Step: Choice -->
+            <div id="step-choice" class="recovery-step">
+                <h3 class="text-xl font-bold text-[#183B5B] mb-4 text-center">Account Recovery</h3>
+                <div class="space-y-3">
+                    <button onclick="startForgotEmail()" class="w-full p-4 border border-slate-200 rounded-lg hover:bg-slate-50 text-left">
+                        <div class="font-bold text-[#183B5B]">Forgot Email?</div>
+                        <div class="text-xs text-slate-500">Recover using your personal details & security questions.</div>
+                    </button>
+                    <button onclick="startForgotPassword()" class="w-full p-4 border border-slate-200 rounded-lg hover:bg-slate-50 text-left">
+                        <div class="font-bold text-[#183B5B]">Forgot Password?</div>
+                        <div class="text-xs text-slate-500">Reset via Email OTP or Security Questions.</div>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Flow 1: Email Search -->
+            <div id="step-email-search" class="recovery-step hidden space-y-4">
+                <h3 class="text-lg font-bold text-[#183B5B]">Find Your Account</h3>
+                <input type="text" id="rec-fname" placeholder="First Name" class="w-full p-2 border rounded">
+                <input type="text" id="rec-lname" placeholder="Last Name" class="w-full p-2 border rounded">
+                <input type="date" id="rec-dob" class="w-full p-2 border rounded">
+                <button onclick="searchUserForEmail()" class="w-full bg-[#183B5B] text-white py-2 rounded">Search</button>
+            </div>
+
+            <!-- Flow 1: Email Challenge -->
+            <div id="step-email-challenge" class="recovery-step hidden space-y-4">
+                <h3 class="text-lg font-bold text-[#183B5B]">Security Check</h3>
+                <div>
+                    <label class="text-xs font-bold text-slate-500" id="q1-text-email"></label>
+                    <input type="text" id="rec-ans1-email" class="w-full p-2 border rounded mt-1">
+                </div>
+                <div>
+                    <label class="text-xs font-bold text-slate-500" id="q2-text-email"></label>
+                    <input type="text" id="rec-ans2-email" class="w-full p-2 border rounded mt-1">
+                </div>
+                <button onclick="verifyEmailChallenge()" class="w-full bg-[#183B5B] text-white py-2 rounded">Verify Answers</button>
+            </div>
+
+            <!-- Flow 1: Email Result -->
+            <div id="step-email-result" class="recovery-step hidden text-center space-y-4">
+                <div class="text-4xl">📧</div>
+                <h3 class="text-lg font-bold text-[#183B5B]">Email Found!</h3>
+                <p class="text-slate-600">Your registered email is:</p>
+                <p class="text-xl font-mono font-bold text-[#D6A84A]" id="revealed-email"></p>
+                <button onclick="closeRecoveryModal()" class="w-full bg-slate-200 text-slate-700 py-2 rounded">Back to Login</button>
+            </div>
+
+            <!-- Flow 2: Password Init -->
+            <div id="step-pass-init" class="recovery-step hidden space-y-4">
+                <h3 class="text-lg font-bold text-[#183B5B]">Reset Password</h3>
+                <input type="email" id="rec-email-input" placeholder="Enter your email address" class="w-full p-2 border rounded">
+                <button id="btn-send-otp" onclick="sendOtp()" class="w-full bg-[#183B5B] text-white py-2 rounded">Send Code</button>
+            </div>
+
+            <!-- Flow 2: OTP Check -->
+            <div id="step-pass-otp" class="recovery-step hidden space-y-4">
+                <h3 class="text-lg font-bold text-[#183B5B]">Enter Code</h3>
+                <p class="text-xs text-slate-500">We sent a 6-digit code to your email.</p>
+                <input type="text" id="rec-otp-input" placeholder="123456" class="w-full p-2 border rounded text-center text-xl tracking-widest">
+                <button onclick="verifyOtp()" class="w-full bg-[#183B5B] text-white py-2 rounded">Verify Code</button>
+                <div class="text-center pt-2 border-t">
+                    <button onclick="switchToQuestions()" class="text-xs text-red-500 font-bold hover:underline">I can't access my email</button>
+                </div>
+            </div>
+
+            <!-- Flow 2: Password Challenge (Fallback) -->
+            <div id="step-pass-challenge" class="recovery-step hidden space-y-4">
+                <h3 class="text-lg font-bold text-[#183B5B]">Security Questions</h3>
+                <p class="text-xs text-slate-500">Answer correctly to reset your password.</p>
+                <div>
+                    <label class="text-xs font-bold text-slate-500" id="q1-text-pass"></label>
+                    <input type="text" id="rec-ans1-pass" class="w-full p-2 border rounded mt-1">
+                </div>
+                <div>
+                    <label class="text-xs font-bold text-slate-500" id="q2-text-pass"></label>
+                    <input type="text" id="rec-ans2-pass" class="w-full p-2 border rounded mt-1">
+                </div>
+                <button onclick="verifyPassChallenge()" class="w-full bg-[#183B5B] text-white py-2 rounded">Verify & Reset</button>
+            </div>
+
+            <!-- Flow 2: New Password -->
+            <div id="step-pass-reset" class="recovery-step hidden space-y-4">
+                <h3 class="text-lg font-bold text-[#183B5B]">Create New Password</h3>
+                <div class="relative">
+                    <input type="password" id="rec-new-pass" placeholder="New Password" class="w-full p-2 border rounded pr-10" oninput="checkRecoveryPasswordStrength(this.value)">
+                    <button type="button" onclick="togglePassword('rec-new-pass')" class="absolute right-3 top-2.5 opacity-50 hover:opacity-100 transition-opacity">
+                        <img src="../Assets/Icons/show_pass.png" alt="Show" class="w-5 h-5">
+                    </button>
+                </div>
+                <div id="rec-password-strength" class="mt-2 text-xs text-slate-500 hidden bg-slate-50 p-3 rounded-lg border border-slate-200">
+                    <p class="font-bold mb-2 text-[#183B5B]">Password Requirements:</p>
+                    <ul class="space-y-1">
+                        <li id="rec-req-length" class="flex items-center gap-2 text-slate-500"><span class="w-1.5 h-1.5 rounded-full bg-slate-300"></span> At least 12 characters</li>
+                        <li id="rec-req-capital" class="flex items-center gap-2 text-slate-500"><span class="w-1.5 h-1.5 rounded-full bg-slate-300"></span> At least 1 capital letter</li>
+                        <li id="rec-req-number" class="flex items-center gap-2 text-slate-500"><span class="w-1.5 h-1.5 rounded-full bg-slate-300"></span> At least 1 number</li>
+                        <li id="rec-req-special" class="flex items-center gap-2 text-slate-500"><span class="w-1.5 h-1.5 rounded-full bg-slate-300"></span> At least 1 special character</li>
+                    </ul>
+                </div>
+                <div class="relative">
+                    <input type="password" id="rec-confirm-pass" placeholder="Confirm New Password" class="w-full p-2 border rounded pr-10">
+                    <button type="button" onclick="togglePassword('rec-confirm-pass')" class="absolute right-3 top-2.5 opacity-50 hover:opacity-100 transition-opacity">
+                        <img src="../Assets/Icons/show_pass.png" alt="Show" class="w-5 h-5">
+                    </button>
+                </div>
+                <button onclick="submitNewPassword()" class="w-full bg-green-600 text-white py-2 rounded">Update Password</button>
+            </div>
+
+        </div>
     </div>
 
     <!-- Custom Alert Modal -->

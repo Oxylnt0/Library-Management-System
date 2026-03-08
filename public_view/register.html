@@ -5,6 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Register - Puerto Palabra Library</title>
+    <!-- Add CSP -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' https:; script-src 'self' 'unsafe-inline' https://esm.run https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' http://localhost:3000;">
 
     <link href="../output.css" rel="stylesheet">
     <link
@@ -530,7 +532,7 @@
                     <div class="back">
                         <div
                             class="w-full h-full border-4 border-double border-[#D6A84A]/30 flex items-center justify-center">
-                            <img id="back-icon-security" src="../assets/icons/anchor.png"
+                            <img id="back-icon-security" src="../Assets/Icons/anchor.png"
                                 class="w-32 h-32 object-contain opacity-20" alt="Anchor">
 
                         </div>
@@ -556,7 +558,7 @@
                                 <button type="button" onclick="togglePassword('confirm-password')"
                                     class="absolute focus:outline-none" style="right: 0; bottom: 0.5rem;"
                                     title="Show Password">
-                                    <img src="../assets/icons/show_pass.png"
+                                    <img src="../Assets/Icons/show_pass.png"
                                         class="w-6 h-6 opacity-50 hover:opacity-100 transition-opacity"
                                         alt="Show Password">
                                 </button>
@@ -569,8 +571,8 @@
                     <div class="back">
                         <div
                             class="w-full h-full border-4 border-double border-[#D6A84A]/30 flex items-center justify-center">
-                            <img id="back-icon-password" src="../assets/icons/shield.png"
-                                class="w-32 h-32 object-contain opacity-20" alt="Shield">
+                            <img id="back-icon-password" src="../Assets/Icons/lock.png"
+                                class="w-32 h-32 object-contain opacity-20" alt="Lock">
                         </div>
                     </div>
                 </div>
@@ -607,7 +609,7 @@
                     <div class="back">
                         <div
                             class="w-full h-full border-4 border-double border-[#D6A84A]/30 flex items-center justify-center">
-                            <img id="back-icon-3" src="../assets/icons/child.png"
+                            <img id="back-icon-3" src="../Assets/Icons/child.png"
                                 class="w-32 h-32 object-contain opacity-20" alt="Child">
                         </div>
                     </div>
@@ -695,7 +697,7 @@
                         <!-- Decorative back of page -->
                         <div
                             class="w-full h-full border-4 border-double border-[#D6A84A]/30 flex items-center justify-center">
-                            <img id="back-icon-2" src="../assets/icons/lock.png"
+                            <img id="back-icon-2" src="../Assets/Icons/lock.png"
                                 class="w-32 h-32 object-contain opacity-20" alt="Lock">
                         </div>
                     </div>
@@ -711,7 +713,7 @@
                             <div class="selection-card" onclick="selectFlow('user')">
                                 <div class="selection-card-inner">
                                     <div class="selection-card-front">
-                                        <img src="../assets/icons/user.png" class="w-20 h-20 mb-2 object-contain"
+                                        <img src="../Assets/Icons/user.png" class="w-20 h-20 mb-2 object-contain"
                                             alt="User">
                                         <div class="font-bold font-cinzel text-lg">User</div>
                                     </div>
@@ -724,7 +726,7 @@
                             <div class="selection-card" onclick="selectFlow('guardian')">
                                 <div class="selection-card-inner">
                                     <div class="selection-card-front">
-                                        <img src="../assets/icons/guardian.png" class="w-20 h-20 mb-2 object-contain"
+                                        <img src="../Assets/Icons/guardian.png" class="w-20 h-20 mb-2 object-contain"
                                             alt="Guardian">
                                         <div class="font-bold font-cinzel text-lg">Guardian</div>
                                     </div>
@@ -741,7 +743,7 @@
                         <!-- Decorative back of page -->
                         <div
                             class="w-full h-full border-4 border-double border-[#D6A84A]/30 flex items-center justify-center">
-                            <img id="back-icon-1" src="../assets/icons/user.png"
+                            <img id="back-icon-1" src="../Assets/Icons/user.png"
                                 class="w-32 h-32 object-contain opacity-20" alt="User">
                         </div>
                     </div>
@@ -876,12 +878,10 @@
                     if (secIndicator) secIndicator.innerText = "Page 4 of 4";
 
                     // Update Icons
-                    if (backIcon1) backIcon1.src = "../assets/icons/user.png";
-                    if (backIcon2) backIcon2.src = "../assets/icons/shield.png"; // Password page gets Shield
-                    if (backIconPass) backIconPass.src = "../assets/icons/shield.png"; // Security page gets Shield
-                    if (backIcon2) backIcon2.src = "../assets/icons/lock.png"; // Password page gets Lock
-                    if (backIconPass) backIconPass.src = "../assets/icons/lock.png"; // Security page gets Lock
-                    if (backIconSec) backIconSec.src = "../assets/icons/anchor.png"; // Submit page gets Anchor
+                    if (backIcon1) backIcon1.src = "../Assets/Icons/user.png";
+                    if (backIcon2) backIcon2.src = "../Assets/Icons/lock.png"; // Password page gets Lock
+                    if (backIconPass) backIconPass.src = "../Assets/Icons/lock.png"; // Security page gets Lock
+                    if (backIconSec) backIconSec.src = "../Assets/Icons/anchor.png"; // Submit page gets Anchor
                 } else {
                     window.totalPages = 5; // 1:Sel, 2:Info, 3:Child, 4:Pass, 5:Sec
                     sheet3.classList.remove('hidden'); // Show sheet 3
@@ -896,13 +896,11 @@
                     if (secIndicator) secIndicator.innerText = "Page 5 of 5";
 
                     // Update Icons
-                    if (backIcon1) backIcon1.src = "../assets/icons/guardian.png";
-                    if (backIcon2) backIcon2.src = "../assets/icons/child.png";
-                    if (backIcon3) backIcon3.src = "../assets/icons/shield.png"; // Password page gets Shield
-                    if (backIconPass) backIconPass.src = "../assets/icons/shield.png"; // Security page gets Shield
-                    if (backIcon3) backIcon3.src = "../assets/icons/lock.png"; // Password page gets Lock
-                    if (backIconPass) backIconPass.src = "../assets/icons/lock.png"; // Security page gets Lock
-                    if (backIconSec) backIconSec.src = "../assets/icons/anchor.png"; // Submit page gets Anchor
+                    if (backIcon1) backIcon1.src = "../Assets/Icons/guardian.png";
+                    if (backIcon2) backIcon2.src = "../Assets/Icons/child.png";
+                    if (backIcon3) backIcon3.src = "../Assets/Icons/lock.png"; // Password page gets Lock
+                    if (backIconPass) backIconPass.src = "../Assets/Icons/lock.png"; // Security page gets Lock
+                    if (backIconSec) backIconSec.src = "../Assets/Icons/anchor.png"; // Submit page gets Anchor
                 }
                 turnPage(1); // Move to next page automatically
             }

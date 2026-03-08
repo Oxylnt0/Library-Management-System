@@ -140,4 +140,60 @@ async function sendAdminWelcomeEmail(email, name, role) {
   }
 }
 
-module.exports = { sendLibraryCard, sendPaymentReceipt, sendAdminWelcomeEmail };
+async function sendOtpEmail(email, otp) {
+  try {
+    console.log(`⏳ Sending OTP to: ${email}...`);
+
+    const mailOptions = {
+      from: `"Puerto Palabra Library System" <${process.env.EMAIL_USER}>`,
+      to: email,
+      subject: "Password Reset OTP - Puerto Palabra",
+      html: `<div style="font-family: Arial, sans-serif; padding: 20px; border: 1px solid #ddd; border-radius: 8px;">
+               <h2 style="color: #183B5B;">Password Reset Request</h2>
+               <p>Your One-Time Password (OTP) is:</p>
+               <h1 style="color: #D6A84A; letter-spacing: 5px;">${otp}</h1>
+               <p>This code expires in 10 minutes. If you did not request this, please ignore this email.</p>
+             </div>`
+    };
+
+    await transporter.sendMail(mailOptions);
+    console.log("✅ OTP Email sent successfully.");
+    return true;
+  } catch (error) {
+    console.error("❌ OTP Email Error:", error);
+    return false;
+  }
+}
+
+async function sendAccountStatusEmail(email, name, status) {
+  try {
+    console.log(`⏳ Sending Status Email to: ${email}...`);
+    const isApproved = status === 'Active';
+    const subject = isApproved ? "Account Approved - Puerto Palabra" : "Account Status Update - Puerto Palabra";
+    const color = isApproved ? "#2E5F87" : "#C05640";
+    const message = isApproved 
+        ? "Your account has been approved. You may now log in to the library system."
+        : "We regret to inform you that your account registration has been rejected.";
+
+    const mailOptions = {
+      from: `"Puerto Palabra Library System" <${process.env.EMAIL_USER}>`,
+      to: email,
+      subject: subject,
+      html: `<div style="font-family: Arial, sans-serif; padding: 20px; border: 1px solid #ddd; border-radius: 8px;">
+               <h2 style="color: ${color};">${isApproved ? 'Welcome Aboard!' : 'Registration Update'}</h2>
+               <p>Dear ${name},</p>
+               <p>${message}</p>
+               <p>Regards,<br>Puerto Palabra Admin</p>
+             </div>`
+    };
+
+    await transporter.sendMail(mailOptions);
+    console.log("✅ Status Email sent successfully.");
+    return true;
+  } catch (error) {
+    console.error("❌ Status Email Error:", error);
+    return false;
+  }
+}
+
+module.exports = { sendLibraryCard, sendPaymentReceipt, sendAdminWelcomeEmail, sendOtpEmail, sendAccountStatusEmail };
