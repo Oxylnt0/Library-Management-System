@@ -1389,6 +1389,266 @@ app.get('/api/donations/user/:userId', async (req, res) => {
     }
 });
 
+// 39. GET /api/reports/dashboard
+app.get('/api/reports/dashboard', async (req, res) => {
+    try {
+        // 1. Monthly Loans (Current Month)
+        const loansRes = await db.execute("SELECT COUNT(*) as count FROM BORROW_TRANSACTION WHERE strftime('%Y-%m', borrow_date) = strftime('%Y-%m', 'now', '+8 hours')");
+        
+        // 2. New Users (Current Month)
+        const usersRes = await db.execute("SELECT COUNT(*) as count FROM USER WHERE strftime('%Y-%m', date_created) = strftime('%Y-%m', 'now', '+8 hours')");
+        
+        // 3. Fines Collected (Current Month)
+        const finesRes = await db.execute("SELECT SUM(fine_amount) as total FROM PAYMENT WHERE strftime('%Y-%m', payment_date) = strftime('%Y-%m', 'now', '+8 hours')");
+        
+        // 4. Lost Books (Total Active Lost)
+        const lostRes = await db.execute("SELECT COUNT(*) as count FROM BOOK WHERE status = 'Lost'");
+
+        // 5. Chart Data (Last 6 Months Borrowing)
+        const chartRes = await db.execute(`
+            SELECT strftime('%Y-%m', borrow_date) as month, COUNT(*) as count 
+            FROM BORROW_TRANSACTION 
+            WHERE borrow_date >= date('now', '-5 months', 'start of month')
+            GROUP BY month 
+            ORDER BY month ASC
+        `);
+
+        res.json({
+            success: true,
+            stats: {
+                loans: loansRes.rows[0].count,
+                newUsers: usersRes.rows[0].count,
+                fines: finesRes.rows[0].total || 0,
+                lostBooks: lostRes.rows[0].count
+            },
+            chart: chartRes.rows
+        });
+    } catch (error) {
+        console.error("Report Dashboard Error:", error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+// 40. POST /api/reports/generate
+app.post('/api/reports/generate', async (req, res) => {
+    const { reportTypes } = req.body; // reportTypes is array of strings
+    let results = {};
+
+    try {
+        if (reportTypes.includes('damaged')) {
+            const res = await db.execute("SELECT title, author, book_condition FROM BOOK WHERE book_condition IN ('Minor Damage', 'Moderate Damage', 'Severe Damage')");
+            results.damaged = res.rows;
+        }
+        if (reportTypes.includes('outdated')) {
+            const res = await db.execute("SELECT title, author, publication_year FROM BOOK WHERE book_condition = 'Outdated'");
+            results.outdated = res.rows;
+        }
+        if (reportTypes.includes('obsolete')) {
+            const res = await db.execute("SELECT title, author, publication_year FROM BOOK WHERE book_condition = 'Obsolete'");
+            results.obsolete = res.rows;
+        }
+        if (reportTypes.includes('archived')) {
+            const res = await db.execute("SELECT title, author, date_added FROM BOOK WHERE status = 'Archived'");
+            results.archived = res.rows;
+        }
+        if (reportTypes.includes('purchased_vs_donated')) {
+            const res = await db.execute("SELECT book_source, COUNT(*) as count FROM BOOK GROUP BY book_source");
+            results.purchased_vs_donated = res.rows;
+        }
+        if (reportTypes.includes('fines')) {
+            const res = await db.execute("SELECT payment_method, SUM(fine_amount) as total, COUNT(*) as count FROM PAYMENT GROUP BY payment_method");
+            results.fines = res.rows;
+        }
+        if (reportTypes.includes('unreturned')) {
+            const res = await db.execute(`
+                SELECT b.title, u.first_name, u.last_name, bt.due_date 
+                FROM BORROW_TRANSACTION bt
+                JOIN BOOK b ON bt.book_id = b.book_id
+                JOIN USER u ON bt.user_id = u.user_id
+                WHERE bt.status IN ('Borrowed', 'Overdue')
+            `);
+            results.unreturned = res.rows;
+        }
+        if (reportTypes.includes('borrowed_history')) {
+             const res = await db.execute(`
+                SELECT b.title, u.first_name, u.last_name, bt.borrow_date, bt.return_date
+                FROM BORROW_TRANSACTION bt
+                JOIN BOOK b ON bt.book_id = b.book_id
+                JOIN USER u ON bt.user_id = u.user_id
+                ORDER BY bt.borrow_date DESC LIMIT 1000
+            `);
+            results.borrowed_history = res.rows;
+        }
+        if (reportTypes.includes('donations')) {
+            const res = await db.execute("SELECT donor_name, book_title, quantity, donation_date FROM DONATION WHERE donation_type = 'Inbound'");
+            results.donations = res.rows;
+        }
+        if (reportTypes.includes('inventory_summary')) {
+             const res = await db.execute(`
+                SELECT status, COUNT(*) as count FROM BOOK GROUP BY status
+                UNION ALL
+                SELECT 'Total Books', COUNT(*) FROM BOOK
+             `);
+             results.inventory_summary = res.rows;
+        }
+
+        res.json({ success: true, data: results });
+
+    } catch (error) {
+        console.error("Generate Report Error:", error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+// 41. GET /api/reports/view (Table Data)
+app.get('/api/reports/view', async (req, res) => {
+    const { type, startDate, endDate } = req.query;
+    
+    try {
+        let sql = "";
+        let args = [];
+
+        // Helper for date filtering
+        const dateFilter = (col) => {
+            if (startDate && endDate) return ` AND ${col} BETWEEN ? AND ?`;
+            return "";
+        };
+        if (startDate && endDate) args.push(startDate, endDate);
+
+        switch (type) {
+            // 1. Circulation
+            case 'active_loans':
+                sql = `SELECT b.title, u.first_name || ' ' || u.last_name as borrower, bt.borrow_date, bt.due_date 
+                       FROM BORROW_TRANSACTION bt 
+                       JOIN BOOK b ON bt.book_id = b.book_id 
+                       JOIN USER u ON bt.user_id = u.user_id 
+                       WHERE bt.status = 'Borrowed' ORDER BY bt.due_date ASC`;
+                args = []; // No date filter for current status
+                break;
+            case 'overdue':
+                sql = `SELECT b.title, u.first_name || ' ' || u.last_name as borrower, bt.due_date, 
+                       (julianday('now') - julianday(bt.due_date)) as days_overdue
+                       FROM BORROW_TRANSACTION bt 
+                       JOIN BOOK b ON bt.book_id = b.book_id 
+                       JOIN USER u ON bt.user_id = u.user_id 
+                       WHERE bt.status IN ('Borrowed', 'Overdue') AND bt.due_date < DATE('now', '+8 hours')`;
+                args = [];
+                break;
+            case 'top_borrowed':
+                sql = `SELECT b.title, b.genre, COUNT(bt.borrow_id) as borrow_count 
+                       FROM BORROW_TRANSACTION bt 
+                       JOIN BOOK b ON bt.book_id = b.book_id 
+                       GROUP BY b.book_id ORDER BY borrow_count DESC LIMIT 50`;
+                args = [];
+                break;
+
+            // 2. Inventory
+            case 'inventory_summary':
+                sql = `SELECT status, COUNT(*) as count FROM BOOK GROUP BY status`;
+                args = [];
+                break;
+            case 'weeding':
+                sql = `SELECT title, author, publication_year, book_condition, location 
+                       FROM BOOK WHERE book_condition IN ('Outdated', 'Obsolete') AND status = 'Available'`;
+                args = [];
+                break;
+            case 'donations':
+                sql = `SELECT donation_type, donor_name, recipient_organization, book_title, quantity, donation_date 
+                       FROM DONATION WHERE 1=1 ${dateFilter('donation_date')}`;
+                break;
+
+            // 3. Financials
+            case 'revenue_collection':
+                // Detailed list for table
+                sql = `SELECT payment_id, payment_date, or_number, fine_amount, payment_method, remarks 
+                       FROM PAYMENT WHERE 1=1 ${dateFilter('payment_date')} ORDER BY payment_date DESC`;
+                break;
+            case 'revenue_daily':
+                // Grouped by date for analytics (Requested Output)
+                sql = `SELECT payment_date, SUM(fine_amount) as total_revenue 
+                       FROM PAYMENT WHERE 1=1 ${dateFilter('payment_date')} GROUP BY payment_date ORDER BY payment_date DESC`;
+                break;
+            case 'outstanding':
+                sql = `SELECT u.first_name || ' ' || u.last_name as user, f.amount, f.fine_type, f.status 
+                       FROM FINE f 
+                       JOIN BORROW_TRANSACTION bt ON f.borrow_id = bt.borrow_id 
+                       JOIN USER u ON bt.user_id = u.user_id 
+                       WHERE f.status = 'Unpaid'`;
+                args = [];
+                break;
+
+            // 4. Users
+            case 'registration_queue':
+                sql = `SELECT 'User' as type, first_name || ' ' || last_name as name, email, date_created FROM USER WHERE status = 'Pending'
+                       UNION ALL
+                       SELECT 'Guardian' as type, first_name || ' ' || last_name as name, email, date_created FROM GUARDIAN_NAME WHERE status = 'Pending'`;
+                args = [];
+                break;
+            case 'disciplinary':
+                sql = `SELECT u.first_name || ' ' || u.last_name as user, b.reason, b.ban_date, b.end_date 
+                       FROM BAN_TERMINATION b JOIN USER u ON b.user_id = u.user_id`;
+                args = [];
+                break;
+            
+            // 5. Audits
+            case 'audit_trail':
+                // Handled by existing audit endpoint logic in frontend, or we can add a specific query here if needed.
+                break;
+
+            default:
+                return res.json({ success: false, message: "Invalid report type" });
+        }
+
+        const result = await db.execute({ sql, args });
+        res.json({ success: true, data: result.rows });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+// 42. GET /api/reports/stats (Summary Cards)
+app.get('/api/reports/stats', async (req, res) => {
+    const { domain } = req.query;
+    let stats = [];
+
+    try {
+        if (domain === 'circulation') {
+            const active = await db.execute("SELECT COUNT(*) as c FROM BORROW_TRANSACTION WHERE status = 'Borrowed'");
+            const overdue = await db.execute("SELECT COUNT(*) as c FROM BORROW_TRANSACTION WHERE status = 'Overdue' OR (status = 'Borrowed' AND due_date < DATE('now', '+8 hours'))");
+            const total = await db.execute("SELECT COUNT(*) as c FROM BORROW_TRANSACTION");
+            stats = [
+                { label: 'Active Loans', value: active.rows[0].c, color: 'blue' },
+                { label: 'Overdue Items', value: overdue.rows[0].c, color: 'red' },
+                { label: 'Total Transactions', value: total.rows[0].c, color: 'slate' }
+            ];
+        } else if (domain === 'inventory') {
+            const total = await db.execute("SELECT COUNT(*) as c FROM BOOK");
+            const lost = await db.execute("SELECT COUNT(*) as c FROM BOOK WHERE status = 'Lost'");
+            const archived = await db.execute("SELECT COUNT(*) as c FROM BOOK WHERE status = 'Archived'");
+            stats = [
+                { label: 'Total Books', value: total.rows[0].c, color: 'blue' },
+                { label: 'Lost Books', value: lost.rows[0].c, color: 'red' },
+                { label: 'Archived', value: archived.rows[0].c, color: 'amber' }
+            ];
+        } else if (domain === 'financials') {
+            const revenue = await db.execute("SELECT SUM(fine_amount) as s FROM PAYMENT");
+            const unpaid = await db.execute("SELECT SUM(amount) as s FROM FINE WHERE status = 'Unpaid'");
+            stats = [
+                { label: 'Total Revenue', value: `₱${(revenue.rows[0].s || 0).toFixed(2)}`, color: 'emerald' },
+                { label: 'Outstanding Balance', value: `₱${(unpaid.rows[0].s || 0).toFixed(2)}`, color: 'red' }
+            ];
+        } else if (domain === 'users') {
+            const pending = await db.execute("SELECT COUNT(*) as c FROM USER WHERE status = 'Pending'");
+            const active = await db.execute("SELECT COUNT(*) as c FROM USER WHERE status = 'Active'");
+            stats = [
+                { label: 'Pending Approvals', value: pending.rows[0].c, color: 'amber' },
+                { label: 'Active Users', value: active.rows[0].c, color: 'blue' }
+            ];
+        }
+        res.json({ success: true, stats });
+    } catch (e) { res.status(500).json({ success: false, message: e.message }); }
+});
+
 app.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`);
 });

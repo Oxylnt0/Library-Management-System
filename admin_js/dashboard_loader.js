@@ -92,12 +92,14 @@ async function navigateTo(url) {
                 contentWrapper.innerHTML = newContent.innerHTML;
                 
                 // Re-execute scripts in the new content
-                Array.from(contentWrapper.querySelectorAll('script')).forEach(oldScript => {
+                const scripts = Array.from(contentWrapper.querySelectorAll('script'));
+                for (const oldScript of scripts) {
                     const newScript = document.createElement('script');
                     Array.from(oldScript.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
                     newScript.appendChild(document.createTextNode(oldScript.innerHTML));
-                    oldScript.parentNode.replaceChild(newScript, oldScript);
-                });
+                    oldScript.parentNode.removeChild(oldScript);
+                    contentWrapper.appendChild(newScript);
+                }
 
                 // 5. Update URL and State
                 window.history.pushState({}, '', url);
