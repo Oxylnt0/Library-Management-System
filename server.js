@@ -1014,6 +1014,38 @@ app.post('/api/admin/login', async (req, res) => {
     }
 });
 
+// 38. GET /api/admin/audit-logs (Moved up to avoid conflict with /api/admin/:id)
+app.get('/api/admin/audit-logs', async (req, res) => {
+    const { filter } = req.query; // 'all', 'admin', 'user', 'guardian'
+    
+    try {
+        let queries = [];
+
+        if (filter === 'all' || filter === 'admin') {
+            queries.push(`SELECT 'Admin' as role, admin_id as actor_id, action, target_table, target_id, details, date_time FROM ADMIN_AUDIT_LOG`);
+        }
+        if (filter === 'all' || filter === 'user') {
+            queries.push(`SELECT 'User' as role, user_id as actor_id, action, target_table, target_id, details, date_time FROM USER_AUDIT_LOG`);
+        }
+        if (filter === 'all' || filter === 'guardian') {
+            queries.push(`SELECT 'Guardian' as role, guardian_id as actor_id, action, target_table, target_id, details, date_time FROM GUARDIAN_AUDIT_LOG`);
+        }
+
+        if (queries.length === 0) {
+             return res.json({ success: true, data: [] });
+        }
+
+        const sql = queries.join(" UNION ALL ") + " ORDER BY date_time DESC LIMIT 500";
+        
+        const result = await db.execute(sql);
+        res.json({ success: true, data: result.rows });
+
+    } catch (error) {
+        console.error("Audit Log Error:", error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
 // 25. GET /api/admin/:id
 app.get('/api/admin/:id', async (req, res) => {
     const { id } = req.params;
@@ -1339,10 +1371,6 @@ app.post('/api/user/:id/resend-qr', async (req, res) => {
     }
 });
 
-app.listen(PORT, () => {
-    console.log(`Server running on http://localhost:${PORT}`);
-});
-
 // 18. GET /api/donations/user/:userId
 app.get('/api/donations/user/:userId', async (req, res) => {
     const { userId } = req.params;
@@ -1359,4 +1387,8 @@ app.get('/api/donations/user/:userId', async (req, res) => {
         console.error("Fetch User Donations Error:", error);
         res.status(500).json({ success: false, message: error.message });
     }
+});
+
+app.listen(PORT, () => {
+    console.log(`Server running on http://localhost:${PORT}`);
 });

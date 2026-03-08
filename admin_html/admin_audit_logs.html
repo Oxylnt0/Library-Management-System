@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' https:; script-src 'self' 'unsafe-inline' https://esm.run https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' http://localhost:3000;">
+    <title>Puerto Palabra - Audit Logs</title>
+
+    <link href="../output.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+    </style>
+</head>
+
+<body class="text-slate-800 h-screen overflow-hidden bg-[#e6e0d4]">
+
+    <!-- Background Image -->
+    <div class="fixed inset-0 z-0 pointer-events-none bg-cover bg-center bg-no-repeat" style="background-image: url('../assets/background.png');"></div>
+
+    <div class="flex h-screen w-screen overflow-hidden relative z-10">
+
+        <div id="sidebar-container" class="w-72 shrink-0"></div>
+
+        <div class="flex-1 flex flex-col overflow-hidden">
+
+            <div id="topbar-container" class="shrink-0"></div>
+
+            <div id="content-wrapper" class="flex-1 flex flex-col overflow-hidden transition-opacity duration-300">
+
+                <main class="flex-1 flex overflow-hidden">
+
+                    <div class="flex-1 flex flex-col overflow-hidden p-6">
+
+                        <div class="flex flex-col gap-4 mb-6 shrink-0">
+                            <div>
+                                <h2 class="text-2xl font-bold text-slate-800">System Audit Logs</h2>
+                                <p class="text-sm text-slate-500">Track all system activities and security events</p>
+                            </div>
+
+                            <div class="flex gap-3">
+                                <div class="flex bg-white rounded-lg shadow-sm border border-slate-300 p-1">
+                                    <button onclick="filterLogs('all')" id="btn-all" class="px-4 py-1.5 rounded-md text-sm font-bold transition-colors bg-[#183B5B] text-white">All</button>
+                                    <button onclick="filterLogs('admin')" id="btn-admin" class="px-4 py-1.5 rounded-md text-sm font-bold text-slate-600 hover:bg-slate-100 transition-colors">Admin</button>
+                                    <button onclick="filterLogs('user')" id="btn-user" class="px-4 py-1.5 rounded-md text-sm font-bold text-slate-600 hover:bg-slate-100 transition-colors">User</button>
+                                    <button onclick="filterLogs('guardian')" id="btn-guardian" class="px-4 py-1.5 rounded-md text-sm font-bold text-slate-600 hover:bg-slate-100 transition-colors">Guardian</button>
+                                </div>
+                                
+                                <button onclick="loadAuditLogs()" class="bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 px-3 py-2 rounded-lg font-medium shadow-sm transition-colors" title="Refresh Logs">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="flex-1 bg-white rounded-xl shadow-md border border-slate-200 overflow-hidden flex flex-col">
+                            <div class="overflow-y-auto flex-1">
+                                <table class="w-full text-left border-collapse">
+                                    <thead class="bg-slate-50 sticky top-0 z-10">
+                                        <tr>
+                                            <th class="p-4 text-xs font-bold text-slate-500 uppercase border-b">Date & Time</th>
+                                            <th class="p-4 text-xs font-bold text-slate-500 uppercase border-b">Role</th>
+                                            <th class="p-4 text-xs font-bold text-slate-500 uppercase border-b">Actor ID</th>
+                                            <th class="p-4 text-xs font-bold text-slate-500 uppercase border-b">Action</th>
+                                            <th class="p-4 text-xs font-bold text-slate-500 uppercase border-b">Target</th>
+                                            <th class="p-4 text-xs font-bold text-slate-500 uppercase border-b">Details</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="audit-table-body" class="divide-y divide-slate-100 text-sm">
+                                        <!-- Rows loaded via JS -->
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="bg-slate-50 p-4 border-t border-slate-200 text-xs text-slate-500 shrink-0 flex justify-between">
+                                <span id="log-count">Showing 0 logs</span>
+                                <span>Displaying last 500 records</span>
+                            </div>
+                        </div>
+                    </div>
+
+                </main>
+
+    <script>
+      {
+        let currentFilter = 'all';
+
+        function filterLogs(type) {
+            currentFilter = type;
+            
+            // Update UI Buttons
+            ['all', 'admin', 'user', 'guardian'].forEach(t => {
+                const btn = document.getElementById(`btn-${t}`);
+                if (t === type) {
+                    btn.className = "px-4 py-1.5 rounded-md text-sm font-bold transition-colors bg-[#183B5B] text-white shadow-sm";
+                } else {
+                    btn.className = "px-4 py-1.5 rounded-md text-sm font-bold text-slate-600 hover:bg-slate-100 transition-colors";
+                }
+            });
+
+            loadAuditLogs();
+        }
+        window.filterLogs = filterLogs;
+
+        async function loadAuditLogs() {
+            const tbody = document.getElementById('audit-table-body');
+            tbody.innerHTML = '<tr><td colspan="6" class="p-4 text-center text-slate-500">Loading logs...</td></tr>';
+
+            try {
+                const response = await fetch(`http://localhost:3000/api/admin/audit-logs?filter=${currentFilter}`);
+                const result = await response.json();
+
+                if (result.success) {
+                    renderLogs(result.data);
+                } else {
+                    tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-red-500">Error: ${result.message}</td></tr>`;
+                }
+            } catch (error) {
+                console.error("Error loading logs:", error);
+                tbody.innerHTML = '<tr><td colspan="6" class="p-4 text-center text-red-500">Network Error</td></tr>';
+            }
+        }
+        window.loadAuditLogs = loadAuditLogs;
+
+        function renderLogs(logs) {
+            const tbody = document.getElementById('audit-table-body');
+            tbody.innerHTML = '';
+            
+            document.getElementById('log-count').innerText = `Showing ${logs.length} logs`;
+
+            if (logs.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" class="p-4 text-center text-slate-400 italic">No logs found for this category.</td></tr>';
+                return;
+            }
+
+            logs.forEach(log => {
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-slate-50 transition-colors';
+                
+                let roleBadge = '';
+                if (log.role === 'Admin') roleBadge = '<span class="px-2 py-0.5 rounded text-xs font-bold bg-purple-100 text-purple-700 border border-purple-200">Admin</span>';
+                else if (log.role === 'User') roleBadge = '<span class="px-2 py-0.5 rounded text-xs font-bold bg-blue-100 text-blue-700 border border-blue-200">User</span>';
+                else if (log.role === 'Guardian') roleBadge = '<span class="px-2 py-0.5 rounded text-xs font-bold bg-orange-100 text-orange-700 border border-orange-200">Guardian</span>';
+
+                const dateObj = new Date(log.date_time);
+                const dateStr = dateObj.toLocaleDateString() + ' ' + dateObj.toLocaleTimeString();
+
+                tr.innerHTML = `
+                    <td class="p-4 text-slate-500 font-mono text-xs whitespace-nowrap">${dateStr}</td>
+                    <td class="p-4">${roleBadge}</td>
+                    <td class="p-4 text-slate-600 font-mono text-xs">ID: ${log.actor_id}</td>
+                    <td class="p-4 font-bold text-slate-700 text-xs">${log.action}</td>
+                    <td class="p-4 text-slate-500 text-xs font-mono">${log.target_table} ${log.target_id ? `(#${log.target_id})` : ''}</td>
+                    <td class="p-4 text-slate-600 text-xs max-w-xs truncate" title="${log.details}">${log.details}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // Initial Load
+        loadAuditLogs();
+      }
+    </script>
+            </div>
+        </div>
+    </div>
+
+    <script src="../admin_js/dashboard_loader.js"></script>
+</body>
+</html>

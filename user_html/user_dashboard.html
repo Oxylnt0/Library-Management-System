@@ -205,7 +205,7 @@
 
         async function loadNewArrivals() {
             try {
-                const res = await db.execute("SELECT * FROM BOOK ORDER BY date_added DESC LIMIT 6");
+                const res = await db.execute("SELECT * FROM BOOK WHERE book_condition NOT IN ('Outdated', 'Obsolete') AND status NOT IN ('Archived', 'Donated Outbound', 'Lost') ORDER BY date_added DESC LIMIT 6");
                 const container = document.getElementById('new-arrivals-container');
                 container.innerHTML = '';
                 

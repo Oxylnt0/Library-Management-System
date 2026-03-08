@@ -38,10 +38,37 @@
             });
         }
 
+        // Sort
+        const sortSelect = document.getElementById('sort-select');
+        if (sortSelect) {
+            const newSortSelect = sortSelect.cloneNode(true);
+            sortSelect.parentNode.replaceChild(newSortSelect, sortSelect);
+            newSortSelect.addEventListener('change', performSearch);
+        }
+
         // Event Delegation for Dynamic Actions (Kiosk Mode)
         const grid = document.getElementById('book-grid');
         if (grid) {
             grid.addEventListener('click', handleCatalogAction);
+        }
+
+        // Add listeners for filters
+        document.querySelectorAll('.genre-filter').forEach(cb => {
+            cb.addEventListener('change', performSearch);
+        });
+        document.querySelectorAll('input[name="status"]').forEach(radio => {
+            radio.addEventListener('change', performSearch);
+        });
+        
+        const resetBtn = document.getElementById('reset-filters-btn');
+        if (resetBtn) {
+            resetBtn.addEventListener('click', () => {
+                document.querySelectorAll('.genre-filter').forEach(cb => cb.checked = false);
+                document.querySelector('input[name="status"][value="All"]').checked = true;
+                const searchInput = document.getElementById('search-input');
+                if(searchInput) searchInput.value = '';
+                performSearch();
+            });
         }
     }
 
@@ -137,14 +164,14 @@
                     </div>
                 </div>
                 <div class="p-5 flex flex-col flex-1">
-                    <div class="mb-auto">
-                        <h3 class="font-bold text-slate-800 leading-tight mb-1 line-clamp-2 font-cinzel text-lg">${book.title}</h3>
+                    <div>
+                        <h3 class="font-bold text-slate-800 leading-tight mb-1 line-clamp-2 font-cinzel text-lg" title="${book.title}">${book.title}</h3>
                         <p class="text-sm text-[#2E5F87] font-medium mb-2">${book.author}</p>
-                        <div class="flex items-center gap-2 text-xs text-slate-500 mb-4">
-                            <span class="bg-slate-100 px-2 py-0.5 rounded font-bold text-slate-600">${available} / ${total} Copies</span>
-                            <span>•</span>
-                            <span class="truncate max-w-[100px]">${book.genre}</span>
-                        </div>
+                    </div>
+                    <div class="mt-auto flex items-center gap-2 text-xs text-slate-500 mb-4">
+                        <span class="bg-slate-100 px-2 py-0.5 rounded font-bold text-slate-600">${available} / ${total} Copies</span>
+                        <span>•</span>
+                        <span class="truncate max-w-[100px]">${book.genre}</span>
                     </div>
                     <button onclick="openBookDetails(${book.book_id})" 
                             class="w-full mb-2 py-2.5 rounded-lg border border-[#183B5B] text-[#183B5B] text-sm font-semibold hover:bg-[#183B5B] hover:text-white transition-all active:scale-95 shadow-sm">
@@ -159,15 +186,35 @@
 
     function performSearch() {
         const input = document.getElementById('search-input');
-        if (!input) return;
-        const query = input.value.toLowerCase();
+        const query = input ? input.value.toLowerCase() : '';
+        
+        // Get Filters
+        const checkedGenres = Array.from(document.querySelectorAll('.genre-filter:checked')).map(cb => cb.value);
+        const statusFilter = document.querySelector('input[name="status"]:checked')?.value || 'All';
+        const sortValue = document.getElementById('sort-select')?.value || 'relevance';
         
         const filtered = allBooks.filter(book => {
+            // Search
             const titleMatch = book.title && book.title.toLowerCase().includes(query);
             const authorMatch = book.author && book.author.toLowerCase().includes(query);
             const isbnMatch = book.isbn && book.isbn.includes(query);
-            return titleMatch || authorMatch || isbnMatch;
+            const matchesSearch = !query || titleMatch || authorMatch || isbnMatch;
+
+            // Genre
+            const matchesGenre = checkedGenres.length === 0 || checkedGenres.includes(book.genre);
+
+            // Status
+            const matchesStatus = statusFilter === 'All' || book.status === statusFilter;
+
+            return matchesSearch && matchesGenre && matchesStatus;
         });
+
+        // Sorting Logic
+        if (sortValue === 'title_asc') {
+            filtered.sort((a, b) => (a.title || '').localeCompare(b.title || ''));
+        } else if (sortValue === 'newest') {
+            filtered.sort((a, b) => new Date(b.date_added) - new Date(a.date_added));
+        }
         
         renderBooks(filtered);
         updateResultCount(filtered.length);
