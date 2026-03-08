@@ -24,6 +24,7 @@ async function createAllTables() {
         DROP TABLE IF EXISTS MATERIAL;
         DROP TABLE IF EXISTS ADMIN_AUDIT_LOG;
         DROP TABLE IF EXISTS OTP_VERIFICATION;
+        DROP TABLE IF EXISTS ANNOUNCEMENT; -- Added Announcement Drop
     `;
 
     const createSchema = `
@@ -84,6 +85,18 @@ async function createAllTables() {
         );
 
         -- 2. LEVEL 1 DEPENDENCIES (Require Independent Tables)
+        CREATE TABLE ANNOUNCEMENT (
+            announcement_id INTEGER PRIMARY KEY AUTOINCREMENT,
+            admin_id INT NOT NULL,
+            title VARCHAR(255) NOT NULL,
+            content TEXT NOT NULL,
+            priority VARCHAR(20) DEFAULT 'Normal' CHECK (priority IN ('Normal', 'High', 'Urgent')),
+            status VARCHAR(20) DEFAULT 'Published' CHECK (status IN ('Draft', 'Published', 'Archived')),
+            date_posted DATETIME DEFAULT CURRENT_TIMESTAMP,
+            valid_until DATETIME,
+            FOREIGN KEY (admin_id) REFERENCES ADMIN(admin_id)
+        );
+
         CREATE TABLE ADMIN_AUDIT_LOG (
             log_id INTEGER PRIMARY KEY AUTOINCREMENT,
             admin_id INT NOT NULL,

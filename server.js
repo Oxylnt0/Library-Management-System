@@ -1649,6 +1649,72 @@ app.get('/api/reports/stats', async (req, res) => {
     } catch (e) { res.status(500).json({ success: false, message: e.message }); }
 });
 
+// 43. ANNOUNCEMENTS CRUD
+
+// GET /api/announcements/public (Public View - Active Only)
+app.get('/api/announcements/public', async (req, res) => {
+    try {
+        const result = await db.execute(`
+            SELECT title, content, date_posted, priority 
+            FROM ANNOUNCEMENT 
+            WHERE status = 'Published' 
+            AND (valid_until IS NULL OR valid_until > DATETIME('now', '+8 hours'))
+            ORDER BY 
+                CASE priority WHEN 'Urgent' THEN 1 WHEN 'High' THEN 2 ELSE 3 END, 
+                date_posted DESC
+            LIMIT 5
+        `);
+        res.json({ success: true, data: result.rows });
+    } catch (e) { res.status(500).json({ success: false, message: e.message }); }
+});
+
+// GET /api/announcements (Admin View)
+app.get('/api/announcements', async (req, res) => {
+    try {
+        const result = await db.execute(`
+            SELECT a.*, ad.full_name as author 
+            FROM ANNOUNCEMENT a 
+            JOIN ADMIN ad ON a.admin_id = ad.admin_id 
+            ORDER BY a.date_posted DESC
+        `);
+        res.json({ success: true, data: result.rows });
+    } catch (e) { res.status(500).json({ success: false, message: e.message }); }
+});
+
+// POST /api/announcements (Create)
+app.post('/api/announcements', async (req, res) => {
+    const { admin_id, title, content, priority, status, valid_until } = req.body;
+    try {
+        await db.execute({
+            sql: "INSERT INTO ANNOUNCEMENT (admin_id, title, content, priority, status, valid_until) VALUES (?, ?, ?, ?, ?, ?)",
+            args: [admin_id, title, content, priority, status, valid_until || null]
+        });
+        res.json({ success: true, message: "Announcement created successfully." });
+    } catch (e) { res.status(500).json({ success: false, message: e.message }); }
+});
+
+// PUT /api/announcements/:id (Update)
+app.put('/api/announcements/:id', async (req, res) => {
+    const { id } = req.params;
+    const { title, content, priority, status, valid_until } = req.body;
+    try {
+        await db.execute({
+            sql: "UPDATE ANNOUNCEMENT SET title = ?, content = ?, priority = ?, status = ?, valid_until = ? WHERE announcement_id = ?",
+            args: [title, content, priority, status, valid_until || null, id]
+        });
+        res.json({ success: true, message: "Announcement updated successfully." });
+    } catch (e) { res.status(500).json({ success: false, message: e.message }); }
+});
+
+// DELETE /api/announcements/:id (Archive/Soft Delete)
+app.delete('/api/announcements/:id', async (req, res) => {
+    const { id } = req.params;
+    try {
+        await db.execute({ sql: "UPDATE ANNOUNCEMENT SET status = 'Archived' WHERE announcement_id = ?", args: [id] });
+        res.json({ success: true, message: "Announcement archived." });
+    } catch (e) { res.status(500).json({ success: false, message: e.message }); }
+});
+
 app.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`);
 });

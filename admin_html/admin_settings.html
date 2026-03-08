@@ -66,18 +66,6 @@
                                     <input type="number" value="3"
                                         class="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-blue-500">
                                 </div>
-                                <div>
-                                    <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Faculty Loan
-                                        Period (Days)</label>
-                                    <input type="number" value="30"
-                                        class="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-blue-500">
-                                </div>
-                                <div>
-                                    <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Grace Period
-                                        (Days)</label>
-                                    <input type="number" value="1"
-                                        class="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-blue-500">
-                                </div>
                             </div>
                         </div>
 
@@ -88,8 +76,7 @@
                             </div>
                             <div class="grid grid-cols-2 gap-6">
                                 <div>
-                                    <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Late Fee (Per
-                                        Day)</label>
+                                    <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Overdue (Daily)</label>
                                     <div class="relative">
                                         <span class="absolute left-3 top-2 text-slate-400">₱</span>
                                         <input type="number" value="5.00"
@@ -97,90 +84,34 @@
                                     </div>
                                 </div>
                                 <div>
-                                    <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Lost Card
-                                        Fee</label>
+                                    <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Minor Damage</label>
                                     <div class="relative">
                                         <span class="absolute left-3 top-2 text-slate-400">₱</span>
-                                        <input type="number" value="50.00"
+                                        <input type="number" value="30.00"
                                             class="w-full pl-8 bg-slate-50 border border-slate-200 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-amber-500">
                                     </div>
                                 </div>
-                                <div class="col-span-2">
-                                    <label class="flex items-center space-x-3 cursor-pointer">
-                                        <input type="checkbox" checked
-                                            class="form-checkbox h-5 w-5 text-amber-600 rounded focus:ring-amber-500">
-                                        <span class="text-sm text-slate-700">Auto-suspend accounts with fines over
-                                            ₱100.00</span>
-                                    </label>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
-                            <div class="flex items-center mb-4 border-b border-slate-100 pb-2">
-                                <span class="bg-slate-100 text-slate-600 p-2 rounded-lg mr-3"></span>
-                                <h3 class="font-bold text-slate-800">Library Information</h3>
-                            </div>
-                            <div class="space-y-4">
                                 <div>
-                                    <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Library
-                                        Name</label>
-                                    <input type="text" value="Puerto Palabra"
-                                        class="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-blue-500">
+                                    <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Moderate Damage</label>
+                                    <div class="relative">
+                                        <span class="absolute left-3 top-2 text-slate-400">₱</span>
+                                        <input type="number" value="150.00"
+                                            class="w-full pl-8 bg-slate-50 border border-slate-200 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-amber-500">
+                                    </div>
                                 </div>
                                 <div>
-                                    <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Contact
-                                        Email</label>
-                                    <input type="email" value="admin@puertopalabra.lib"
-                                        class="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-blue-500">
+                                    <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Severe Damage</label>
+                                    <div class="relative">
+                                        <span class="absolute left-3 top-2 text-slate-400">₱</span>
+                                        <input type="number" value="500.00"
+                                            class="w-full pl-8 bg-slate-50 border border-slate-200 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-amber-500">
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
                     </div>
                 </div>
-
-                <aside
-                    class="w-80 bg-white border-l border-slate-200 p-6 flex flex-col h-full overflow-y-auto shrink-0">
-                    <h3 class="font-bold text-slate-800 mb-6">System Maintenance</h3>
-
-                    <div class="bg-green-50 border border-green-100 rounded-xl p-4 mb-6">
-                        <div class="flex items-center gap-2 mb-2">
-                            <div class="h-3 w-3 bg-green-500 rounded-full animate-pulse"></div>
-                            <span class="font-bold text-green-700 text-sm">System Operational</span>
-                        </div>
-                        <p class="text-xs text-green-600">Database connection stable.</p>
-                        <p class="text-xs text-green-600">Last check: 1 min ago</p>
-                    </div>
-
-                    <div class="space-y-4">
-                        <div class="p-4 rounded-xl border border-slate-200 shadow-sm">
-                            <h4 class="font-bold text-slate-700 text-sm mb-2">Database Backup</h4>
-                            <p class="text-xs text-slate-500 mb-3">Last backup: Oct 20, 2025</p>
-                            <button
-                                class="w-full py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-lg transition-colors border border-slate-300">
-                                Download SQL Backup
-                            </button>
-                        </div>
-
-                        <div class="p-4 rounded-xl border border-slate-200 shadow-sm">
-                            <h4 class="font-bold text-slate-700 text-sm mb-2">Audit Logs</h4>
-                            <p class="text-xs text-slate-500 mb-3">View admin activity history</p>
-                            <button
-                                class="w-full py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-lg transition-colors border border-slate-300">
-                                View Logs
-                            </button>
-                        </div>
-                    </div>
-
-                    <div class="mt-auto pt-6 border-t border-slate-100">
-                        <h4 class="font-bold text-red-600 text-sm mb-3">Danger Zone</h4>
-                        <button
-                            class="w-full py-2 bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 text-xs font-bold rounded-lg transition-colors">
-                            Reset System Data
-                        </button>
-                    </div>
-                </aside>
 
                 </main>
 
