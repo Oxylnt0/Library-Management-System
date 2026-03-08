@@ -27,6 +27,7 @@ async function createAllTables() {
     `;
 
     const createSchema = `
+        -- 1. INDEPENDENT TABLES (No Foreign Keys)
         CREATE TABLE IF NOT EXISTS ADMIN (
             admin_id INTEGER PRIMARY KEY AUTOINCREMENT,
             full_name VARCHAR(100) NOT NULL,
@@ -45,14 +46,6 @@ async function createAllTables() {
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP
         );
 
-        CREATE TABLE ADMIN_AUDIT_LOG (
-            log_id INTEGER PRIMARY KEY AUTOINCREMENT,
-            admin_id INT NOT NULL,
-            action VARCHAR(100) NOT NULL,
-            date_time DATETIME DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (admin_id) REFERENCES ADMIN(admin_id)
-        );
-
         CREATE TABLE MATERIAL (
             material_id INTEGER PRIMARY KEY AUTOINCREMENT,
             title VARCHAR(150) NOT NULL,
@@ -62,7 +55,6 @@ async function createAllTables() {
             status VARCHAR(20) DEFAULT 'Available' CHECK (status IN ('Available', 'Borrowed', 'Archived', 'Lost'))
         );
 
-        -- UPDATED: Added status column with 'Pending' default
         CREATE TABLE GUARDIAN_NAME (
             guardian_id INTEGER PRIMARY KEY AUTOINCREMENT,
             first_name VARCHAR(50) NOT NULL,
@@ -73,11 +65,47 @@ async function createAllTables() {
             contact_number VARCHAR(20),
             address VARCHAR(255),
             password VARCHAR(255),
-            status VARCHAR(20) DEFAULT 'Pending' CHECK (status IN ('Pending', 'Active', 'Rejected', 'Suspended')),
+            status VARCHAR(20) DEFAULT 'Pending' CHECK (status IN ('Pending', 'Active', 'Rejected', 'Suspended', 'Banned')),
             date_created DATETIME DEFAULT CURRENT_TIMESTAMP
         );
 
-        -- UPDATED: Added status column with 'Pending' default
+        CREATE TABLE FINE_SETTINGS (
+            setting_id INTEGER PRIMARY KEY AUTOINCREMENT,
+            fine_type VARCHAR(50) NOT NULL UNIQUE,
+            fine_amount DECIMAL(10,2) NOT NULL,
+            description VARCHAR(255)
+        );
+        
+        CREATE TABLE LENDING_POLICIES (
+            policy_id INTEGER PRIMARY KEY AUTOINCREMENT,
+            policy_name VARCHAR(50) NOT NULL UNIQUE,
+            policy_value INT NOT NULL,
+            description VARCHAR(255)
+        );
+
+        -- 2. LEVEL 1 DEPENDENCIES (Require Independent Tables)
+        CREATE TABLE ADMIN_AUDIT_LOG (
+            log_id INTEGER PRIMARY KEY AUTOINCREMENT,
+            admin_id INT NOT NULL,
+            action VARCHAR(100) NOT NULL,
+            target_table VARCHAR(50),     
+            target_id INT,                
+            details VARCHAR(255),         
+            date_time DATETIME DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (admin_id) REFERENCES ADMIN(admin_id)
+        );
+
+        CREATE TABLE GUARDIAN_AUDIT_LOG (
+            log_id INTEGER PRIMARY KEY AUTOINCREMENT,
+            guardian_id INT NOT NULL,
+            action VARCHAR(100) NOT NULL,
+            target_table VARCHAR(50),     
+            target_id INT,                
+            details VARCHAR(255),         
+            date_time DATETIME DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (guardian_id) REFERENCES GUARDIAN_NAME(guardian_id)
+        );
+
         CREATE TABLE USER (
             user_id INTEGER PRIMARY KEY AUTOINCREMENT,
             guardian_id INT,
@@ -89,17 +117,9 @@ async function createAllTables() {
             address VARCHAR(255),
             birth_date DATE,
             password VARCHAR(255),
-            status VARCHAR(20) DEFAULT 'Pending' CHECK (status IN ('Pending', 'Active', 'Rejected', 'Suspended')),
+            status VARCHAR(20) DEFAULT 'Pending' CHECK (status IN ('Pending', 'Active', 'Rejected', 'Suspended', 'Banned')),
             date_created DATETIME DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (guardian_id) REFERENCES GUARDIAN_NAME(guardian_id)
-        );
-
-        CREATE TABLE USER_AUDIT_LOG (
-            log_id INTEGER PRIMARY KEY AUTOINCREMENT,
-            user_id INT NOT NULL,
-            action VARCHAR(100) NOT NULL,
-            date_time DATETIME DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (user_id) REFERENCES USER(user_id)
         );
 
         CREATE TABLE BOOK (
@@ -150,59 +170,16 @@ async function createAllTables() {
             FOREIGN KEY (material_id) REFERENCES MATERIAL(material_id)
         );
 
-        CREATE TABLE BORROW_TRANSACTION (
-            borrow_id INTEGER PRIMARY KEY AUTOINCREMENT,
+        -- 3. LEVEL 2 DEPENDENCIES (Require Level 1 Tables)
+        CREATE TABLE USER_AUDIT_LOG (
+            log_id INTEGER PRIMARY KEY AUTOINCREMENT,
             user_id INT NOT NULL,
-            book_id INT,
-            material_id INT,
-            borrow_date DATE,
-            borrow_time TIME,
-            due_date DATE,
-            return_date DATE,
-            expires_at DATETIME,
-            borrow_type VARCHAR(20) CHECK (borrow_type IN ('Inside Library', 'Outside Library')),
-            status VARCHAR(20) DEFAULT 'Pending' CHECK (status IN ('Pending', 'Borrowed', 'Returned', 'Overdue', 'Lost', 'Cancelled')),
-            extension_count INT DEFAULT 0,
-            FOREIGN KEY (user_id) REFERENCES USER(user_id),
-            FOREIGN KEY (book_id) REFERENCES BOOK(book_id),
-            FOREIGN KEY (material_id) REFERENCES MATERIAL(material_id)
-        );
-
-        CREATE TABLE FINE_SETTINGS (
-            setting_id INTEGER PRIMARY KEY AUTOINCREMENT,
-            fine_type VARCHAR(50) NOT NULL UNIQUE,
-            fine_amount DECIMAL(10,2) NOT NULL,
-            description VARCHAR(255)
-        );
-        
-        CREATE TABLE LENDING_POLICIES (
-            policy_id INTEGER PRIMARY KEY AUTOINCREMENT,
-            policy_name VARCHAR(50) NOT NULL UNIQUE,
-            policy_value INT NOT NULL,
-            description VARCHAR(255)
-        );
-
-        CREATE TABLE FINE (
-            fine_id INTEGER PRIMARY KEY AUTOINCREMENT,
-            borrow_id INT NOT NULL,
-            amount DECIMAL(10,2) NOT NULL,
-            fine_type VARCHAR(50),
-            status VARCHAR(20) DEFAULT 'Unpaid' CHECK (status IN ('Paid', 'Unpaid')),
-            FOREIGN KEY (borrow_id) REFERENCES BORROW_TRANSACTION(borrow_id)
-        );
-
-        CREATE TABLE PAYMENT (
-            payment_id INTEGER PRIMARY KEY AUTOINCREMENT,
-            borrow_id INT,
-            fine_id INT,
-            fine_amount DECIMAL(10,2),
-            payment_status VARCHAR(20) CHECK (payment_status IN ('Paid', 'Unpaid')),
-            payment_date DATE DEFAULT CURRENT_DATE,
-            payment_method VARCHAR(30),
-            or_number VARCHAR(50),      
-            remarks VARCHAR(255),       
-            FOREIGN KEY (borrow_id) REFERENCES BORROW_TRANSACTION(borrow_id),
-            FOREIGN KEY (fine_id) REFERENCES FINE(fine_id)
+            action VARCHAR(100) NOT NULL,
+            target_table VARCHAR(50),     
+            target_id INT,                
+            details VARCHAR(255),         
+            date_time DATETIME DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (user_id) REFERENCES USER(user_id)
         );
 
         CREATE TABLE BAN_TERMINATION (
@@ -212,14 +189,6 @@ async function createAllTables() {
             ban_date DATE DEFAULT CURRENT_DATE,
             end_date DATE,
             FOREIGN KEY (user_id) REFERENCES USER(user_id)
-        );
-
-        CREATE TABLE GUARDIAN_AUDIT_LOG (
-            log_id INTEGER PRIMARY KEY AUTOINCREMENT,
-            guardian_id INT NOT NULL,
-            action VARCHAR(100) NOT NULL,
-            date_time DATETIME DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (guardian_id) REFERENCES GUARDIAN_NAME(guardian_id)
         );
 
         CREATE TABLE SECURITY_QUESTIONS (
@@ -266,6 +235,49 @@ async function createAllTables() {
             FOREIGN KEY (user_id) REFERENCES USER(user_id) ON DELETE SET NULL,
             FOREIGN KEY (book_id) REFERENCES BOOK(book_id) ON DELETE SET NULL
         );
+
+        CREATE TABLE BORROW_TRANSACTION (
+            borrow_id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INT NOT NULL,
+            book_id INT,
+            material_id INT,
+            borrow_date DATE,
+            borrow_time TIME,
+            due_date DATE,
+            return_date DATE,
+            expires_at DATETIME,
+            borrow_type VARCHAR(20) CHECK (borrow_type IN ('Inside Library', 'Outside Library')),
+            status VARCHAR(20) DEFAULT 'Pending' CHECK (status IN ('Pending', 'Borrowed', 'Returned', 'Overdue', 'Lost', 'Cancelled')),
+            extension_count INT DEFAULT 0,
+            FOREIGN KEY (user_id) REFERENCES USER(user_id),
+            FOREIGN KEY (book_id) REFERENCES BOOK(book_id),
+            FOREIGN KEY (material_id) REFERENCES MATERIAL(material_id)
+        );
+
+        -- 4. LEVEL 3 DEPENDENCIES (Require Level 2 Tables)
+        CREATE TABLE FINE (
+            fine_id INTEGER PRIMARY KEY AUTOINCREMENT,
+            borrow_id INT NOT NULL,
+            amount DECIMAL(10,2) NOT NULL,
+            fine_type VARCHAR(50),
+            status VARCHAR(20) DEFAULT 'Unpaid' CHECK (status IN ('Paid', 'Unpaid')),
+            FOREIGN KEY (borrow_id) REFERENCES BORROW_TRANSACTION(borrow_id)
+        );
+
+        -- 5. LEVEL 4 DEPENDENCIES (Require Level 3 Tables)
+        CREATE TABLE PAYMENT (
+            payment_id INTEGER PRIMARY KEY AUTOINCREMENT,
+            borrow_id INT,
+            fine_id INT,
+            fine_amount DECIMAL(10,2),
+            payment_status VARCHAR(20) CHECK (payment_status IN ('Paid', 'Unpaid')),
+            payment_date DATE DEFAULT CURRENT_DATE,
+            payment_method VARCHAR(30),
+            or_number VARCHAR(50),      
+            remarks VARCHAR(255),       
+            FOREIGN KEY (borrow_id) REFERENCES BORROW_TRANSACTION(borrow_id),
+            FOREIGN KEY (fine_id) REFERENCES FINE(fine_id)
+        );
     `;
 
     const seedSettings = `
@@ -287,7 +299,7 @@ async function createAllTables() {
             await db.execute(statement);
         }
 
-        console.log("🏗️ Creating fresh tables with Registration Statuses...");
+        console.log("🏗️ Creating fresh tables sequentially...");
         const createStatements = createSchema.split(';').filter(stmt => stmt.trim() !== '');
         for (const statement of createStatements) {
             await db.execute(statement);
@@ -299,7 +311,7 @@ async function createAllTables() {
             await db.execute(statement);
         }
 
-        console.log("✅ SUCCESS: Setup complete! Status columns added.");
+        console.log("✅ SUCCESS: Setup complete! Tables are clean and dependencies are correct.");
 
     } catch (error) {
         console.error("❌ SETUP FAILED:", error);
