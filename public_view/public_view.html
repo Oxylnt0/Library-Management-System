@@ -116,151 +116,356 @@
     </style>
 </head>
 
-<body class="text-slate-800 min-h-screen flex flex-col bg-[#e6e0d4] relative">
+<body class="text-slate-800 h-screen overflow-hidden flex flex-col bg-[#e6e0d4] relative">
 
     <!-- Background Image -->
     <div class="fixed inset-0 z-0 pointer-events-none bg-cover bg-center bg-no-repeat" style="background-image: url('../assets/background.png');"></div>
 
-    <!-- Water Particles (Bubbles) -->
-    <div class="fixed inset-0 z-0 pointer-events-none overflow-hidden">
-        <div class="bubble" style="left: 5%; width: 15px; height: 15px; animation-duration: 12s; animation-delay: 0s;"></div>
-        <div class="bubble" style="left: 15%; width: 25px; height: 25px; animation-duration: 15s; animation-delay: 2s;"></div>
-        <div class="bubble" style="left: 25%; width: 10px; height: 10px; animation-duration: 10s; animation-delay: 4s;"></div>
-        <div class="bubble" style="left: 35%; width: 20px; height: 20px; animation-duration: 18s; animation-delay: 1s;"></div>
-        <div class="bubble" style="left: 45%; width: 30px; height: 30px; animation-duration: 20s; animation-delay: 3s;"></div>
-        <div class="bubble" style="left: 55%; width: 12px; height: 12px; animation-duration: 14s; animation-delay: 5s;"></div>
-        <div class="bubble" style="left: 65%; width: 22px; height: 22px; animation-duration: 16s; animation-delay: 2s;"></div>
-        <div class="bubble" style="left: 75%; width: 18px; height: 18px; animation-duration: 13s; animation-delay: 6s;"></div>
-        <div class="bubble" style="left: 85%; width: 28px; height: 28px; animation-duration: 19s; animation-delay: 0.5s;"></div>
-        <div class="bubble" style="left: 95%; width: 14px; height: 14px; animation-duration: 11s; animation-delay: 3.5s;"></div>
-    </div>
-
-    <div id="page-container" class="flex flex-col flex-1 transition-opacity duration-500 ease-in-out opacity-100">
+    <div id="page-container" class="flex flex-col flex-1 overflow-hidden transition-opacity duration-500 ease-in-out opacity-100">
         <!-- ================= NAVBAR ================= -->
-        <nav class="w-full bg-gradient-to-r from-[#183B5B] to-[#244D75] px-6 py-4 shadow-lg border-b border-[#D6A84A]/30 relative z-10 overflow-hidden">
-            <!-- Enchantment Particles -->
-            <div id="particles-container" class="absolute inset-0 pointer-events-none"></div>
-            <div class="w-full flex justify-end items-center relative z-10">
-                <div class="flex gap-4">
-                    <a href="register.html"
-                        class="nav-link px-6 py-2 rounded-full bg-[#D6A84A] text-black font-bold text-sm hover:bg-[#F0C66B] hover:text-black shadow-md transition-transform duration-300 transform hover:scale-105 animate-shimmer-bg">
-                        Register
-                    </a>
-                    <a href="login.html"
-                        class="nav-link px-6 py-2 rounded-full bg-[#D6A84A] text-black font-bold text-sm hover:bg-[#F0C66B] hover:text-black shadow-md transition-transform duration-300 transform hover:scale-105 animate-shimmer-bg">
-                        Login
-                    </a>
+        <nav class="sticky top-0 z-50 bg-[#183B5B] text-white shadow-lg border-b border-[#D6A84A]/30">
+            <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+                <!-- Left: Logo -->
+                <div class="flex items-center gap-3 cursor-pointer" onclick="showSection('home')">
+                    <img src="../assets/library_logo.jpg" class="w-10 h-10 rounded-full border-2 border-[#D6A84A]" alt="Logo">
+                    <span class="font-cinzel font-bold text-lg tracking-wide text-[#D6A84A]">Puerto Palabra Library</span>
+                </div>
+
+                <!-- Center: Nav Links -->
+                <div class="hidden md:flex gap-8 text-sm font-medium">
+                    <button onclick="showSection('home')" class="nav-item text-[#D6A84A] hover:text-white transition-colors font-bold" id="nav-home">Home</button>
+                    <button onclick="showSection('catalog')" class="nav-item text-slate-300 hover:text-[#D6A84A] transition-colors" id="nav-catalog">Catalog</button>
+                    <button onclick="showSection('contact')" class="nav-item text-slate-300 hover:text-[#D6A84A] transition-colors" id="nav-contact">Contact</button>
+                    <button onclick="showSection('about')" class="nav-item text-slate-300 hover:text-[#D6A84A] transition-colors" id="nav-about">About</button>
+                    <button onclick="showSection('faq')" class="nav-item text-slate-300 hover:text-[#D6A84A] transition-colors" id="nav-faq">FAQ</button>
+                </div>
+
+                <!-- Right: Auth -->
+                <div class="flex gap-3">
+                    <a href="login.html" class="px-5 py-2 rounded-full border border-[#D6A84A] text-[#D6A84A] text-xs font-bold hover:bg-[#D6A84A] hover:text-[#183B5B] transition-colors">Login</a>
+                    <a href="register.html" class="px-5 py-2 rounded-full bg-[#D6A84A] text-[#183B5B] text-xs font-bold hover:bg-[#F0C66B] transition-colors shadow-md">Register</a>
                 </div>
             </div>
         </nav>
     
-        <!-- ================= HERO ================= -->
-        <header class="pt-16 pb-14 relative z-10">
-            <div class="max-w-4xl mx-auto text-center px-4">
-                <h1 class="text-4xl md:text-5xl font-bold text-[#183B5B] mb-5 font-cinzel drop-shadow-sm animate-welcome">
-                    Welcome to Puerto Palabra Library
-                </h1>
-    
-                <div
-                    class="flex items-center bg-white/90 backdrop-blur-sm p-1.5 rounded-full shadow-xl border border-[#D6A84A]/30 max-w-xl mx-auto">
-                    <div class="px-4 border-r border-slate-200 text-sm font-bold text-[#183B5B]">
-                        All
-                    </div>
-                    <input type="text" id="search-input" placeholder="Search by Title, Author, ISBN..."
-                        class="flex-1 px-3 py-2.5 outline-none text-sm bg-transparent"
-                        onkeypress="if(event.key === 'Enter') handleSearch()">
-                    <button onclick="handleSearch()"
-                        class="bg-[#183B5B] text-[#D6A84A] px-6 py-2.5 rounded-full font-bold text-sm shadow-md hover:bg-[#2E5F87] transition-colors">
-                        Search
-                    </button>
-                </div>
-            </div>
-        </header>
-    
         <!-- ================= MAIN ================= -->
-        <main class="flex-1 max-w-7xl mx-auto w-full px-6 py-8 grid grid-cols-1 lg:grid-cols-12 gap-6 relative z-10">
-    
-            <!-- LEFT -->
-            <section class="lg:col-span-8 space-y-10">
-    
-                <!-- QUICK ACCESS -->
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
-                    <div
-                        onclick="openBrowseModal()"
-                        class="bg-[#fffaf0]/80 backdrop-blur-sm h-40 rounded-2xl border border-[#D6A84A]/20 flex flex-col items-center justify-center gap-3 shadow-md hover:shadow-xl hover:-translate-y-1 transition-all cursor-pointer group active:scale-95">
-                        <div class="w-14 h-14 rounded-xl bg-[#183B5B]/10 flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">📚</div>
-                        <span class="font-bold text-sm text-[#183B5B]">Browse All Books</span>
-                    </div>
-                    <div
-                        onclick="openRulesModal()"
-                        class="bg-[#fffaf0]/80 backdrop-blur-sm h-40 rounded-2xl border border-[#D6A84A]/20 flex flex-col items-center justify-center gap-3 shadow-md hover:shadow-xl hover:-translate-y-1 transition-all cursor-pointer group active:scale-95">
-                        <div class="w-14 h-14 rounded-xl bg-[#D6A84A]/10 flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">📜</div>
-                        <span class="font-bold text-sm text-[#183B5B]">Rules & Regulations</span>
-                    </div>
-                    <div
-                        onclick="openHoursModal()"
-                        class="bg-[#fffaf0]/80 backdrop-blur-sm h-40 rounded-2xl border border-[#D6A84A]/20 flex flex-col items-center justify-center gap-3 shadow-md hover:shadow-xl hover:-translate-y-1 transition-all cursor-pointer group active:scale-95">
-                        <div class="w-14 h-14 rounded-xl bg-[#5B8C5A]/10 flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">🕒</div>
-                        <span class="font-bold text-sm text-[#183B5B]">Library Hours</span>
+        <div id="main-content" class="flex-1 overflow-y-auto relative z-10">
+            
+            <!-- HOME SECTION -->
+            <section id="home" class="animate-fade-in">
+                <!-- Hero Search -->
+                <div class="bg-gradient-to-b from-[#183B5B] to-[#244D75] py-20 px-6 text-center relative overflow-hidden">
+                    <div id="particles-container" class="absolute inset-0 pointer-events-none"></div>
+                    <h1 class="text-4xl md:text-5xl font-bold text-white font-cinzel mb-6 drop-shadow-md animate-welcome">Discover Your Next Adventure</h1>
+                    <div class="max-w-2xl mx-auto relative">
+                        <input type="text" id="home-search-input" placeholder="Search by Title, Author, ISBN..." 
+                            class="w-full pl-6 pr-32 py-4 rounded-full text-slate-800 focus:outline-none shadow-xl border-2 border-transparent focus:border-[#D6A84A] bg-white/95 backdrop-blur-sm"
+                            onkeypress="if(event.key === 'Enter') handleHomeSearch()">
+                        <button onclick="handleHomeSearch()" class="absolute right-2 top-2 bottom-2 px-6 bg-[#D6A84A] text-[#183B5B] font-bold rounded-full hover:bg-[#F0C66B] transition-colors">
+                            Search
+                        </button>
                     </div>
                 </div>
-    
-                <!-- COLLECTION -->
-                <section>
-                    <div class="flex justify-between items-end mb-4 border-b border-[#D6A84A]/30 pb-3">
-                        <h2 class="text-2xl font-bold text-[#183B5B] font-cinzel">Explore Our Collection</h2>
-                        <div class="flex gap-2">
-                            <button id="btn-new" onclick="switchTab('latest')" class="px-4 py-2 bg-[#183B5B] text-[#D6A84A] rounded-full text-sm font-bold shadow-md hover:bg-[#2E5F87] transition-colors">New Arrivals</button>
-                            <button id="btn-popular" onclick="switchTab('popular')" class="px-4 py-2 border border-[#D6A84A]/50 bg-white/50 rounded-full text-sm font-bold text-[#183B5B] hover:bg-white transition-colors">Popular</button>
+
+                <div class="max-w-7xl mx-auto px-6 py-12 space-y-16">
+                    <!-- New Arrivals -->
+                    <div>
+                        <h2 class="text-2xl font-bold text-[#183B5B] font-cinzel mb-6 border-b border-[#D6A84A]/30 pb-2">New Arrivals</h2>
+                        <div id="new-arrivals-grid" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6">
+                            <!-- JS Injected -->
+                            <div class="col-span-full text-center text-slate-500 py-10">Loading new arrivals...</div>
                         </div>
                     </div>
-    
-                    <div id="collection-grid" class="grid grid-cols-2 md:grid-cols-4 gap-4 min-h-[300px]">
-                        <!-- Dynamic Content Loaded Here -->
-                        <div class="col-span-full flex justify-center items-center h-40 text-[#183B5B]/50 animate-pulse">
-                            Loading collection...
+
+                    <!-- Browse Collections -->
+                    <div>
+                        <h2 class="text-2xl font-bold text-[#183B5B] font-cinzel mb-6 border-b border-[#D6A84A]/30 pb-2">Browse Collections</h2>
+                        <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
+                            <div onclick="filterCatalog('Fiction')" class="bg-white p-6 rounded-xl shadow-md border border-slate-200 hover:shadow-xl hover:-translate-y-1 transition-all cursor-pointer group">
+                                <svg class="w-10 h-10 text-[#183B5B] mb-3 stroke-current fill-none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
+                                <h3 class="font-bold text-[#183B5B] group-hover:text-[#D6A84A] transition-colors">Fiction & Literature</h3>
+                                <p class="text-xs text-slate-500 mt-1">Novels, Classics, Fantasy</p>
+                            </div>
+                            <div onclick="filterCatalog('Non-Fiction')" class="bg-white p-6 rounded-xl shadow-md border border-slate-200 hover:shadow-xl hover:-translate-y-1 transition-all cursor-pointer group">
+                                <svg class="w-10 h-10 text-[#183B5B] mb-3 stroke-current fill-none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path></svg>
+                                <h3 class="font-bold text-[#183B5B] group-hover:text-[#D6A84A] transition-colors">General Non-Fiction</h3>
+                                <p class="text-xs text-slate-500 mt-1">History, Biography, Business</p>
+                            </div>
+                            <div onclick="filterCatalog('Academic')" class="bg-white p-6 rounded-xl shadow-md border border-slate-200 hover:shadow-xl hover:-translate-y-1 transition-all cursor-pointer group">
+                                <svg class="w-10 h-10 text-[#183B5B] mb-3 stroke-current fill-none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path></svg>
+                                <h3 class="font-bold text-[#183B5B] group-hover:text-[#D6A84A] transition-colors">Academic & Sciences</h3>
+                                <p class="text-xs text-slate-500 mt-1">Science, Math, Technology</p>
+                            </div>
+                            <div onclick="filterCatalog('Reference')" class="bg-white p-6 rounded-xl shadow-md border border-slate-200 hover:shadow-xl hover:-translate-y-1 transition-all cursor-pointer group">
+                                <svg class="w-10 h-10 text-[#183B5B] mb-3 stroke-current fill-none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z"></path></svg>
+                                <h3 class="font-bold text-[#183B5B] group-hover:text-[#D6A84A] transition-colors">Reference Materials</h3>
+                                <p class="text-xs text-slate-500 mt-1">Dictionaries, Encyclopedias</p>
+                            </div>
+                            <div onclick="filterCatalog('Special')" class="bg-white p-6 rounded-xl shadow-md border border-slate-200 hover:shadow-xl hover:-translate-y-1 transition-all cursor-pointer group">
+                                <svg class="w-10 h-10 text-[#183B5B] mb-3 stroke-current fill-none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138z"></path></svg>
+                                <h3 class="font-bold text-[#183B5B] group-hover:text-[#D6A84A] transition-colors">Special Collections</h3>
+                                <p class="text-xs text-slate-500 mt-1">Filipiniana, Thesis, Journals</p>
+                            </div>
                         </div>
                     </div>
-                </section>
-    
+
+                    <!-- Library Info -->
+                    <div>
+                        <h2 class="text-2xl font-bold text-[#183B5B] font-cinzel mb-6 border-b border-[#D6A84A]/30 pb-2">Library Information</h2>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <div class="bg-[#fffaf0] p-6 rounded-xl border border-[#D6A84A]/20 shadow-sm">
+                                <h3 class="font-bold text-lg text-[#183B5B] mb-3 flex items-center gap-2">
+                                    <svg class="w-5 h-5 text-[#183B5B]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                    Library Hours
+                                </h3>
+                                <ul class="text-sm text-slate-600 space-y-2">
+                                    <li class="flex justify-between"><span>Mon - Fri:</span> <span class="font-bold">8:00 AM - 6:00 PM</span></li>
+                                    <li class="flex justify-between"><span>Saturday:</span> <span class="font-bold">9:00 AM - 4:00 PM</span></li>
+                                    <li class="flex justify-between text-red-500"><span>Sunday:</span> <span class="font-bold">Closed</span></li>
+                                </ul>
+                            </div>
+                            <div class="bg-[#fffaf0] p-6 rounded-xl border border-[#D6A84A]/20 shadow-sm">
+                                <h3 class="font-bold text-lg text-[#183B5B] mb-3 flex items-center gap-2">
+                                    <svg class="w-5 h-5 text-[#183B5B]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"></path></svg>
+                                    Announcements
+                                </h3>
+                                <div class="space-y-3">
+                                    <div class="text-sm border-l-2 border-[#D6A84A] pl-3">
+                                        <p class="font-bold text-slate-800">System Maintenance</p>
+                                        <p class="text-xs text-slate-500">Feb 10, 2026 - Online services may be intermittent.</p>
+                                    </div>
+                                    <div class="text-sm border-l-2 border-[#D6A84A] pl-3">
+                                        <p class="font-bold text-slate-800">Book Fair 2026</p>
+                                        <p class="text-xs text-slate-500">Feb 15, 2026 - Join us at the main hall!</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="bg-[#fffaf0] p-6 rounded-xl border border-[#D6A84A]/20 shadow-sm">
+                                <h3 class="font-bold text-lg text-[#183B5B] mb-3 flex items-center gap-2">
+                                    <svg class="w-5 h-5 text-[#183B5B]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                                    Rules & Regulations
+                                </h3>
+                                <ul class="text-sm text-slate-600 list-disc pl-4 space-y-1">
+                                    <li>Silence must be observed at all times.</li>
+                                    <li>No food or drinks allowed inside.</li>
+                                    <li>Handle books with care.</li>
+                                    <li>Valid ID required for entry.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </section>
-    
-            <!-- RIGHT -->
-            <aside class="lg:col-span-4 space-y-6">
-    
-                <!-- ANNOUNCEMENTS -->
-                <div class="bg-[#fffaf0]/80 backdrop-blur-sm rounded-2xl border border-[#D6A84A]/20 overflow-hidden shadow-md">
-                    <div class="p-4 bg-[#183B5B]/5 border-b border-[#D6A84A]/20">
-                        <h3 class="font-bold text-[#183B5B] font-cinzel">Announcements</h3>
-                    </div>
-                    <div class="p-4 space-y-4 text-sm">
-                        <div>
-                            <p class="font-bold text-[#1A202C]">Library Maintenance</p>
-                            <p class="text-[#2E5F87] text-xs">Feb 10, 2026</p>
+
+            <!-- CATALOG SECTION -->
+            <section id="catalog" class="hidden h-full flex flex-col">
+                <div class="flex flex-1 overflow-hidden">
+                    <!-- Sidebar Filters -->
+                    <aside class="w-64 bg-white/80 backdrop-blur border-r border-slate-200 p-6 overflow-y-auto hidden md:block shrink-0">
+                        <h3 class="font-bold text-[#183B5B] mb-4 font-cinzel">Filters</h3>
+                        
+                        <div class="mb-6">
+                            <h4 class="text-xs font-bold text-slate-400 uppercase mb-2">Availability</h4>
+                            <div class="space-y-2 text-sm">
+                                <label class="flex items-center gap-2 cursor-pointer"><input type="radio" name="status" value="All" checked class="text-[#183B5B]"> All Books</label>
+                                <label class="flex items-center gap-2 cursor-pointer"><input type="radio" name="status" value="Available" class="text-[#183B5B]"> Available Now</label>
+                            </div>
                         </div>
-                        <div>
-                            <p class="font-bold text-[#1A202C]">Book Fair 2026</p>
-                            <p class="text-[#2E5F87] text-xs">Feb 15, 2026</p>
+
+                        <div class="space-y-4">
+                            <details class="group">
+                                <summary class="font-bold text-sm text-[#183B5B] cursor-pointer list-none flex justify-between items-center">
+                                    Fiction & Lit
+                                    <span class="transition group-open:rotate-180 text-xs">▼</span>
+                                </summary>
+                                <div class="mt-2 space-y-2 text-sm pl-2 text-slate-600">
+                                    <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="genre-filter rounded text-[#183B5B]" value="Action & Adventure"> Action & Adventure</label>
+                                    <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="genre-filter rounded text-[#183B5B]" value="Classic Fiction"> Classic Fiction</label>
+                                    <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="genre-filter rounded text-[#183B5B]" value="Fantasy"> Fantasy</label>
+                                    <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="genre-filter rounded text-[#183B5B]" value="Historical Fiction"> Historical Fiction</label>
+                                    <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="genre-filter rounded text-[#183B5B]" value="Mystery & Thriller"> Mystery & Thriller</label>
+                                    <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="genre-filter rounded text-[#183B5B]" value="Romance"> Romance</label>
+                                    <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="genre-filter rounded text-[#183B5B]" value="Science Fiction (Sci-Fi)"> Sci-Fi</label>
+                                    <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="genre-filter rounded text-[#183B5B]" value="Young Adult (YA)"> Young Adult</label>
+                                    <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="genre-filter rounded text-[#183B5B]" value="Children's Literature"> Children's Lit</label>
+                                    <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="genre-filter rounded text-[#183B5B]" value="Graphic Novel / Comic"> Graphic Novel</label>
+                                </div>
+                            </details>
+
+                            <details class="group">
+                                <summary class="font-bold text-sm text-[#183B5B] cursor-pointer list-none flex justify-between items-center">
+                                    Non-Fiction
+                                    <span class="transition group-open:rotate-180 text-xs">▼</span>
+                                </summary>
+                                <div class="mt-2 space-y-2 text-sm pl-2 text-slate-600">
+                                    <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="genre-filter rounded text-[#183B5B]" value="Biography & Autobiography"> Biography</label>
+                                    <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="genre-filter rounded text-[#183B5B]" value="Self-Help & Motivation"> Self-Help</label>
+                                    <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="genre-filter rounded text-[#183B5B]" value="Business & Economics"> Business</label>
+                                    <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="genre-filter rounded text-[#183B5B]" value="History & Geography"> History</label>
+                                    <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="genre-filter rounded text-[#183B5B]" value="Philosophy & Psychology"> Philosophy</label>
+                                    <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="genre-filter rounded text-[#183B5B]" value="Religion & Theology"> Religion</label>
+                                    <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="genre-filter rounded text-[#183B5B]" value="True Crime"> True Crime</label>
+                                    <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="genre-filter rounded text-[#183B5B]" value="Arts & Music"> Arts & Music</label>
+                                </div>
+                            </details>
+
+                            <details class="group">
+                                <summary class="font-bold text-sm text-[#183B5B] cursor-pointer list-none flex justify-between items-center">
+                                    Academic
+                                    <span class="transition group-open:rotate-180 text-xs">▼</span>
+                                </summary>
+                                <div class="mt-2 space-y-2 text-sm pl-2 text-slate-600">
+                                    <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="genre-filter rounded text-[#183B5B]" value="Computer Science & Technology"> Comp Sci</label>
+                                    <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="genre-filter rounded text-[#183B5B]" value="Medicine & Health"> Medicine</label>
+                                    <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="genre-filter rounded text-[#183B5B]" value="Biology & Life Sciences"> Biology</label>
+                                    <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="genre-filter rounded text-[#183B5B]" value="Chemistry & Physics"> Chemistry/Physics</label>
+                                    <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="genre-filter rounded text-[#183B5B]" value="Mathematics"> Mathematics</label>
+                                    <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="genre-filter rounded text-[#183B5B]" value="Engineering"> Engineering</label>
+                                    <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="genre-filter rounded text-[#183B5B]" value="Law & Politics"> Law & Politics</label>
+                                    <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="genre-filter rounded text-[#183B5B]" value="Education & Teaching"> Education</label>
+                                </div>
+                            </details>
+
+                            <details class="group">
+                                <summary class="font-bold text-sm text-[#183B5B] cursor-pointer list-none flex justify-between items-center">
+                                    Reference & Special
+                                    <span class="transition group-open:rotate-180 text-xs">▼</span>
+                                </summary>
+                                <div class="mt-2 space-y-2 text-sm pl-2 text-slate-600">
+                                    <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="genre-filter rounded text-[#183B5B]" value="Dictionary"> Dictionary</label>
+                                    <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="genre-filter rounded text-[#183B5B]" value="Encyclopedia"> Encyclopedia</label>
+                                    <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="genre-filter rounded text-[#183B5B]" value="Atlas & Maps"> Atlas & Maps</label>
+                                    <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="genre-filter rounded text-[#183B5B]" value="Almanac"> Almanac</label>
+                                    <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="genre-filter rounded text-[#183B5B]" value="Thesaurus"> Thesaurus</label>
+                                    <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="genre-filter rounded text-[#183B5B]" value="Filipiniana"> Filipiniana</label>
+                                    <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="genre-filter rounded text-[#183B5B]" value="Periodical / Journal"> Periodical</label>
+                                    <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="genre-filter rounded text-[#183B5B]" value="Thesis / Dissertation"> Thesis</label>
+                                </div>
+                            </details>
                         </div>
+
+                        <button onclick="resetFilters()" class="w-full mt-6 py-2 border border-slate-300 rounded-lg text-sm text-slate-600 hover:bg-slate-50">Reset Filters</button>
+                    </aside>
+
+                    <!-- Main Grid -->
+                    <main class="flex-1 flex flex-col h-full overflow-hidden">
+                        <!-- Topbar (Search/Sort) -->
+                        <div class="p-6 bg-white/60 border-b border-slate-200 flex flex-col md:flex-row justify-between items-center gap-4 shrink-0">
+                            <div class="relative w-full md:w-96">
+                                <input type="text" id="catalog-search-input" placeholder="Search catalog..." 
+                                    class="w-full pl-10 pr-4 py-2 rounded-full border border-slate-300 focus:outline-none focus:border-[#D6A84A] bg-white"
+                                    onkeypress="if(event.key === 'Enter') filterCatalogBooks()">
+                                <span class="absolute left-3 top-2.5 text-slate-400"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg></span>
+                            </div>
+                            
+                            <div class="flex items-center gap-3">
+                                <span class="text-sm text-slate-500 font-medium hidden md:inline">Sort by:</span>
+                                <select id="catalog-sort" onchange="sortCatalog()" class="bg-white border border-slate-300 text-slate-700 text-sm rounded-lg focus:ring-[#D6A84A] focus:border-[#D6A84A] block p-2 outline-none cursor-pointer">
+                                    <option value="title">Title (A-Z)</option>
+                                    <option value="author">Author (A-Z)</option>
+                                    <option value="year">Year (Newest)</option>
+                                </select>
+                            </div>
+
+                            <div class="text-sm text-slate-500">
+                                Found <span id="result-count" class="font-bold text-[#183B5B]">0</span> results
+                            </div>
+                        </div>
+                        <!-- Grid -->
+                        <div id="catalog-grid" class="flex-1 overflow-y-auto p-6 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 content-start">
+                            <!-- Books -->
+                        </div>
+                    </main>
+                </div>
+            </section>
+
+            <!-- CONTACT SECTION -->
+            <section id="contact" class="hidden max-w-4xl mx-auto px-6 py-12 animate-fade-in">
+                <h2 class="text-3xl font-bold text-[#183B5B] font-cinzel mb-8 text-center">Contact Us</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
+                    <div class="bg-white p-8 rounded-2xl shadow-md border border-slate-100">
+                        <svg class="w-10 h-10 text-[#183B5B] mb-4 mx-auto stroke-current fill-none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                        <h3 class="font-bold text-lg text-slate-800 mb-2">Address</h3>
+                        <p class="text-slate-600">123 Library Lane,<br>Puerto Palabra City,<br>Philippines</p>
                     </div>
-                    <div class="p-3 bg-[#183B5B]/5 text-center text-sm font-bold text-[#183B5B] hover:bg-[#183B5B]/10 cursor-pointer transition-colors">
-                        View All Announcements
+                    <div class="bg-white p-8 rounded-2xl shadow-md border border-slate-100">
+                        <svg class="w-10 h-10 text-[#183B5B] mb-4 mx-auto stroke-current fill-none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 12.284 3 6V5z" /></svg>
+                        <h3 class="font-bold text-lg text-slate-800 mb-2">Phone</h3>
+                        <p class="text-slate-600">+63 900 000 0000<br>(02) 8123 4567</p>
+                    </div>
+                    <div class="bg-white p-8 rounded-2xl shadow-md border border-slate-100">
+                        <svg class="w-10 h-10 text-[#183B5B] mb-4 mx-auto stroke-current fill-none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+                        <h3 class="font-bold text-lg text-slate-800 mb-2">Email</h3>
+                        <p class="text-slate-600">info@puertopalabra.lib<br>support@puertopalabra.lib</p>
                     </div>
                 </div>
-    
-                <!-- CONTACT -->
-                <div class="bg-[#fffaf0]/80 backdrop-blur-sm rounded-2xl border border-[#D6A84A]/20 p-5 shadow-md">
-                    <h3 class="font-bold text-[#183B5B] mb-4 font-cinzel">Contact & Support</h3>
-                    <div class="space-y-2 text-sm text-[#1A202C]">
-                        <p>📞 Contact Us</p>
-                        <p>❓ FAQs</p>
-                        <p>💻 How to Use OPAC</p>
+            </section>
+
+            <!-- ABOUT SECTION -->
+            <section id="about" class="hidden max-w-4xl mx-auto px-6 py-12 animate-fade-in">
+                <h2 class="text-3xl font-bold text-[#183B5B] font-cinzel mb-8 text-center">About Us</h2>
+                
+                <div class="space-y-8 text-slate-700 leading-relaxed">
+                    <div class="bg-white p-8 rounded-2xl shadow-md border border-slate-100">
+                        <h3 class="text-xl font-bold text-[#183B5B] mb-3 font-cinzel">About Puerto Palabra</h3>
+                        <p>Welcome to Puerto Palabra, which translates to the "Port of Words". Developed at San Sebastian College-Recoletos de Cavite by the Information Technology Department, Puerto Palabra is an Integrated Library Management System designed to modernize public library operations.</p>
+                    </div>
+
+                    <div class="bg-white p-8 rounded-2xl shadow-md border border-slate-100">
+                        <h3 class="text-xl font-bold text-[#183B5B] mb-3 font-cinzel">Our Mission</h3>
+                        <p>Libraries remain vital community institutions that provide the public with access to information, knowledge, and cultural resources. Because traditional operating methods are often fragmented, Puerto Palabra was created to enhance the efficiency, accuracy, and accessibility of library services. By making services more efficient and user-friendly, the system reinforces the role of public libraries as inclusive learning centers and supports equitable access to information.</p>
+                    </div>
+
+                    <div class="bg-white p-8 rounded-2xl shadow-md border border-slate-100">
+                        <h3 class="text-xl font-bold text-[#183B5B] mb-3 font-cinzel">What We Offer</h3>
+                        <ul class="space-y-3 list-disc pl-5">
+                            <li><strong class="text-[#D6A84A]">Online Public Access Catalog (OPAC):</strong> Our digital platform allows users to easily search, browse, and check the real-time availability of library materials.</li>
+                            <li><strong class="text-[#D6A84A]">Structured Organization:</strong> All library resources are organized using the Dewey Decimal System to guarantee accurate cataloging and efficient retrieval.</li>
+                            <li><strong class="text-[#D6A84A]">Smart QR Transactions:</strong> We utilize QR code technology to ensure quick, secure, and efficient borrowing and returning of library materials.</li>
+                            <li><strong class="text-[#D6A84A]">Automated Notifications:</strong> The system delivers reliable email notifications for transaction confirmations, due date reminders, and overdue notices.</li>
+                            <li><strong class="text-[#D6A84A]">Two-Way Donation Program:</strong> We promote the responsible redistribution of resources through a system that accepts book donations from users, while also systematically sending outdated books to other organizations.</li>
+                        </ul>
                     </div>
                 </div>
-    
-            </aside>
-    
-        </main>
+            </section>
+
+            <!-- FAQ SECTION -->
+            <section id="faq" class="hidden max-w-4xl mx-auto px-6 py-12 animate-fade-in">
+                <h2 class="text-3xl font-bold text-[#183B5B] font-cinzel mb-8 text-center">Frequently Asked Questions</h2>
+                
+                <div class="space-y-4">
+                    <div class="bg-white rounded-xl shadow-sm border border-slate-100 p-6">
+                        <h3 class="font-bold text-[#183B5B] text-lg mb-2">What is Puerto Palabra?</h3>
+                        <p class="text-slate-600 text-sm leading-relaxed">Puerto Palabra, which translates to "Port of Words", is an Integrated Library Management System designed to modernize public library operations. It features an Online Public Access Catalog (OPAC) that allows you to easily search, browse, and check the real-time availability of library materials.</p>
+                    </div>
+                    <div class="bg-white rounded-xl shadow-sm border border-slate-100 p-6">
+                        <h3 class="font-bold text-[#183B5B] text-lg mb-2">How do I borrow and return books?</h3>
+                        <p class="text-slate-600 text-sm leading-relaxed">Borrowing and returning materials is fast and easy. Our system utilizes a smart QR code-based transaction module. This technology facilitates accurate and efficient transactions, ensuring secure verification for both borrowing and returning activities.</p>
+                    </div>
+                    <div class="bg-white rounded-xl shadow-sm border border-slate-100 p-6">
+                        <h3 class="font-bold text-[#183B5B] text-lg mb-2">Can I reserve a book or extend my borrowing time?</h3>
+                        <p class="text-slate-600 text-sm leading-relaxed">Yes. The system includes a reservation management module that allows users to reserve materials that are currently available or already borrowed. You can also submit requests to extend your borrowing period. Please note that both reservations and extensions are subject to librarian approval.</p>
+                    </div>
+                    <div class="bg-white rounded-xl shadow-sm border border-slate-100 p-6">
+                        <h3 class="font-bold text-[#183B5B] text-lg mb-2">Will I be reminded when my book is due?</h3>
+                        <p class="text-slate-600 text-sm leading-relaxed">Yes, you will never have to guess when your materials are due. Puerto Palabra features an automated email notification system. It automatically delivers transaction confirmations, due date reminders, and overdue notices directly to your registered email.</p>
+                    </div>
+                    <div class="bg-white rounded-xl shadow-sm border border-slate-100 p-6">
+                        <h3 class="font-bold text-[#183B5B] text-lg mb-2">What happens if I return a library material late?</h3>
+                        <p class="text-slate-600 text-sm leading-relaxed">If a material is not returned on or before its assigned due date, it is marked as overdue. The system has an automated fine management module that automatically calculates penalties for overdue materials based on predefined library policies.</p>
+                    </div>
+                    <div class="bg-white rounded-xl shadow-sm border border-slate-100 p-6">
+                        <h3 class="font-bold text-[#183B5B] text-lg mb-2">Does the library accept book donations?</h3>
+                        <p class="text-slate-600 text-sm leading-relaxed">Yes, we strongly encourage community sharing! The library features a Two-Way Donation Management module. We accept inbound donations from users, accommodating both registered users via QR scan and non-registered donors via manual entry.</p>
+                    </div>
+                    <div class="bg-white rounded-xl shadow-sm border border-slate-100 p-6">
+                        <h3 class="font-bold text-[#183B5B] text-lg mb-2">What happens to old or outdated books in the library?</h3>
+                        <p class="text-slate-600 text-sm leading-relaxed">To keep our collection fresh and manage our inventory systematically, our Two-Way Donation module also handles outbound donations. Books that have remained in the library collection for five years or older are identified and donated to other libraries or organizations.</p>
+                    </div>
+                </div>
+            </section>
+
+        </div>
     
         <!-- ================= MODAL ================= -->
         <div id="info-modal" class="fixed inset-0 z-50 hidden bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
@@ -276,6 +481,7 @@
         </div>
 
         <script>
+            // --- Particles ---
             document.addEventListener('DOMContentLoaded', () => {
                 const container = document.getElementById('particles-container');
                 const particleCount = 40;
@@ -292,20 +498,58 @@
                     container.appendChild(particle);
                 }
 
-                // Initial Load
-                loadCollection('latest');
+                // Initial Load: New Arrivals
+                loadNewArrivals();
             });
 
             // ================= API & LOGIC =================
             const API_BASE = 'http://localhost:3000/api';
+            let allCatalogBooks = [];
 
-            // --- 1. Explore Collection Logic ---
-            async function loadCollection(type) {
-                const grid = document.getElementById('collection-grid');
+            // --- Navigation Logic ---
+            function showSection(sectionId) {
+                // Hide all sections
+                ['home', 'catalog', 'contact', 'about', 'faq'].forEach(id => {
+                    document.getElementById(id).classList.add('hidden');
+                });
+                // Show target
+                document.getElementById(sectionId).classList.remove('hidden');
+                
+                // Update Nav State
+                document.querySelectorAll('.nav-item').forEach(el => {
+                    el.classList.remove('text-[#D6A84A]', 'font-bold');
+                    el.classList.add('text-slate-300');
+                });
+                const activeNav = document.getElementById(`nav-${sectionId}`);
+                if(activeNav) {
+                    activeNav.classList.add('text-[#D6A84A]', 'font-bold');
+                    activeNav.classList.remove('text-slate-300');
+                }
+
+                // Load catalog if needed
+                if (sectionId === 'catalog' && allCatalogBooks.length === 0) {
+                    loadCatalog();
+                }
+            }
+
+            function handleHomeSearch() {
+                const query = document.getElementById('home-search-input').value.trim();
+                if (!query) return;
+                
+                document.getElementById('catalog-search-input').value = query;
+                showSection('catalog');
+                
+                // Only trigger filter if data is already loaded. If not, loadCatalog will handle it.
+                if (allCatalogBooks.length > 0) filterCatalogBooks();
+            }
+
+            // --- 1. Home Page Logic ---
+            async function loadNewArrivals() {
+                const grid = document.getElementById('new-arrivals-grid');
                 grid.innerHTML = '<div class="col-span-full flex justify-center items-center h-40 text-[#183B5B]/50 animate-pulse">Loading...</div>';
 
                 try {
-                    const res = await fetch(`${API_BASE}/books/public?sort=${type}`);
+                    const res = await fetch(`${API_BASE}/books/public?sort=latest`);
                     const result = await res.json();
 
                     if (result.success && result.data.length > 0) {
@@ -319,39 +563,157 @@
                 }
             }
 
-            function switchTab(type) {
-                const btnNew = document.getElementById('btn-new');
-                const btnPop = document.getElementById('btn-popular');
-                
-                // Active Styles
-                const activeClass = "bg-[#183B5B] text-[#D6A84A] shadow-md hover:bg-[#2E5F87]";
-                // Inactive Styles
-                const inactiveClass = "border border-[#D6A84A]/50 bg-white/50 text-[#183B5B] hover:bg-white";
-
-                if (type === 'latest') {
-                    btnNew.className = `px-4 py-2 rounded-full text-sm font-bold transition-colors ${activeClass}`;
-                    btnPop.className = `px-4 py-2 rounded-full text-sm font-bold transition-colors ${inactiveClass}`;
-                } else {
-                    btnPop.className = `px-4 py-2 rounded-full text-sm font-bold transition-colors ${activeClass}`;
-                    btnNew.className = `px-4 py-2 rounded-full text-sm font-bold transition-colors ${inactiveClass}`;
-                }
-
-                loadCollection(type);
-            }
-
             function createBookCard(book) {
                 return `
-                    <div class="group cursor-pointer">
+                    <div class="group cursor-pointer" onclick="openBookDetails(${book.book_id})">
                         <div class="rounded-xl aspect-[2/3] overflow-hidden shadow-md group-hover:shadow-xl group-hover:-translate-y-1 transition-all bg-gray-200 relative">
                             <img src="${book.image_url || '../assets/book_placeholder.png'}" 
                                 onerror="this.src='https://placehold.co/200x300?text=No+Cover'"
                                 class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
-                            ${book.borrow_count ? `<div class="absolute top-2 right-2 bg-[#D6A84A] text-black text-xs font-bold px-2 py-1 rounded-full shadow-sm">🔥 ${book.borrow_count} Borrows</div>` : ''}
+                            ${book.borrow_count ? `<div class="absolute top-2 right-2 bg-[#D6A84A] text-black text-xs font-bold px-2 py-1 rounded-full shadow-sm flex items-center gap-1"><svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M12.395 2.553a1 1 0 00-1.45-.385c-.345.23-.614.558-.822.88-.214.33-.403.713-.57 1.116-.334.804-.614 1.768-.84 2.734a31.365 31.365 0 00-.613 3.58 2.64 2.64 0 01-.945-1.067c-.328-.68-.398-1.45-.412-1.725a1 1 0 00-1.846-.408c-.658 1.27-1.77 2.401-1.77 3.82 0 .848.714 1.535 1.566 1.535.852 0 1.566-.687 1.566-1.535 0-.445-.18-.849-.462-1.136.113.113.232.22.357.32a5.004 5.004 0 006.617-.734c.032-.038.063-.078.093-.119.106-.147.207-.302.304-.463.287-.48.543-1.006.757-1.572.426-1.145.67-2.39.67-3.69 0-1.3-.244-2.545-.67-3.69-.214-.566-.47-1.092-.757-1.572z" clip-rule="evenodd"></path></svg> ${book.borrow_count} Borrows</div>` : ''}
                         </div>
                         <p class="font-bold text-sm mt-2 text-[#1A202C] group-hover:text-[#D6A84A] transition-colors line-clamp-2">${book.title}</p>
                         ${book.author ? `<p class="text-xs text-slate-500 line-clamp-1">${book.author}</p>` : ''}
                     </div>
                 `;
+            }
+
+            // --- 2. Catalog Logic ---
+            async function loadCatalog() {
+                const grid = document.getElementById('catalog-grid');
+                grid.innerHTML = '<div class="col-span-full text-center py-10">Loading catalog...</div>';
+
+                try {
+                    const res = await fetch(`${API_BASE}/books`);
+                    const result = await res.json();
+
+                    if (result.success) {
+                        allCatalogBooks = result.data;
+                        sortCatalog(); // Sorts and then filters
+                    } else {
+                        grid.innerHTML = '<div class="col-span-full text-center text-red-500">Failed to load catalog.</div>';
+                    }
+                } catch (error) {
+                    console.error("Catalog error:", error);
+                    grid.innerHTML = '<div class="col-span-full text-center text-red-500">Network error.</div>';
+                }
+            }
+
+            function sortCatalog() {
+                const sortValue = document.getElementById('catalog-sort').value;
+                
+                if (sortValue === 'title') {
+                    allCatalogBooks.sort((a, b) => (a.title || '').localeCompare(b.title || ''));
+                } else if (sortValue === 'author') {
+                    allCatalogBooks.sort((a, b) => (a.author || '').localeCompare(b.author || ''));
+                } else if (sortValue === 'year') {
+                    allCatalogBooks.sort((a, b) => (b.publication_year || 0) - (a.publication_year || 0));
+                }
+                
+                filterCatalogBooks();
+            }
+
+            function filterCatalogBooks() {
+                const grid = document.getElementById('catalog-grid');
+                const query = document.getElementById('catalog-search-input').value.toLowerCase();
+                const countEl = document.getElementById('result-count');
+
+                // Get Filters
+                const checkedGenres = Array.from(document.querySelectorAll('.genre-filter:checked')).map(cb => cb.value);
+                const statusFilter = document.querySelector('input[name="status"]:checked').value;
+
+                let filtered = allCatalogBooks.filter(book => {
+                    // Search
+                    const title = (book.title || '').toLowerCase();
+                    const author = (book.author || '').toLowerCase();
+                    const isbn = (book.isbn || '');
+
+                    const matchesSearch = !query || 
+                        title.includes(query) || 
+                        author.includes(query) || 
+                        isbn.includes(query);
+                    
+                    // Genre
+                    const matchesGenre = checkedGenres.length === 0 || checkedGenres.includes(book.genre);
+
+                    // Status
+                    const matchesStatus = statusFilter === 'All' || book.status === statusFilter;
+
+                    return matchesSearch && matchesGenre && matchesStatus;
+                });
+
+                countEl.innerText = filtered.length;
+
+                if (filtered.length === 0) {
+                    grid.innerHTML = '<div class="col-span-full text-center py-20 text-slate-400">No books found.</div>';
+                    return;
+                }
+
+                grid.innerHTML = filtered.map(book => createCatalogCard(book)).join('');
+            }
+
+            function createCatalogCard(book) {
+                let statusColor = 'bg-emerald-100 text-emerald-700';
+                if (book.status === 'Borrowed') statusColor = 'bg-amber-100 text-amber-700';
+                
+                return `
+                    <div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden hover:shadow-md transition-all group flex flex-col h-full">
+                        <div class="relative aspect-[2/3] overflow-hidden bg-slate-100">
+                            <img src="${book.image_url || '../assets/default_book.png'}" 
+                                class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                onerror="this.src='https://placehold.co/200x300?text=No+Cover'">
+                            <div class="absolute top-2 right-2">
+                                <span class="px-2 py-1 text-[10px] font-bold rounded-full ${statusColor} shadow-sm">
+                                    ${book.status}
+                                </span>
+                            </div>
+                        </div>
+                        <div class="p-4 flex flex-col flex-1">
+                            <h3 class="font-bold text-slate-800 text-sm leading-tight mb-1 line-clamp-2">${book.title}</h3>
+                            <p class="text-xs text-[#2E5F87] mb-2">${book.author}</p>
+                            <div class="mt-auto pt-2 border-t border-slate-50">
+                                <button onclick="openBookDetails(${book.book_id})" class="w-full py-2 text-xs font-bold text-[#183B5B] bg-slate-50 hover:bg-[#183B5B] hover:text-white rounded transition-colors">
+                                    View Details
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            function filterCatalog(groupName) {
+                showSection('catalog');
+                // Uncheck all
+                document.querySelectorAll('.genre-filter').forEach(cb => cb.checked = false);
+                
+                // Map groupName to genres
+                let genres = [];
+                if (groupName === 'Fiction') {
+                    genres = ["Action & Adventure", "Classic Fiction", "Fantasy", "Historical Fiction", "Mystery & Thriller", "Romance", "Science Fiction (Sci-Fi)", "Young Adult (YA)", "Children's Literature", "Graphic Novel / Comic"];
+                } else if (groupName === 'Non-Fiction') {
+                    genres = ["Biography & Autobiography", "Self-Help & Motivation", "Business & Economics", "History & Geography", "Philosophy & Psychology", "Religion & Theology", "True Crime", "Arts & Music"];
+                } else if (groupName === 'Academic') {
+                    genres = ["Computer Science & Technology", "Medicine & Health", "Biology & Life Sciences", "Chemistry & Physics", "Mathematics", "Engineering", "Law & Politics", "Education & Teaching"];
+                } else if (groupName === 'Reference') {
+                    genres = ["Dictionary", "Encyclopedia", "Atlas & Maps", "Almanac", "Thesaurus"];
+                } else if (groupName === 'Special') {
+                    genres = ["Filipiniana", "Periodical / Journal", "Thesis / Dissertation"];
+                }
+
+                // Check specific
+                genres.forEach(g => {
+                    const target = document.querySelector(`.genre-filter[value="${g}"]`);
+                    if(target) target.checked = true;
+                });
+                
+                filterCatalogBooks();
+            }
+
+            function resetFilters() {
+                document.querySelectorAll('.genre-filter').forEach(cb => cb.checked = false);
+                document.querySelector('input[name="status"][value="All"]').checked = true;
+                document.getElementById('catalog-search-input').value = '';
+                filterCatalogBooks();
             }
 
             // --- 2. Modal Logic ---
@@ -382,59 +744,40 @@
             }
 
             // --- 3. Features ---
-            
-            async function openBrowseModal(filterQuery = null) {
-                openModal(filterQuery ? `Search Results: "${filterQuery}"` : 'Browse All Books', '<div class="text-center p-10">Loading Library Catalog...</div>');
+            function openBookDetails(bookId) {
+                // Find book in cached catalog or fetch
+                const book = allCatalogBooks.find(b => b.book_id == bookId);
+                if (!book) return;
 
-                try {
-                    // Fetch ALL books
-                    const res = await fetch(`${API_BASE}/books`);
-                    const result = await res.json();
-
-                    if (result.success) {
-                        let books = result.data;
-
-                        // Client-side filtering for search
-                        if (filterQuery) {
-                            const q = filterQuery.toLowerCase();
-                            books = books.filter(b => 
-                                b.title.toLowerCase().includes(q) || 
-                                b.author.toLowerCase().includes(q) || 
-                                (b.isbn && b.isbn.includes(q))
-                            );
-                        }
-
-                        if (books.length === 0) {
-                            modalBody.innerHTML = `<div class="text-center py-10 text-slate-500 text-lg">No books found matching your search.</div>`;
-                            return;
-                        }
-
-                        const gridHtml = `
-                            <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6">
-                                ${books.map(book => createBookCard(book)).join('')}
+                const content = `
+                    <div class="flex flex-col md:flex-row gap-8">
+                        <div class="w-full md:w-1/3 flex-shrink-0">
+                            <img src="${book.image_url || '../assets/book_placeholder.png'}" class="w-full rounded-lg shadow-lg object-cover aspect-[2/3]" onerror="this.src='https://placehold.co/200x300?text=No+Cover'">
+                            <div class="mt-4 text-center">
+                                <span class="px-3 py-1 rounded-full text-sm font-bold ${book.status === 'Available' ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-600'}">${book.status}</span>
                             </div>
-                        `;
-                        modalBody.innerHTML = gridHtml;
-                    }
-                } catch (error) {
-                    modalBody.innerHTML = `<div class="text-center text-red-500">Error fetching catalog. Please try again later.</div>`;
-                }
-            }
+                        </div>
+                        <div class="flex-1">
+                            <h3 class="text-2xl font-bold text-[#183B5B] font-cinzel mb-2">${book.title}</h3>
+                            <p class="text-lg text-[#D6A84A] mb-6">${book.author}</p>
+                            
+                            <div class="grid grid-cols-2 gap-4 text-sm text-slate-600 mb-6">
+                                <div><span class="font-bold block text-xs uppercase text-slate-400">ISBN</span>${book.isbn || 'N/A'}</div>
+                                <div><span class="font-bold block text-xs uppercase text-slate-400">Publisher</span>${book.publisher || 'N/A'}</div>
+                                <div><span class="font-bold block text-xs uppercase text-slate-400">Year</span>${book.publication_year || 'N/A'}</div>
+                                <div><span class="font-bold block text-xs uppercase text-slate-400">Genre</span>${book.genre || 'N/A'}</div>
+                                <div><span class="font-bold block text-xs uppercase text-slate-400">Location</span>${book.location || 'N/A'}</div>
+                                <div><span class="font-bold block text-xs uppercase text-slate-400">Pages</span>${book.page_count || 'N/A'}</div>
+                            </div>
 
-            function handleSearch() {
-                const query = document.getElementById('search-input').value.trim();
-                if (!query) return;
-                openBrowseModal(query);
-            }
-
-            function openRulesModal() {
-                const content = `<div class="space-y-6 text-[#183B5B] max-w-3xl mx-auto"><div class="p-6 bg-white rounded-xl border border-[#D6A84A]/20 shadow-sm"><h4 class="font-bold text-xl mb-2 font-cinzel">1. General Conduct</h4><p class="text-slate-600">Silence must be observed at all times within the reading areas. Mobile phones should be set to silent mode. Food and drinks are strictly prohibited to preserve our collection.</p></div><div class="p-6 bg-white rounded-xl border border-[#D6A84A]/20 shadow-sm"><h4 class="font-bold text-xl mb-2 font-cinzel">2. Borrowing Privileges</h4><p class="text-slate-600">A valid library card is required for all transactions. Users may borrow up to 3 books at a time for a duration of 7 days. Renewals are allowed unless the book is reserved by another user.</p></div><div class="p-6 bg-white rounded-xl border border-[#D6A84A]/20 shadow-sm"><h4 class="font-bold text-xl mb-2 font-cinzel">3. Care of Materials</h4><p class="text-slate-600">Patrons are responsible for all materials borrowed on their card. Please report any existing damage before borrowing. Lost or damaged items will incur a replacement fee.</p></div></div>`;
-                openModal('Rules & Regulations', content);
-            }
-
-            function openHoursModal() {
-                const content = `<div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-[#183B5B] max-w-3xl mx-auto"><div class="p-8 bg-white rounded-2xl border border-[#D6A84A]/20 shadow-md text-center hover:-translate-y-1 transition-transform"><div class="text-5xl mb-4">☀️</div><h4 class="font-bold text-2xl mb-2 font-cinzel">Weekdays</h4><p class="font-bold text-[#D6A84A] uppercase tracking-wider text-sm mb-4">Monday - Friday</p><p class="text-xl font-mono">8:00 AM - 6:00 PM</p></div><div class="p-8 bg-white rounded-2xl border border-[#D6A84A]/20 shadow-md text-center hover:-translate-y-1 transition-transform"><div class="text-5xl mb-4">🌤️</div><h4 class="font-bold text-2xl mb-2 font-cinzel">Weekends</h4><p class="font-bold text-[#D6A84A] uppercase tracking-wider text-sm mb-4">Saturday</p><p class="text-xl font-mono">9:00 AM - 4:00 PM</p><p class="text-sm text-slate-400 mt-2 italic">(Sunday Closed)</p></div></div>`;
-                openModal('Library Hours', content);
+                            <div class="p-4 bg-blue-50 rounded-lg border border-blue-100 text-sm text-blue-800">
+                                <p><strong>Want to borrow this book?</strong></p>
+                                <p class="mt-1">Please <a href="login.html" class="underline font-bold">Login</a> or <a href="register.html" class="underline font-bold">Register</a> to access borrowing features.</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                openModal('Book Details', content);
             }
         </script>
     </div>

@@ -50,18 +50,6 @@
 
                 <main class="flex-1 overflow-y-auto p-8">
 
-                    <!-- Back Button -->
-                    <div class="flex justify-between items-center mb-6">
-                        <a href="user_dashboard.html" class="inline-flex items-center gap-2 text-sm text-[#183B5B] hover:text-[#D6A84A] transition-colors font-bold">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
-                            Back to Dashboard
-                        </a>
-                        <button onclick="logout()" class="inline-flex items-center gap-2 text-sm text-red-600 hover:text-red-800 transition-colors font-bold border border-red-200 bg-red-50 px-4 py-2 rounded-lg hover:bg-red-100">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
-                            Logout
-                        </button>
-                    </div>
-
         <!-- Page Header -->
         <header class="mb-8">
             <h1 class="text-2xl font-bold text-[#183B5B] tracking-tight mb-2 font-cinzel">My Account</h1>
@@ -92,11 +80,6 @@
                 </div>
             </div>
 
-            <div class="self-start sm:self-center">
-                <button class="px-5 py-2 rounded-lg bg-[#183B5B] text-white text-sm font-bold hover:bg-[#244D75] transition-colors shadow-md">
-                    Change Photo
-                </button>
-            </div>
         </section>
 
         <!-- Account Information -->
@@ -145,27 +128,37 @@
         </section>
 
         <!-- Security Settings -->
-        <section class="bg-white/80 backdrop-blur-md border border-[#D6A84A]/30 rounded-xl shadow-lg p-6">
+        <section class="bg-white/80 backdrop-blur-md border border-[#D6A84A]/30 rounded-xl shadow-lg p-6 mb-8">
             <h2 class="text-lg font-bold text-[#183B5B] mb-6 font-cinzel">Security</h2>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
 
                 <div>
-                    <label class="block text-sm font-bold text-[#183B5B] mb-1">Current Password</label>
-                    <input type="password" id="input-current-pass"
-                        class="w-full border border-slate-300 bg-white rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#D6A84A] text-slate-800" />
+                    <label class="block text-sm font-bold text-[#183B5B] mb-1">New Password</label>
+                    <div class="relative">
+                        <input type="password" id="input-new-pass" class="w-full border border-slate-300 bg-white rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#D6A84A] text-slate-800 pr-14" oninput="checkPasswordStrength(this.value)" />
+                        <button type="button" onclick="togglePassword('input-new-pass')" class="absolute right-3 top-2.5 opacity-50 hover:opacity-100 transition-opacity">
+                            <img src="../Assets/Icons/show_pass.png" alt="Show" class="w-5 h-5">
+                        </button>
+                    </div>
+                    <div id="password-strength" class="mt-2 text-xs text-slate-500 hidden bg-slate-50 p-3 rounded-lg border border-slate-200">
+                        <p class="font-bold mb-2 text-[#183B5B]">Password Requirements:</p>
+                        <ul class="space-y-1">
+                            <li id="req-length" class="flex items-center gap-2 text-slate-500"><span class="w-1.5 h-1.5 rounded-full bg-slate-300"></span> At least 12 characters</li>
+                            <li id="req-number" class="flex items-center gap-2 text-slate-500"><span class="w-1.5 h-1.5 rounded-full bg-slate-300"></span> At least 1 number</li>
+                            <li id="req-special" class="flex items-center gap-2 text-slate-500"><span class="w-1.5 h-1.5 rounded-full bg-slate-300"></span> At least 1 special character</li>
+                        </ul>
+                    </div>
                 </div>
 
                 <div>
-                    <label class="block text-sm font-bold text-[#183B5B] mb-1">New Password</label>
-                    <input type="password" id="input-new-pass"
-                        class="w-full border border-slate-300 bg-white rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#D6A84A] text-slate-800" />
-                </div>
-
-                <div class="sm:col-span-2">
                     <label class="block text-sm font-bold text-[#183B5B] mb-1">Confirm New Password</label>
-                    <input type="password" id="input-confirm-pass"
-                        class="w-full border border-slate-300 bg-white rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#D6A84A] text-slate-800" />
+                    <div class="relative">
+                        <input type="password" id="input-confirm-pass" class="w-full border border-slate-300 bg-white rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#D6A84A] text-slate-800 pr-14" />
+                        <button type="button" onclick="togglePassword('input-confirm-pass')" class="absolute right-3 top-2.5 opacity-50 hover:opacity-100 transition-opacity">
+                            <img src="../Assets/Icons/show_pass.png" alt="Show" class="w-5 h-5">
+                        </button>
+                    </div>
                 </div>
 
             </div>
@@ -173,6 +166,20 @@
             <div class="mt-6 text-right">
                 <button onclick="updatePassword()" class="px-6 py-2 rounded-lg bg-[#183B5B] text-white text-sm font-bold hover:bg-[#244D75] transition-colors shadow-md">
                     Update Password
+                </button>
+            </div>
+        </section>
+
+        <!-- Digital Library Card -->
+        <section class="bg-white/80 backdrop-blur-md border border-[#D6A84A]/30 rounded-xl shadow-lg p-6">
+            <h2 class="text-lg font-bold text-[#183B5B] mb-4 font-cinzel">Digital Library Card</h2>
+            <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div>
+                    <p class="text-sm text-slate-600">Lost your QR code? You can have it resent to your registered email address.</p>
+                </div>
+                <button onclick="resendQrCode()" class="w-full sm:w-auto px-6 py-2 rounded-lg bg-[#183B5B] text-white text-sm font-bold hover:bg-[#244D75] transition-colors shadow-md flex items-center justify-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                    Resend QR Code
                 </button>
             </div>
         </section>
@@ -253,11 +260,53 @@
             }
         }
 
+        function togglePassword(fieldId) {
+            const field = document.getElementById(fieldId);
+            if (field.type === "password") {
+                field.type = "text";
+            } else {
+                field.type = "password";
+            }
+        }
+
+        function checkPasswordStrength(password) {
+            const strengthBox = document.getElementById('password-strength');
+            const reqLength = document.getElementById('req-length');
+            const reqNumber = document.getElementById('req-number');
+            const reqSpecial = document.getElementById('req-special');
+
+            if (password.length > 0) {
+                strengthBox.classList.remove('hidden');
+            } else {
+                strengthBox.classList.add('hidden');
+                return;
+            }
+
+            const setValid = (el, valid) => {
+                const dot = el.querySelector('span');
+                el.className = valid ? "flex items-center gap-2 text-green-600 font-bold transition-colors" : "flex items-center gap-2 text-slate-500 transition-colors";
+                dot.className = valid ? "w-2 h-2 rounded-full bg-green-600" : "w-1.5 h-1.5 rounded-full bg-slate-300";
+            };
+
+            setValid(reqLength, password.length >= 12);
+            setValid(reqNumber, /\d/.test(password));
+            setValid(reqSpecial, /[^A-Za-z0-9]/.test(password));
+        }
+
         async function updatePassword() {
             const userId = localStorage.getItem('userId');
-            const currentPassword = document.getElementById('input-current-pass').value;
             const newPassword = document.getElementById('input-new-pass').value;
             const confirmPassword = document.getElementById('input-confirm-pass').value;
+
+            // Password Strength Validation
+            const lengthValid = newPassword.length >= 12;
+            const numberValid = /\d/.test(newPassword);
+            const specialValid = /[^A-Za-z0-9]/.test(newPassword);
+
+            if (!lengthValid || !numberValid || !specialValid) {
+                alert("Password must be at least 12 characters long, contain at least 1 number, and 1 special character.");
+                return;
+            }
 
             if (newPassword !== confirmPassword) {
                 alert("New passwords do not match!");
@@ -268,17 +317,31 @@
                 const response = await fetch(`http://localhost:3000/api/user/${userId}/password`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ currentPassword, newPassword })
+                    body: JSON.stringify({ newPassword })
                 });
                 const result = await response.json();
                 alert(result.message);
                 if (result.success) {
-                    document.getElementById('input-current-pass').value = '';
                     document.getElementById('input-new-pass').value = '';
                     document.getElementById('input-confirm-pass').value = '';
                 }
             } catch (error) {
                 alert('Failed to update password.');
+            }
+        }
+
+        async function resendQrCode() {
+            const userId = localStorage.getItem('userId');
+            if (!confirm("Resend your Digital Library Card QR code to your email?")) return;
+
+            try {
+                const response = await fetch(`http://localhost:3000/api/user/${userId}/resend-qr`, {
+                    method: 'POST'
+                });
+                const result = await response.json();
+                alert(result.message);
+            } catch (error) {
+                alert('Failed to resend QR code.');
             }
         }
 

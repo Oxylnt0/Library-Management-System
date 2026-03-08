@@ -3,7 +3,7 @@ const cors = require('cors');
 const path = require('path');
 require('dotenv').config();
 const { db } = require('./db_config.js');
-const { sendAdminWelcomeEmail, sendOtpEmail, sendAccountStatusEmail } = require('./email_service.js');
+const { sendAdminWelcomeEmail, sendOtpEmail, sendAccountStatusEmail, sendLibraryCard } = require('./email_service.js');
 const { logUserAction, logAdminAction } = require('./audit_service.js');
 
 const app = express();
@@ -547,7 +547,9 @@ app.get('/api/books', async (req, res) => {
     const userId = req.query.user_id;
 
     try {
-        let sql = "SELECT * FROM BOOK";
+        let sql = `SELECT * FROM BOOK 
+                   WHERE book_condition NOT IN ('Outdated', 'Obsolete') 
+                   AND status NOT IN ('Archived', 'Donated Outbound', 'Lost')`;
         let args = [];
 
         if (userId) {
@@ -562,6 +564,8 @@ app.get('/api/books', async (req, res) => {
                  AND r.user_id = ? 
                  AND r.status = 'Pending') as user_is_waitlisted
                 FROM BOOK b
+                WHERE b.book_condition NOT IN ('Outdated', 'Obsolete') 
+                AND b.status NOT IN ('Archived', 'Donated Outbound', 'Lost')
             `;
             args = [userId, userId];
         }
@@ -833,22 +837,9 @@ app.put('/api/user/:id', async (req, res) => {
 // 20. PUT /api/user/:id/password (Update Password)
 app.put('/api/user/:id/password', async (req, res) => {
     const { id } = req.params;
-    const { currentPassword, newPassword } = req.body;
+    const { newPassword } = req.body;
 
     try {
-        // 1. Verify current password
-        const userRes = await db.execute({
-            sql: "SELECT password FROM USER WHERE user_id = ?",
-            args: [id]
-        });
-
-        if (userRes.rows.length === 0) return res.status(404).json({ success: false, message: "User not found." });
-        
-        if (userRes.rows[0].password !== currentPassword) {
-            return res.status(400).json({ success: false, message: "Incorrect current password." });
-        }
-
-        // 2. Update password
         await db.execute({
             sql: "UPDATE USER SET password = ? WHERE user_id = ?",
             args: [newPassword, id]
@@ -873,13 +864,18 @@ app.get('/api/books/public', async (req, res) => {
                 SELECT b.book_id, b.title, b.image_url, COUNT(bt.borrow_id) as borrow_count
                 FROM BOOK b
                 LEFT JOIN BORROW_TRANSACTION bt ON b.book_id = bt.book_id
+                WHERE b.book_condition NOT IN ('Outdated', 'Obsolete') 
+                AND b.status NOT IN ('Archived', 'Donated Outbound', 'Lost')
                 GROUP BY b.book_id
                 ORDER BY borrow_count DESC, b.title ASC
                 LIMIT 4
             `;
         } else {
             // Default to latest
-            sql = "SELECT book_id, title, image_url, date_added FROM BOOK ORDER BY date_added DESC, book_id DESC LIMIT 4";
+            sql = `SELECT book_id, title, image_url, date_added FROM BOOK 
+                   WHERE book_condition NOT IN ('Outdated', 'Obsolete') 
+                   AND status NOT IN ('Archived', 'Donated Outbound', 'Lost')
+                   ORDER BY date_added DESC, book_id DESC LIMIT 4`;
         }
 
         const result = await db.execute(sql);
@@ -1315,6 +1311,31 @@ app.post('/api/admin/user/status', async (req, res) => {
     } catch (e) {
         console.error("Update Status Error:", e);
         res.status(500).json({ success: false, message: e.message });
+    }
+});
+
+// 37. POST /api/user/:id/resend-qr
+app.post('/api/user/:id/resend-qr', async (req, res) => {
+    const { id } = req.params;
+    try {
+        const userRes = await db.execute({
+            sql: "SELECT email, first_name FROM USER WHERE user_id = ?",
+            args: [id]
+        });
+
+        if (userRes.rows.length === 0) return res.status(404).json({ success: false, message: "User not found." });
+        
+        const user = userRes.rows[0];
+        const sent = await sendLibraryCard(user.email, id, user.first_name);
+
+        if (sent) {
+            res.json({ success: true, message: "QR Code sent to your email." });
+        } else {
+            res.status(500).json({ success: false, message: "Failed to send email." });
+        }
+    } catch (error) {
+        console.error("Resend QR Error:", error);
+        res.status(500).json({ success: false, message: error.message });
     }
 });
 
