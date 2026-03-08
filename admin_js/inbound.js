@@ -184,6 +184,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Loop through queue and submit individually
                 // (Ideally backend supports batch, but loop works for now)
                 for (const item of donationQueue) {
+                    const adminId = localStorage.getItem('adminId');
                     const response = await fetch('http://localhost:3000/api/donations/inbound', {
                     method: 'POST',
                     headers: {
@@ -194,7 +195,8 @@ document.addEventListener('DOMContentLoaded', () => {
                             donor_name: item.donor_name,
                             book_title: item.book_title,
                             category: item.category,
-                            quantity: item.quantity
+                            quantity: item.quantity,
+                            adminId: adminId
                         })
                     });
                     

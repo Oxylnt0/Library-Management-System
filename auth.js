@@ -1,6 +1,7 @@
 const path = require('path');
 const { db } = require(path.join(process.cwd(), 'db_config.js'));
 const { sendLibraryCard } = require(path.join(process.cwd(), 'email_service.js'));
+const { logUserAction, logGuardianAction } = require(path.join(process.cwd(), 'audit_service.js'));
 
 async function registerUser(userData) {
     try {
@@ -39,6 +40,7 @@ async function registerUser(userData) {
         }
 
         await sendLibraryCard(userData.email, userId, userData.firstName);
+        await logUserAction(userId, 'REGISTRATION', 'USER', userId, 'New user registration completed');
 
         return { success: true, message: "Registration successful! Please wait for admin approval." };
     } catch (error) {
@@ -100,6 +102,8 @@ async function registerGuardian(guardianData, childData) {
 
         const childId = childResult.rows[0].user_id;
         await sendLibraryCard(guardianData.email, childId, childData.firstName);
+        await logGuardianAction(guardianId, 'REGISTRATION', 'GUARDIAN_NAME', guardianId, 'New guardian registration completed');
+        await logUserAction(childId, 'REGISTRATION', 'USER', childId, 'Child account registered via Guardian');
 
         return { success: true, message: "Registration successful! Please wait for admin approval." };
     } catch (error) {
@@ -121,6 +125,7 @@ async function login(email, password) {
             if (user.status === 'Pending') return { success: false, message: "Account is pending approval." };
             if (user.status === 'Rejected') return { success: false, message: "Account has been rejected." };
             if (user.status === 'Suspended') return { success: false, message: "Account is suspended." };
+            await logUserAction(user.user_id, 'LOGIN', 'USER', user.user_id, 'User logged in successfully');
             return { success: true, role: 'user', user };
         }
 
@@ -135,6 +140,7 @@ async function login(email, password) {
             if (guardian.status === 'Pending') return { success: false, message: "Account is pending approval." };
             if (guardian.status === 'Rejected') return { success: false, message: "Account has been rejected." };
             if (guardian.status === 'Suspended') return { success: false, message: "Account is suspended." };
+            await logGuardianAction(guardian.guardian_id, 'LOGIN', 'GUARDIAN_NAME', guardian.guardian_id, 'Guardian logged in successfully');
             return { success: true, role: 'guardian', user: guardian };
         }
 

@@ -993,6 +993,7 @@
           {
             const path = require('path');
             const { registerUser, registerGuardian } = require(path.join(process.cwd(), 'auth.js'));
+            const { logAdminAction } = require(path.join(process.cwd(), 'audit_service.js'));
 
             function showCustomAlert(message, callback) {
                 const alertBox = document.getElementById('custom-alert');
@@ -1042,6 +1043,8 @@
                 btn.innerHTML = '<span class="spinner"></span> Processing...';
                 btn.classList.add('opacity-75', 'cursor-not-allowed');
 
+                const adminId = localStorage.getItem('adminId');
+
                 try {
                     if (window.currentFlow === 'user') {
                         const userData = {
@@ -1062,6 +1065,9 @@
 
                         const result = await registerUser(userData);
                         if (result.success) {
+                            if (adminId) {
+                                await logAdminAction(adminId, 'ADD_USER', 'USER', null, `Admin manually registered user: ${userData.email}`);
+                            }
                             showCustomAlert(result.message, () => {
                                 window.location.href = 'login.html';
                             });
@@ -1095,6 +1101,9 @@
 
                         const result = await registerGuardian(guardianData, childData);
                         if (result.success) {
+                            if (adminId) {
+                                await logAdminAction(adminId, 'ADD_USER', 'GUARDIAN_NAME', null, `Admin manually registered guardian: ${guardianData.email}`);
+                            }
                             showCustomAlert(result.message, () => {
                                 window.location.href = 'login.html';
                             });

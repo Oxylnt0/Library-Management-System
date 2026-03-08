@@ -413,6 +413,7 @@
         const path = require('path');
         // Adjust path to point to root db_config.js using process.cwd() for reliability
         const { db } = require(path.join(process.cwd(), 'db_config.js'));
+        const { logAdminAction } = require(path.join(process.cwd(), 'audit_service.js'));
 
         let isArchivedView = false;
         let currentSearchTerm = '';
@@ -632,6 +633,7 @@
             const category = document.getElementById('edit-category').value;
             const source = document.getElementById('edit-source').value;
             const condition = document.getElementById('edit-condition').value;
+            const adminId = localStorage.getItem('adminId');
 
             try {
                 const query = `
@@ -647,6 +649,10 @@
                     sql: query,
                     args: [title, author, isbn, publisher, year, genre, dewey, location, status, pages, age, total, avail, image, category, source, condition, id]
                 });
+
+                if (adminId) {
+                    await logAdminAction(adminId, 'EDIT_BOOK', 'BOOK', id, `Edited details for book: ${title}`);
+                }
 
                 closeModal('edit-modal');
                 loadBooks(); // Refresh grid
@@ -712,11 +718,17 @@
 
         async function archiveBook() {
             const id = document.getElementById('archive-book-id').value;
+            const title = document.getElementById('archive-book-title').innerText;
+            const adminId = localStorage.getItem('adminId');
+
             try {
                 await db.execute({
                     sql: "UPDATE BOOK SET status = 'Archived' WHERE book_id = ?",
                     args: [id]
                 });
+                if (adminId) {
+                    await logAdminAction(adminId, 'ARCHIVE_BOOK', 'BOOK', id, `Archived book: ${title}`);
+                }
                 closeModal('archive-modal');
                 loadBooks();
             } catch (err) {

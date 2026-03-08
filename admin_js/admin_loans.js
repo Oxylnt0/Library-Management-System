@@ -2,6 +2,7 @@
     try {
         const path = require('path');
         const { db } = require(path.join(process.cwd(), 'db_config.js'));
+        const { logAdminAction } = require(path.join(process.cwd(), 'audit_service.js'));
 
         // Initialize
         let borrowedData = [];
@@ -289,6 +290,11 @@
                     args: [borrowId]
                 });
 
+                const adminId = localStorage.getItem('adminId');
+                if (adminId) {
+                    await logAdminAction(adminId, 'CONFIRM_BORROW', 'BORROW_TRANSACTION', borrowId, `Admin confirmed borrow for user ${userId}`);
+                }
+
                 alert("Book successfully borrowed!");
                 onUserQrScanned(userId, 'borrow'); // Refresh modal
                 fetchRecentActivity();
@@ -358,6 +364,11 @@
                 }
                 if (damageAmount > 0) {
                     await db.execute({ sql: "INSERT INTO FINE (borrow_id, amount, fine_type, status) VALUES (?, ?, ?, 'Unpaid')", args: [borrowId, damageAmount, damageType] });
+                }
+
+                const adminId = localStorage.getItem('adminId');
+                if (adminId) {
+                    await logAdminAction(adminId, 'RETURN_BOOK', 'BORROW_TRANSACTION', borrowId, `Admin processed return for user ${userId}`);
                 }
 
                 alert("Book returned successfully.");

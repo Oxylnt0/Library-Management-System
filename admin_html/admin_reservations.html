@@ -150,6 +150,7 @@
       {
         const path = require('path');
         const { db } = require(path.join(process.cwd(), 'db_config.js'));
+        const { logAdminAction } = require(path.join(process.cwd(), 'audit_service.js'));
 
         let currentSearchTerm = '';
 
@@ -259,14 +260,19 @@
         }
 
         window.approveReservation = async function(reservationId) {
+            const adminId = localStorage.getItem('adminId');
             try {
                 await db.execute({ sql: "UPDATE RESERVATION SET status = 'Approved' WHERE reservation_id = ?", args: [reservationId] });
+                if (adminId) {
+                    await logAdminAction(adminId, 'APPROVE_RESERVATION', 'RESERVATION', reservationId, `Approved reservation #${reservationId}`);
+                }
                 fetchReservations();
             } catch(e) { alert("Error: " + e.message); }
         }
 
         window.claimBook = async function(reservationId, userId, bookId) {
             if(!confirm("Confirm book claim? This will start the loan period.")) return;
+            const adminId = localStorage.getItem('adminId');
             try {
                 // Fetch material_id and available_copies
                 const bookRes = await db.execute({ sql: "SELECT material_id, available_copies FROM BOOK WHERE book_id = ?", args: [bookId] });
@@ -285,6 +291,11 @@
                 
                 const newStatus = (currentCopies - 1 === 0) ? 'Borrowed' : 'Available';
                 await db.execute({ sql: "UPDATE BOOK SET available_copies = available_copies - 1, status = ? WHERE book_id = ?", args: [newStatus, bookId] });
+                
+                if (adminId) {
+                    await logAdminAction(adminId, 'CLAIM_BOOK', 'RESERVATION', reservationId, `Processed claim for reservation #${reservationId} (User: ${userId}, Book: ${bookId})`);
+                }
+
                 fetchReservations(); fetchStats();
             } catch(e) { alert("Error: " + e.message); }
         }

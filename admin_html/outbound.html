@@ -350,13 +350,16 @@
             btn.disabled = true;
             btn.innerText = "Processing...";
 
+            const adminId = localStorage.getItem('adminId');
+
             try {
                 const response = await fetch('http://localhost:3000/api/donations/outbound/bulk', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         books: booksToDonate,
-                        recipient_organization: recipient
+                        recipient_organization: recipient,
+                        adminId: adminId
                     })
                 });
 

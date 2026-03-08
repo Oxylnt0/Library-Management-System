@@ -338,7 +338,7 @@
                         <button onclick="deleteAdmin(${admin.admin_id})" class="text-red-600 hover:text-red-800 font-bold text-xs transition-colors">Delete</button>
                     `;
                 } else {
-                    actions = `<span class="text-slate-400 text-xs italic">Protected</span>`;
+                    actions = `<span class="text-slate-400 text-xs italic">--</span>`;
                 }
 
                 tr.innerHTML = `
@@ -353,8 +353,13 @@
 
         window.deleteAdmin = async function(id) {
             if (!confirm("Are you sure you want to delete this admin account? This action cannot be undone.")) return;
+            const currentAdminId = localStorage.getItem('adminId');
             try {
-                const response = await fetch(`http://localhost:3000/api/admin/${id}`, { method: 'DELETE' });
+                const response = await fetch(`http://localhost:3000/api/admin/${id}`, { 
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ currentAdminId })
+                });
                 const result = await response.json();
                 alert(result.message);
                 if (result.success) loadAdminDirectory();
@@ -375,12 +380,13 @@
             const full_name = document.getElementById('edit-admin-name').value;
             const email = document.getElementById('edit-admin-email').value;
             const role = document.getElementById('edit-admin-role').value;
+            const currentAdminId = localStorage.getItem('adminId');
 
             try {
                 const response = await fetch(`http://localhost:3000/api/admin/${id}`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ full_name, email, role })
+                    body: JSON.stringify({ full_name, email, role, currentAdminId })
                 });
                 const result = await response.json();
                 alert(result.message);
@@ -441,7 +447,7 @@
                 const response = await fetch(`http://localhost:3000/api/admin/${adminId}`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ full_name: fullName, email })
+                    body: JSON.stringify({ full_name: fullName, email, adminId })
                 });
                 const result = await response.json();
                 alert(result.message);
@@ -466,6 +472,7 @@
             const password = document.getElementById('new-admin-password').value;
             const confirmPassword = document.getElementById('new-admin-confirm-password').value;
             const role = document.getElementById('new-admin-role').value;
+            const currentAdminId = localStorage.getItem('adminId');
 
             // Password Strength Validation
             const lengthValid = password.length >= 12;
@@ -486,7 +493,7 @@
                 const response = await fetch('http://localhost:3000/api/admin/create', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ full_name: fullName, email, password, role })
+                    body: JSON.stringify({ full_name, email, password, role, currentAdminId })
                 });
                 const result = await response.json();
                 if (result.success) {
@@ -527,7 +534,7 @@
                 const response = await fetch(`http://localhost:3000/api/admin/${adminId}/password`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ password })
+                    body: JSON.stringify({ password, adminId })
                 });
                 const result = await response.json();
                 alert(result.message);

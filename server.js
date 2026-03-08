@@ -4,6 +4,7 @@ const path = require('path');
 require('dotenv').config();
 const { db } = require('./db_config.js');
 const { sendAdminWelcomeEmail, sendOtpEmail, sendAccountStatusEmail } = require('./email_service.js');
+const { logUserAction, logAdminAction } = require('./audit_service.js');
 
 const app = express();
 const PORT = 3000;
@@ -160,7 +161,7 @@ app.post('/api/checkout', async (req, res) => {
 
 // 4. POST /api/donations/inbound
 app.post('/api/donations/inbound', async (req, res) => {
-    const { user_id, donor_name, book_title, category, quantity } = req.body;
+    const { user_id, donor_name, book_title, category, quantity, adminId } = req.body;
 
     try {
         await db.execute({
@@ -168,6 +169,10 @@ app.post('/api/donations/inbound', async (req, res) => {
                   VALUES ('Inbound', ?, ?, ?, ?, ?, DATE('now', '+8 hours'))`,
             args: [user_id || null, donor_name || null, book_title, category, quantity]
         });
+
+        if (adminId) {
+            await logAdminAction(adminId, 'INBOUND_DONATION', 'DONATION', null, `Received donation: ${book_title} (x${quantity}) from ${donor_name || 'Anonymous'}`);
+        }
 
         res.json({ success: true, message: "Donation recorded successfully." });
     } catch (error) {
@@ -196,7 +201,7 @@ app.get('/api/donations/eligible', async (req, res) => {
 
 // 6. POST /api/donations/outbound
 app.post('/api/donations/outbound', async (req, res) => {
-    const { book_id, book_title, category, recipient_organization } = req.body;
+    const { book_id, book_title, category, recipient_organization, adminId } = req.body;
 
     try {
         // 1. Update Book Status
@@ -212,6 +217,10 @@ app.post('/api/donations/outbound', async (req, res) => {
             args: [recipient_organization, book_id, book_title, category]
         });
 
+        if (adminId) {
+            await logAdminAction(adminId, 'OUTBOUND_DONATION', 'DONATION', null, `Donated book '${book_title}' to ${recipient_organization}`);
+        }
+
         res.json({ success: true, message: "Outbound donation processed successfully." });
     } catch (error) {
         console.error("Outbound Donation Error:", error);
@@ -221,7 +230,7 @@ app.post('/api/donations/outbound', async (req, res) => {
 
 // 6.5 POST /api/donations/outbound/bulk
 app.post('/api/donations/outbound/bulk', async (req, res) => {
-    const { books, recipient_organization } = req.body; // books is array of { book_id, book_title, category }
+    const { books, recipient_organization, adminId } = req.body; // books is array of { book_id, book_title, category }
 
     try {
         for (const book of books) {
@@ -239,6 +248,10 @@ app.post('/api/donations/outbound/bulk', async (req, res) => {
             });
         }
        
+        if (adminId) {
+            await logAdminAction(adminId, 'OUTBOUND_DONATION', 'DONATION', null, `Processed bulk donation of ${books.length} items to ${recipient_organization}`);
+        }
+
         res.json({ success: true, message: `Successfully donated ${books.length} items.` });
     } catch (error) {
         console.error("Bulk Outbound Donation Error:", error);
@@ -380,6 +393,10 @@ app.post('/api/books/add', async (req, res) => {
             });
         }
 
+        if (data.admin_id) {
+            await logAdminAction(data.admin_id, 'ADD_MATERIAL', 'MATERIAL', materialId, `Added new ${materialType}: ${data.title}`);
+        }
+
         res.json({ success: true, message: "Item added successfully." });
     } catch (error) {
         console.error("Add Book Error:", error);
@@ -421,7 +438,7 @@ app.post('/api/borrow/kiosk', async (req, res) => {
     try {
         // 1. Check availability
         const bookRes = await db.execute({
-            sql: "SELECT available_copies, status, material_id FROM BOOK WHERE book_id = ?",
+            sql: "SELECT available_copies, status, material_id, title FROM BOOK WHERE book_id = ?",
             args: [book_id]
         });
 
@@ -431,11 +448,13 @@ app.post('/api/borrow/kiosk', async (req, res) => {
         if (book.available_copies <= 0) return res.status(400).json({ success: false, message: "Book is currently unavailable." });
 
         // 2. Create Pending Transaction (Hold expires in 30 mins)
-        await db.execute({
+        const transRes = await db.execute({
             sql: `INSERT INTO BORROW_TRANSACTION (user_id, book_id, material_id, borrow_date, status, expires_at, borrow_type) 
-                  VALUES (?, ?, ?, DATE('now', '+8 hours'), 'Pending', DATETIME('now', '+8 hours', '+30 minutes'), 'Outside Library')`,
+                  VALUES (?, ?, ?, DATE('now', '+8 hours'), 'Pending', DATETIME('now', '+8 hours', '+30 minutes'), 'Outside Library') RETURNING borrow_id`,
             args: [user_id, book_id, book.material_id]
         });
+
+        const borrowId = transRes.rows[0].borrow_id;
 
         // 3. Update Book Inventory
         const newStatus = (book.available_copies - 1 === 0) ? 'Borrowed' : 'Available';
@@ -443,6 +462,8 @@ app.post('/api/borrow/kiosk', async (req, res) => {
             sql: "UPDATE BOOK SET available_copies = available_copies - 1, status = ? WHERE book_id = ?",
             args: [newStatus, book_id]
         });
+
+        await logUserAction(user_id, 'BORROW_HOLD', 'BORROW_TRANSACTION', borrowId, `User placed 30-min hold on '${book.title}'`);
 
         res.json({ success: true, message: "Hold placed successfully." });
     } catch (error) {
@@ -455,16 +476,19 @@ app.post('/api/borrow/kiosk', async (req, res) => {
 app.post('/api/borrow/cancel', async (req, res) => {
     const { borrow_id } = req.body;
     try {
-        // Get book_id from transaction to update inventory
+        // Get book_id and user_id from transaction to update inventory and log
         const transRes = await db.execute({
-            sql: "SELECT book_id FROM BORROW_TRANSACTION WHERE borrow_id = ? AND status = 'Pending'",
+            sql: `SELECT bt.book_id, bt.user_id, b.title 
+                  FROM BORROW_TRANSACTION bt
+                  JOIN BOOK b ON bt.book_id = b.book_id
+                  WHERE bt.borrow_id = ? AND bt.status = 'Pending'`,
             args: [borrow_id]
         });
         
         if (transRes.rows.length === 0) {
             return res.status(400).json({ success: false, message: "Transaction not found or not pending." });
         }
-        const bookId = transRes.rows[0].book_id;
+        const { book_id, user_id, title } = transRes.rows[0];
 
         // Update Transaction to Cancelled
         await db.execute({
@@ -475,8 +499,10 @@ app.post('/api/borrow/cancel', async (req, res) => {
         // Update Book Inventory (Make available again)
         await db.execute({
             sql: "UPDATE BOOK SET status = 'Available', available_copies = available_copies + 1 WHERE book_id = ?",
-            args: [bookId]
+            args: [book_id]
         });
+
+        await logUserAction(user_id, 'CANCEL_HOLD', 'BORROW_TRANSACTION', borrow_id, `User cancelled hold for '${title}'`);
 
         res.json({ success: true, message: "Hold cancelled successfully." });
     } catch (error) {
@@ -497,11 +523,17 @@ app.post('/api/waitlist', async (req, res) => {
         });
         const nextPriority = (prioRes.rows[0]?.max_p || 0) + 1;
 
+        // Fetch title for log
+        const bookRes = await db.execute({ sql: "SELECT title FROM BOOK WHERE book_id = ?", args: [book_id] });
+        const bookTitle = bookRes.rows[0]?.title || 'Unknown Book';
+
         // 2. Insert Reservation
-        await db.execute({
-            sql: "INSERT INTO RESERVATION (user_id, book_id, status, priority_no) VALUES (?, ?, 'Pending', ?)",
+        const resResult = await db.execute({
+            sql: "INSERT INTO RESERVATION (user_id, book_id, status, priority_no) VALUES (?, ?, 'Pending', ?) RETURNING reservation_id",
             args: [user_id, book_id, nextPriority]
         });
+
+        await logUserAction(user_id, 'JOIN_WAITLIST', 'RESERVATION', resResult.rows[0].reservation_id, `User joined waitlist for '${bookTitle}' (Priority: ${nextPriority})`);
 
         res.json({ success: true, message: "Added to waitlist." });
     } catch (error) {
@@ -938,16 +970,22 @@ app.post('/api/admin/weeding/archive-all', async (req, res) => {
 
 // 23. POST /api/admin/create
 app.post('/api/admin/create', async (req, res) => {
-    const { full_name, email, password, role } = req.body;
+    const { full_name, email, password, role, currentAdminId } = req.body;
 
     try {
-        await db.execute({
-            sql: "INSERT INTO ADMIN (full_name, email, password, role, status) VALUES (?, ?, ?, ?, 'Active')",
+        const result = await db.execute({
+            sql: "INSERT INTO ADMIN (full_name, email, password, role, status) VALUES (?, ?, ?, ?, 'Active') RETURNING admin_id",
             args: [full_name, email, password, role]
         });
 
+        const newAdminId = result.rows[0].admin_id;
+
         // Send Welcome Email
         await sendAdminWelcomeEmail(email, full_name, role);
+
+        if (currentAdminId) {
+            await logAdminAction(currentAdminId, 'CREATE_ADMIN', 'ADMIN', newAdminId, `Created new admin: ${full_name} (${role})`);
+        }
 
         res.json({ success: true, message: "Admin created successfully." });
     } catch (error) {
@@ -968,6 +1006,7 @@ app.post('/api/admin/login', async (req, res) => {
         if (result.rows.length > 0) {
             const admin = result.rows[0];
             // Remove password from response
+            await logAdminAction(admin.admin_id, 'LOGIN', 'ADMIN', admin.admin_id, 'Admin logged in successfully');
             delete admin.password;
             res.json({ success: true, admin });
         } else {
@@ -1002,12 +1041,15 @@ app.get('/api/admin/:id', async (req, res) => {
 // 26. PUT /api/admin/:id/password
 app.put('/api/admin/:id/password', async (req, res) => {
     const { id } = req.params;
-    const { password } = req.body;
+    const { password, adminId } = req.body;
     try {
         await db.execute({
             sql: "UPDATE ADMIN SET password = ? WHERE admin_id = ?",
             args: [password, id]
         });
+        if (adminId) {
+            await logAdminAction(adminId, 'CHANGE_PASSWORD', 'ADMIN', id, 'Updated own password');
+        }
         res.json({ success: true, message: "Password updated successfully." });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
@@ -1017,7 +1059,9 @@ app.put('/api/admin/:id/password', async (req, res) => {
 // 27. PUT /api/admin/:id (Update Profile Info)
 app.put('/api/admin/:id', async (req, res) => {
     const { id } = req.params;
-    const { full_name, email, role } = req.body;
+    const { full_name, email, role, currentAdminId, adminId } = req.body;
+    const actorId = currentAdminId || adminId;
+
     try {
         if (role) {
             await db.execute({
@@ -1030,6 +1074,12 @@ app.put('/api/admin/:id', async (req, res) => {
                 args: [full_name, email, id]
             });
         }
+
+        if (actorId) {
+            const action = (actorId == id) ? 'UPDATE_PROFILE' : 'EDIT_ADMIN';
+            await logAdminAction(actorId, action, 'ADMIN', id, `Updated admin ${id} details`);
+        }
+
         res.json({ success: true, message: "Admin profile updated successfully." });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
@@ -1049,11 +1099,15 @@ app.get('/api/admins', async (req, res) => {
 // 29. DELETE /api/admin/:id (Delete admin)
 app.delete('/api/admin/:id', async (req, res) => {
     const { id } = req.params;
+    const { currentAdminId } = req.body;
     try {
         await db.execute({
             sql: "DELETE FROM ADMIN WHERE admin_id = ?",
             args: [id]
         });
+        if (currentAdminId) {
+            await logAdminAction(currentAdminId, 'DELETE_ADMIN', 'ADMIN', id, `Deleted admin account ${id}`);
+        }
         res.json({ success: true, message: "Admin deleted successfully." });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
@@ -1119,6 +1173,7 @@ app.post('/api/auth/forgot-email/verify', async (req, res) => {
             const maskedLocal = local.length > 3 ? local.substring(0, 3) + '*'.repeat(local.length - 3) : local + '***';
             const maskedEmail = `${maskedLocal}@${domain}`;
             
+            await logUserAction(userId, 'FORGOT_EMAIL_REVEAL', 'USER', userId, 'User recovered email via security questions');
             res.json({ success: true, email: maskedEmail });
         } else {
             res.json({ success: false, message: "Incorrect answers." });
@@ -1197,13 +1252,20 @@ app.post('/api/auth/reset-password', async (req, res) => {
         }
         // Update Password
         await db.execute({ sql: "UPDATE USER SET password = ? WHERE email = ?", args: [newPassword, email] });
+        
+        // Fetch ID for logging
+        const userRes = await db.execute({ sql: "SELECT user_id FROM USER WHERE email = ?", args: [email] });
+        if (userRes.rows.length > 0) {
+            await logUserAction(userRes.rows[0].user_id, 'PASSWORD_RESET', 'USER', userRes.rows[0].user_id, 'Password reset successfully using Email OTP/Questions');
+        }
+        
         res.json({ success: true, message: "Password updated successfully." });
     } catch (e) { res.status(500).json({ success: false, message: e.message }); }
 });
 
 // 36. POST /api/admin/user/status
 app.post('/api/admin/user/status', async (req, res) => {
-    const { userId, status } = req.body; // status: 'Active' or 'Rejected'
+    const { userId, status, adminId } = req.body; // status: 'Active' or 'Rejected'
     try {
         // 1. Fetch User to get email and guardian info
         const userRes = await db.execute({
@@ -1243,6 +1305,10 @@ app.post('/api/admin/user/status', async (req, res) => {
         // 4. Send Email
         if (emailToSend) {
             await sendAccountStatusEmail(emailToSend, nameToSend, status);
+        }
+
+        if (adminId) {
+            await logAdminAction(adminId, 'UPDATE_USER_STATUS', 'USER', userId, `User status updated to ${status}`);
         }
 
         res.json({ success: true, message: `User status updated to ${status}.` });

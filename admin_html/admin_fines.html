@@ -298,6 +298,7 @@
         const path = require('path');
         const { db } = require(path.join(process.cwd(), 'db_config.js'));
         const { sendPaymentReceipt } = require(path.join(process.cwd(), 'email_service.js'));
+        const { logAdminAction } = require(path.join(process.cwd(), 'audit_service.js'));
 
         let allFines = [];
         let fineSettings = [];
@@ -566,6 +567,11 @@
                 // 5. Send Email (Async, don't block UI)
                 sendPaymentReceipt(userEmail, receiptData);
 
+                const adminId = localStorage.getItem('adminId');
+                if (adminId) {
+                    await logAdminAction(adminId, 'PROCESS_PAYMENT', 'FINE', fineId, `Processed Cash payment of ₱${amount.toFixed(2)} (OR: ${orNumber})`);
+                }
+
                 // 6. Show Receipt Modal
                 closePaymentModal();
                 showReceiptModal(receiptData);
@@ -670,6 +676,11 @@
                             remarks: 'Paid via Paymongo Link'
                         })
                     });
+
+                    const adminId = localStorage.getItem('adminId');
+                    if (adminId) {
+                        await logAdminAction(adminId, 'PROCESS_PAYMENT', 'FINE', currentEWalletFineId, `Verified E-Wallet payment of ₱${currentEWalletAmount.toFixed(2)} (Ref: ${result.reference_number || currentPaymongoLinkId})`);
+                    }
 
                     // Send Receipt
                     const receiptData = {
