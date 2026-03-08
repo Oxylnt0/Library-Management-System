@@ -442,7 +442,7 @@
                 // 1. Fetch Books
                 if (filterType === 'all' || filterType === 'Book') {
                     let sql = "SELECT *, 'Book' as material_type FROM BOOK WHERE ";
-                    sql += isArchivedView ? "status IN ('Archived', 'Donated Outbound')" : "status NOT IN ('Archived', 'Donated Outbound')";
+                    sql += isArchivedView ? "status = 'Archived'" : "status NOT IN ('Archived', 'Donated Outbound')";
 
                     const args = [];
                     if (currentSearchTerm) {
@@ -456,7 +456,7 @@
                 // 2. Fetch Periodicals
                 if (filterType === 'all' || filterType === 'Periodical') {
                     let sql = "SELECT *, 'Periodical' as material_type FROM PERIODICAL WHERE ";
-                    sql += isArchivedView ? "status IN ('Archived', 'Donated Outbound')" : "status NOT IN ('Archived', 'Donated Outbound')";
+                    sql += isArchivedView ? "status = 'Archived'" : "status NOT IN ('Archived', 'Donated Outbound')";
 
                     const args = [];
                     if (currentSearchTerm) {

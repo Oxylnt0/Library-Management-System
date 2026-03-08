@@ -50,18 +50,6 @@
 
                 <main class="flex-1 overflow-y-auto p-8">
 
-                    <!-- Back Button -->
-                    <div class="flex justify-between items-center mb-6">
-                        <a href="admin_dashboard.html" class="inline-flex items-center gap-2 text-sm text-[#183B5B] hover:text-[#D6A84A] transition-colors font-bold">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
-                            Back to Dashboard
-                        </a>
-                        <button onclick="window.location.href='admin_login.html'" class="inline-flex items-center gap-2 text-sm text-red-600 hover:text-red-800 transition-colors font-bold border border-red-200 bg-red-50 px-4 py-2 rounded-lg hover:bg-red-100">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
-                            Logout
-                        </button>
-                    </div>
-
                     <!-- Page Header -->
                     <header class="mb-8">
                         <h1 class="text-2xl font-bold text-[#183B5B] tracking-tight mb-2 font-cinzel">Admin Profile</h1>
@@ -79,12 +67,12 @@
                         </div>
 
                         <div class="flex-1">
-                            <h2 class="text-xl font-bold text-[#183B5B]">Administrator</h2>
-                            <p class="text-slate-600">admin@library.com</p>
+                            <h2 class="text-xl font-bold text-[#183B5B]" id="profile-name">Administrator</h2>
+                            <p class="text-slate-600" id="profile-email">admin@library.com</p>
 
                             <div class="flex flex-wrap gap-3 mt-4">
-                                <span class="px-3 py-1 text-xs rounded-full bg-[#183B5B]/10 text-[#183B5B] font-bold border border-[#183B5B]/20">
-                                    Super Admin
+                                <span class="px-3 py-1 text-xs rounded-full bg-[#183B5B]/10 text-[#183B5B] font-bold border border-[#183B5B]/20" id="profile-role">
+                                    Admin
                                 </span>
                                 <span class="px-3 py-1 text-xs rounded-full bg-[#D6A84A]/20 text-[#8B6508] font-bold border border-[#D6A84A]/30">
                                     Full System Access
@@ -95,38 +83,32 @@
 
                     <!-- Account Information -->
                     <section class="bg-white/80 backdrop-blur-md border border-[#D6A84A]/30 rounded-xl shadow-lg p-6 mb-8">
-                        <h2 class="text-lg font-bold text-[#183B5B] mb-6 font-cinzel">System Information</h2>
+                        <h2 class="text-lg font-bold text-[#183B5B] mb-6 font-cinzel">Admin Information</h2>
 
                         <form class="grid grid-cols-1 sm:grid-cols-2 gap-6">
 
                             <div>
-                                <label class="block text-sm font-bold text-[#183B5B] mb-1">Username</label>
-                                <input type="text" value="admin" readonly
-                                    class="w-full border border-slate-300 bg-slate-100 rounded-lg px-4 py-2 focus:outline-none text-slate-500 cursor-not-allowed" />
-                            </div>
-
-                            <div>
-                                <label class="block text-sm font-bold text-[#183B5B] mb-1">Role</label>
-                                <input type="text" value="Super Administrator" readonly
-                                    class="w-full border border-slate-300 bg-slate-100 rounded-lg px-4 py-2 focus:outline-none text-slate-500 cursor-not-allowed" />
-                            </div>
-
-                            <div>
-                                <label class="block text-sm font-bold text-[#183B5B] mb-1">Email Address</label>
-                                <input type="email" value="admin@library.com"
+                                <label class="block text-sm font-bold text-[#183B5B] mb-1">Full Name</label>
+                                <input type="text" id="account-name"
                                     class="w-full border border-slate-300 bg-white rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#D6A84A] text-slate-800" />
                             </div>
 
                             <div>
-                                <label class="block text-sm font-bold text-[#183B5B] mb-1">Contact Number</label>
-                                <input type="text" value="+63 900 000 0000"
+                                <label class="block text-sm font-bold text-[#183B5B] mb-1">Role</label>
+                                <input type="text" id="account-role" readonly
+                                    class="w-full border border-slate-300 bg-slate-100 rounded-lg px-4 py-2 focus:outline-none text-slate-600 cursor-not-allowed" />
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-bold text-[#183B5B] mb-1">Email Address</label>
+                                <input type="email" id="account-email"
                                     class="w-full border border-slate-300 bg-white rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#D6A84A] text-slate-800" />
                             </div>
 
                         </form>
 
                         <div class="mt-6 text-right">
-                            <button class="px-6 py-2 rounded-lg bg-[#183B5B] text-white text-sm font-bold hover:bg-[#244D75] transition-colors shadow-md">
+                            <button id="btn-save-profile" class="px-6 py-2 rounded-lg bg-[#183B5B] text-white text-sm font-bold hover:bg-[#244D75] transition-colors shadow-md">
                                 Save Changes
                             </button>
                         </div>
@@ -135,20 +117,112 @@
                     <!-- Security Settings -->
                     <section class="bg-white/80 backdrop-blur-md border border-[#D6A84A]/30 rounded-xl shadow-lg p-6 mb-8">
                         <h2 class="text-lg font-bold text-[#183B5B] mb-6 font-cinzel">Security Settings</h2>
-                        <div class="grid grid-cols-1 gap-6 max-w-md">
+                        <form id="change-password-form" class="grid grid-cols-1 gap-6 max-w-md">
                             <div>
                                 <label class="block text-sm font-bold text-[#183B5B] mb-1">New Password</label>
-                                <input type="password" placeholder="Enter new password" class="w-full border border-slate-300 bg-white rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#D6A84A] text-slate-800" />
+                                <div class="relative">
+                                    <input type="password" id="cp-new-password" required placeholder="Enter new password" class="w-full border border-slate-300 bg-white rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#D6A84A] text-slate-800 pr-14" oninput="checkChangePasswordStrength(this.value)" />
+                                    <button type="button" onclick="togglePassword('cp-new-password')" class="absolute right-3 top-2.5 opacity-50 hover:opacity-100 transition-opacity">
+                                        <img src="../Assets/Icons/show_pass.png" alt="Show" class="w-5 h-5">
+                                    </button>
+                                </div>
+                                <div id="cp-password-strength" class="mt-2 text-xs text-slate-500 hidden bg-slate-50 p-3 rounded-lg border border-slate-200">
+                                    <p class="font-bold mb-2 text-[#183B5B]">Password Requirements:</p>
+                                    <ul class="space-y-1">
+                                        <li id="cp-req-length" class="flex items-center gap-2 text-slate-500"><span class="w-1.5 h-1.5 rounded-full bg-slate-300"></span> At least 12 characters</li>
+                                        <li id="cp-req-number" class="flex items-center gap-2 text-slate-500"><span class="w-1.5 h-1.5 rounded-full bg-slate-300"></span> At least 1 number</li>
+                                        <li id="cp-req-special" class="flex items-center gap-2 text-slate-500"><span class="w-1.5 h-1.5 rounded-full bg-slate-300"></span> At least 1 special character</li>
+                                    </ul>
+                                </div>
                             </div>
                             <div>
                                 <label class="block text-sm font-bold text-[#183B5B] mb-1">Confirm Password</label>
-                                <input type="password" placeholder="Confirm new password" class="w-full border border-slate-300 bg-white rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#D6A84A] text-slate-800" />
+                                <div class="relative">
+                                    <input type="password" id="cp-confirm-password" required placeholder="Confirm new password" class="w-full border border-slate-300 bg-white rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#D6A84A] text-slate-800 pr-14" />
+                                    <button type="button" onclick="togglePassword('cp-confirm-password')" class="absolute right-3 top-2.5 opacity-50 hover:opacity-100 transition-opacity">
+                                        <img src="../Assets/Icons/show_pass.png" alt="Show" class="w-5 h-5">
+                                    </button>
+                                </div>
                             </div>
                             <div>
-                                <button class="px-6 py-2 rounded-lg bg-[#183B5B] text-white text-sm font-bold hover:bg-[#244D75] transition-colors shadow-md">
+                                <button type="submit" class="px-6 py-2 rounded-lg bg-[#183B5B] text-white text-sm font-bold hover:bg-[#244D75] transition-colors shadow-md">
                                     Change Password
                                 </button>
                             </div>
+                        </form>
+                    </section>
+
+                    <!-- Create New Admin -->
+                    <section class="bg-white/80 backdrop-blur-md border border-[#D6A84A]/30 rounded-xl shadow-lg p-6 mb-8">
+                        <h2 class="text-lg font-bold text-[#183B5B] mb-6 font-cinzel">Add New Staff</h2>
+                        <form id="create-admin-form" class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-sm font-bold text-[#183B5B] mb-1">Full Name</label>
+                                <input type="text" id="new-admin-name" required placeholder="Enter full name" class="w-full border border-slate-300 bg-white rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#D6A84A] text-slate-800" />
+                            </div>
+                            <div>
+                                <label class="block text-sm font-bold text-[#183B5B] mb-1">Email Address</label>
+                                <input type="email" id="new-admin-email" required placeholder="Enter email address" class="w-full border border-slate-300 bg-white rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#D6A84A] text-slate-800" />
+                            </div>
+                            <div>
+                                <label class="block text-sm font-bold text-[#183B5B] mb-1">Password</label>
+                                <div class="relative">
+                                    <input type="password" id="new-admin-password" required placeholder="Enter password" class="w-full border border-slate-300 bg-white rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#D6A84A] text-slate-800 pr-14" oninput="checkPasswordStrength(this.value)" />
+                                    <button type="button" onclick="togglePassword('new-admin-password')" class="absolute right-3 top-2.5 opacity-50 hover:opacity-100 transition-opacity">
+                                        <img src="../Assets/Icons/show_pass.png" alt="Show" class="w-5 h-5">
+                                    </button>
+                                </div>
+                                <div id="password-strength" class="mt-2 text-xs text-slate-500 hidden bg-slate-50 p-3 rounded-lg border border-slate-200">
+                                    <p class="font-bold mb-2 text-[#183B5B]">Password Requirements:</p>
+                                    <ul class="space-y-1">
+                                        <li id="req-length" class="flex items-center gap-2 text-slate-500"><span class="w-1.5 h-1.5 rounded-full bg-slate-300"></span> At least 12 characters</li>
+                                        <li id="req-number" class="flex items-center gap-2 text-slate-500"><span class="w-1.5 h-1.5 rounded-full bg-slate-300"></span> At least 1 number</li>
+                                        <li id="req-special" class="flex items-center gap-2 text-slate-500"><span class="w-1.5 h-1.5 rounded-full bg-slate-300"></span> At least 1 special character</li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-bold text-[#183B5B] mb-1">Re-enter Password</label>
+                                <div class="relative">
+                                    <input type="password" id="new-admin-confirm-password" required placeholder="Re-enter password" class="w-full border border-slate-300 bg-white rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#D6A84A] text-slate-800 pr-14" />
+                                    <button type="button" onclick="togglePassword('new-admin-confirm-password')" class="absolute right-3 top-2.5 opacity-50 hover:opacity-100 transition-opacity">
+                                        <img src="../Assets/Icons/show_pass.png" alt="Show" class="w-5 h-5">
+                                    </button>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-bold text-[#183B5B] mb-1">Role</label>
+                                <select id="new-admin-role" class="w-full border border-slate-300 bg-white rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#D6A84A] text-slate-800">
+                                    <option value="Administrator">Administrator</option>
+                                    <option value="Librarian">Librarian</option>
+                                    <option value="Assistant Librarian">Assistant Librarian</option>
+                                </select>
+                            </div>
+                            <div class="col-span-1 sm:col-span-2 text-right">
+                                <button type="submit" class="px-6 py-2 rounded-lg bg-[#183B5B] text-white text-sm font-bold hover:bg-[#244D75] transition-colors shadow-md">
+                                    Create Admin
+                                </button>
+                            </div>
+                        </form>
+                    </section>
+
+                    <!-- Admin Directory (Visible only to Administrators) -->
+                    <section id="admin-directory-section" class="hidden bg-white/80 backdrop-blur-md border border-[#D6A84A]/30 rounded-xl shadow-lg p-6 mb-8">
+                        <h2 class="text-lg font-bold text-[#183B5B] mb-6 font-cinzel">Admin Directory</h2>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse">
+                                <thead class="bg-slate-50 text-xs font-bold text-slate-500 uppercase">
+                                    <tr>
+                                        <th class="p-4 border-b">Name</th>
+                                        <th class="p-4 border-b">Email</th>
+                                        <th class="p-4 border-b">Role</th>
+                                        <th class="p-4 border-b text-right">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="admin-list-body" class="divide-y divide-slate-100 text-sm">
+                                    <!-- Rows -->
+                                </tbody>
+                            </table>
                         </div>
                     </section>
 
@@ -158,7 +232,312 @@
         </div>
     </div>
 
+    <!-- Edit Admin Modal -->
+    <div id="edit-admin-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black/50 backdrop-blur-sm">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-md p-6">
+            <h3 class="text-xl font-bold text-[#183B5B] mb-4 font-cinzel">Edit Admin</h3>
+            <form id="edit-admin-form" class="space-y-4">
+                <input type="hidden" id="edit-admin-id">
+                <div>
+                    <label class="block text-sm font-bold text-[#183B5B] mb-1">Full Name</label>
+                    <input type="text" id="edit-admin-name" required class="w-full border border-slate-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#D6A84A]">
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-[#183B5B] mb-1">Email</label>
+                    <input type="email" id="edit-admin-email" required class="w-full border border-slate-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#D6A84A]">
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-[#183B5B] mb-1">Role</label>
+                    <select id="edit-admin-role" class="w-full border border-slate-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#D6A84A]">
+                        <option value="Librarian">Librarian</option>
+                        <option value="Assistant Librarian">Assistant Librarian</option>
+                    </select>
+                </div>
+                <div class="flex justify-end gap-3 pt-2">
+                    <button type="button" onclick="document.getElementById('edit-admin-modal').classList.add('hidden')" class="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-lg font-bold text-sm transition-colors">Cancel</button>
+                    <button type="submit" class="px-4 py-2 bg-[#183B5B] text-white rounded-lg hover:bg-[#244D75] font-bold text-sm transition-colors shadow-md">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script src="../admin_js/dashboard_loader.js"></script>
+    <script>
+        // Populate Admin Data
+        document.addEventListener('DOMContentLoaded', async () => {
+            const adminId = localStorage.getItem('adminId');
+            const adminRole = localStorage.getItem('adminRole');
+
+            if (!adminId) {
+                // Not logged in
+                window.location.href = 'admin_login.html';
+                return;
+            }
+
+            // Load Directory if Administrator
+            if (adminRole === 'Administrator') {
+                loadAdminDirectory();
+            }
+
+            try {
+                const response = await fetch(`http://localhost:3000/api/admin/${adminId}`);
+                const result = await response.json();
+                
+                if (result.success) {
+                    const admin = result.data;
+                    
+                    // Update Profile Header
+                    document.getElementById('profile-name').innerText = admin.full_name;
+                    document.getElementById('profile-email').innerText = admin.email;
+                    document.getElementById('profile-role').innerText = admin.role;
+
+                    // Update Form Fields
+                    document.getElementById('account-name').value = admin.full_name;
+                    document.getElementById('account-role').value = admin.role;
+                    document.getElementById('account-email').value = admin.email;
+
+                    // Update Topbar (if loaded)
+                    const topbarName = document.getElementById('topbar-admin-name');
+                    const topbarRole = document.getElementById('topbar-admin-role');
+                    if (topbarName) topbarName.innerText = admin.full_name;
+                    if (topbarRole) topbarRole.innerText = admin.role;
+
+                }
+            } catch (error) {
+                console.error("Error loading admin profile:", error);
+            }
+        });
+
+        async function loadAdminDirectory() {
+            const section = document.getElementById('admin-directory-section');
+            section.classList.remove('hidden');
+
+            try {
+                const response = await fetch('http://localhost:3000/api/admins');
+                const result = await response.json();
+                if (result.success) {
+                    renderAdminTable(result.data);
+                }
+            } catch (e) { console.error(e); }
+        }
+
+        function renderAdminTable(admins) {
+            const tbody = document.getElementById('admin-list-body');
+            tbody.innerHTML = '';
+            const currentId = parseInt(localStorage.getItem('adminId'));
+
+            admins.forEach(admin => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-50 transition-colors";
+                
+                // Logic: Only show actions for Librarians and Assistant Librarians, and NOT for self.
+                let actions = '';
+                if (admin.admin_id !== currentId && (admin.role === 'Librarian' || admin.role === 'Assistant Librarian')) {
+                    actions = `
+                        <button onclick="openEditAdminModal(${admin.admin_id}, '${admin.full_name}', '${admin.email}', '${admin.role}')" class="text-blue-600 hover:text-blue-800 mr-3 font-bold text-xs transition-colors">Edit</button>
+                        <button onclick="deleteAdmin(${admin.admin_id})" class="text-red-600 hover:text-red-800 font-bold text-xs transition-colors">Delete</button>
+                    `;
+                } else {
+                    actions = `<span class="text-slate-400 text-xs italic">Protected</span>`;
+                }
+
+                tr.innerHTML = `
+                    <td class="p-4 font-bold text-slate-700">${admin.full_name} ${admin.admin_id === currentId ? '<span class="text-xs text-slate-400 font-normal">(You)</span>' : ''}</td>
+                    <td class="p-4 text-slate-600">${admin.email}</td>
+                    <td class="p-4"><span class="px-2 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-600 border border-slate-200">${admin.role}</span></td>
+                    <td class="p-4 text-right">${actions}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        window.deleteAdmin = async function(id) {
+            if (!confirm("Are you sure you want to delete this admin account? This action cannot be undone.")) return;
+            try {
+                const response = await fetch(`http://localhost:3000/api/admin/${id}`, { method: 'DELETE' });
+                const result = await response.json();
+                alert(result.message);
+                if (result.success) loadAdminDirectory();
+            } catch (e) { alert("Error: " + e.message); }
+        }
+
+        window.openEditAdminModal = function(id, name, email, role) {
+            document.getElementById('edit-admin-id').value = id;
+            document.getElementById('edit-admin-name').value = name;
+            document.getElementById('edit-admin-email').value = email;
+            document.getElementById('edit-admin-role').value = role;
+            document.getElementById('edit-admin-modal').classList.remove('hidden');
+        }
+
+        document.getElementById('edit-admin-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('edit-admin-id').value;
+            const full_name = document.getElementById('edit-admin-name').value;
+            const email = document.getElementById('edit-admin-email').value;
+            const role = document.getElementById('edit-admin-role').value;
+
+            try {
+                const response = await fetch(`http://localhost:3000/api/admin/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ full_name, email, role })
+                });
+                const result = await response.json();
+                alert(result.message);
+                if (result.success) {
+                    document.getElementById('edit-admin-modal').classList.add('hidden');
+                    loadAdminDirectory();
+                }
+            } catch (e) { alert("Error: " + e.message); }
+        });
+
+        function togglePassword(fieldId) {
+            const field = document.getElementById(fieldId);
+            if (field.type === "password") {
+                field.type = "text";
+            } else {
+                field.type = "password";
+            }
+        }
+
+        function updateStrengthMeter(password, meterId, lengthId, numberId, specialId) {
+            const strengthBox = document.getElementById(meterId);
+            const reqLength = document.getElementById(lengthId);
+            const reqNumber = document.getElementById(numberId);
+            const reqSpecial = document.getElementById(specialId);
+
+            if (password.length > 0) {
+                strengthBox.classList.remove('hidden');
+            } else {
+                strengthBox.classList.add('hidden');
+                return;
+            }
+
+            const setValid = (el, valid) => {
+                const dot = el.querySelector('span');
+                el.className = valid ? "flex items-center gap-2 text-green-600 font-bold transition-colors" : "flex items-center gap-2 text-slate-500 transition-colors";
+                dot.className = valid ? "w-2 h-2 rounded-full bg-green-600" : "w-1.5 h-1.5 rounded-full bg-slate-300";
+            };
+
+            setValid(reqLength, password.length >= 12);
+            setValid(reqNumber, /\d/.test(password));
+            setValid(reqSpecial, /[^A-Za-z0-9]/.test(password));
+        }
+
+        function checkPasswordStrength(password) {
+            updateStrengthMeter(password, 'password-strength', 'req-length', 'req-number', 'req-special');
+        }
+
+        function checkChangePasswordStrength(password) {
+            updateStrengthMeter(password, 'cp-password-strength', 'cp-req-length', 'cp-req-number', 'cp-req-special');
+        }
+
+        document.getElementById('btn-save-profile').addEventListener('click', async () => {
+            const adminId = localStorage.getItem('adminId');
+            const fullName = document.getElementById('account-name').value;
+            const email = document.getElementById('account-email').value;
+
+            try {
+                const response = await fetch(`http://localhost:3000/api/admin/${adminId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ full_name: fullName, email })
+                });
+                const result = await response.json();
+                alert(result.message);
+                
+                if (result.success) {
+                    // Update UI elements to reflect changes immediately
+                    document.getElementById('profile-name').innerText = fullName;
+                    document.getElementById('profile-email').innerText = email;
+                    const topbarName = document.getElementById('topbar-admin-name');
+                    if (topbarName) topbarName.innerText = fullName;
+                }
+            } catch (error) {
+                console.error(error);
+                alert('Failed to update profile.');
+            }
+        });
+
+        document.getElementById('create-admin-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const fullName = document.getElementById('new-admin-name').value;
+            const email = document.getElementById('new-admin-email').value;
+            const password = document.getElementById('new-admin-password').value;
+            const confirmPassword = document.getElementById('new-admin-confirm-password').value;
+            const role = document.getElementById('new-admin-role').value;
+
+            // Password Strength Validation
+            const lengthValid = password.length >= 12;
+            const numberValid = /\d/.test(password);
+            const specialValid = /[^A-Za-z0-9]/.test(password);
+
+            if (!lengthValid || !numberValid || !specialValid) {
+                alert("Password must be at least 12 characters long, contain at least 1 number, and 1 special character.");
+                return;
+            }
+
+            if (password !== confirmPassword) {
+                alert("Passwords do not match!");
+                return;
+            }
+
+            try {
+                const response = await fetch('http://localhost:3000/api/admin/create', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ full_name: fullName, email, password, role })
+                });
+                const result = await response.json();
+                if (result.success) {
+                    alert('New admin created successfully!');
+                    e.target.reset();
+                    loadAdminDirectory(); // Refresh list
+                } else {
+                    alert('Error: ' + result.message);
+                }
+            } catch (error) {
+                console.error(error);
+                alert('Failed to create admin.');
+            }
+        });
+
+        document.getElementById('change-password-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const password = document.getElementById('cp-new-password').value;
+            const confirmPassword = document.getElementById('cp-confirm-password').value;
+            const adminId = localStorage.getItem('adminId');
+
+            // Password Strength Validation
+            const lengthValid = password.length >= 12;
+            const numberValid = /\d/.test(password);
+            const specialValid = /[^A-Za-z0-9]/.test(password);
+
+            if (!lengthValid || !numberValid || !specialValid) {
+                alert("Password must be at least 12 characters long, contain at least 1 number, and 1 special character.");
+                return;
+            }
+
+            if (password !== confirmPassword) {
+                alert("Passwords do not match!");
+                return;
+            }
+
+            try {
+                const response = await fetch(`http://localhost:3000/api/admin/${adminId}/password`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ password })
+                });
+                const result = await response.json();
+                alert(result.message);
+                if(result.success) e.target.reset();
+            } catch (error) {
+                console.error(error);
+                alert('Failed to update password.');
+            }
+        });
+    </script>
 </body>
 
 </html>

@@ -98,4 +98,46 @@ async function sendPaymentReceipt(userEmail, receiptData) {
   }
 }
 
-module.exports = { sendLibraryCard, sendPaymentReceipt };
+async function sendAdminWelcomeEmail(email, name, role) {
+  try {
+    console.log(`⏳ Sending Admin Welcome Email to: ${email}...`);
+
+    const mailOptions = {
+      from: `"Puerto Palabra Library System" <${process.env.EMAIL_USER}>`,
+      to: email,
+      subject: "Welcome to the Team! - Puerto Palabra Library",
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 10px; background-color: #f9f9f9;">
+          <h2 style="color: #183B5B; text-align: center;">Welcome to Puerto Palabra!</h2>
+          <p style="color: #333; font-size: 16px;">Dear <strong>${name}</strong>,</p>
+          
+          <p style="color: #555; line-height: 1.6;">
+            We are pleased to inform you that you have been appointed as a <strong>${role}</strong> at Puerto Palabra Library.
+            Your account has been successfully created.
+          </p>
+
+          <div style="background-color: #fff; padding: 15px; border-left: 4px solid #D6A84A; margin: 20px 0;">
+            <p style="margin: 5px 0; color: #333;"><strong>Login Credentials:</strong></p>
+            <p style="margin: 5px 0; color: #555;">Email: ${email}</p>
+          </div>
+
+          <p style="color: #555; font-size: 14px;">
+            Please log in to the admin portal to access your dashboard. We recommend changing your password upon your first login for security purposes.
+          </p>
+
+          <hr style="border: 0; border-top: 1px solid #eee; margin: 30px 0;">
+          <p style="text-align: center; color: #999; font-size: 12px;">Puerto Palabra Library Management System</p>
+        </div>
+      `
+    };
+
+    await transporter.sendMail(mailOptions);
+    console.log("✅ Admin Welcome Email sent successfully.");
+    return true;
+  } catch (error) {
+    console.error("❌ Admin Email Error:", error);
+    return false;
+  }
+}
+
+module.exports = { sendLibraryCard, sendPaymentReceipt, sendAdminWelcomeEmail };

@@ -34,7 +34,7 @@ async function createAllTables() {
         CREATE TABLE ADMIN (
             admin_id INTEGER PRIMARY KEY AUTOINCREMENT,
             full_name VARCHAR(100) NOT NULL,
-            role VARCHAR(50) CHECK (role IN ('Librarian', 'Assistant Librarian')),
+            role VARCHAR(50) CHECK (role IN ('Administrator', 'Librarian', 'Assistant Librarian')),
             status VARCHAR(20) DEFAULT 'Active' CHECK (status IN ('Active', 'Inactive')),
             email VARCHAR(100) NOT NULL UNIQUE,
             password VARCHAR(255) NOT NULL

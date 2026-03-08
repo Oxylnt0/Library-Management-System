@@ -5,6 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Login - Puerto Palabra Library</title>
+    <!-- Add CSP to fix Electron Security Warning -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' https:; script-src 'self' 'unsafe-inline' https://esm.run https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' http://localhost:3000;">
 
     <link href="../output.css" rel="stylesheet">
     <link
@@ -238,6 +240,9 @@
         <div class="bubble" style="left: 90%; width: 10px; height: 10px; animation-duration: 10s; animation-delay: 4s;"></div>
     </div>
 
+    <!-- Added missing container for the particle script -->
+    <div id="particles-container" class="fixed inset-0 z-0 pointer-events-none"></div>
+
     <!-- Book Scene -->
     <div class="scene flex-1">
         <div class="book-container animate-book-entry">
@@ -265,13 +270,18 @@
                     
                     <div class="w-full max-w-xs mx-auto space-y-6">
                         <div class="form-group">
-                            <label class="form-label">Username</label>
-                            <input type="text" id="login-username" class="form-input" placeholder="Enter admin username">
+                            <label class="form-label">Email Address</label>
+                            <input type="email" id="login-email" class="form-input" placeholder="Enter admin email">
                         </div>
 
                         <div class="form-group">
                             <label class="form-label">Password</label>
-                            <input type="password" id="login-password" class="form-input" placeholder="Enter password">
+                            <div class="relative">
+                                <input type="password" id="login-password" class="form-input pr-8" placeholder="Enter password">
+                                <button type="button" onclick="togglePassword()" class="absolute right-0 top-2 opacity-50 hover:opacity-100 transition-opacity focus:outline-none">
+                                    <img src="../Assets/Icons/show_pass.png" alt="Show" class="w-5 h-5">
+                                </button>
+                            </div>
                         </div>
 
                         <button id="btn-login" onclick="handleLogin()" class="w-full px-8 py-3 rounded-full bg-[#D6A84A] text-black font-bold text-sm hover:bg-[#F0C66B] hover:text-black shadow-md transition-transform duration-300 transform hover:scale-105 animate-shimmer-bg flex items-center justify-center">
@@ -281,7 +291,7 @@
 
                     <div class="text-center text-sm text-slate-500 mt-auto">
                         <p>Forgot credentials?</p>
-                        <span class="text-[#183B5B] font-bold">Contact System Administrator</span>
+                        <button type="button" onclick="showContactInfo()" class="text-[#183B5B] font-bold hover:underline focus:outline-none">Contact System Administrator</button>
                     </div>
                 </div>
                 <div class="back">
@@ -314,8 +324,21 @@
             }
         }
 
+        function togglePassword() {
+            const field = document.getElementById('login-password');
+            if (field.type === "password") {
+                field.type = "text";
+            } else {
+                field.type = "password";
+            }
+        }
+
+        function showContactInfo() {
+            showCustomAlert("For account recovery or password resets, please contact the IT Department at andresimoun0@gmail.com");
+        }
+
         window.handleLogin = function() {
-            const username = document.getElementById('login-username').value;
+            const email = document.getElementById('login-email').value;
             const password = document.getElementById('login-password').value;
             const btn = document.getElementById('btn-login');
             const originalText = btn.innerHTML;
@@ -325,26 +348,45 @@
             btn.innerHTML = '<span class="spinner"></span> Verifying...';
             btn.classList.add('opacity-75', 'cursor-not-allowed');
 
-            // Simulate network delay for effect
-            setTimeout(() => {
-                if (username === 'admin' && password === 'password') {
-                    showCustomAlert("Access Granted. Welcome, Administrator.", () => {
-                        window.location.href = 'admin_dashboard.html'; 
-                    });
+            // Call API
+            fetch('http://localhost:3000/api/admin/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password })
+            })
+            .then(response => response.json())
+            .then(result => {
+                if (result.success) {
+                    // Store Admin Data
+                    localStorage.setItem('adminId', result.admin.admin_id);
+                    localStorage.setItem('adminName', result.admin.full_name);
+                    localStorage.setItem('adminRole', result.admin.role);
+                    localStorage.setItem('adminEmail', result.admin.email);
+
+                    showCustomAlert("Access Granted. Welcome, " + result.admin.full_name, () => {
+                        window.location.href = 'admin_dashboard.html';
+                    }); 
                 } else {
-                    showCustomAlert("Access Denied: Invalid credentials.");
-                    // Restore Button State
+                    showCustomAlert(result.message || "Access Denied: Invalid credentials.");
                     btn.disabled = false;
                     btn.innerHTML = originalText;
                     btn.classList.remove('opacity-75', 'cursor-not-allowed');
                 }
-            }, 800);
+            })
+            .catch(error => {
+                console.error('Login Error:', error);
+                showCustomAlert("Connection Error. Please try again.");
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+                btn.classList.remove('opacity-75', 'cursor-not-allowed');
+            });
         }
 
         {
         // Navbar Particles
         document.addEventListener('DOMContentLoaded', () => {
             const container = document.getElementById('particles-container');
+            if (!container) return; // Safety check to prevent crash if element is missing
             const particleCount = 20;
             const runes = ['ᚠ', 'ᚢ', 'ᚦ', 'ᚨ', 'ᚱ', 'ᚲ', 'ᚷ', 'ᚹ', 'ᚺ', 'ᚾ', 'ᛁ', 'ᛃ', 'ᛈ', 'ᛇ', 'ᛉ', 'ᛊ', 'ᛏ', 'ᛒ', 'ᛖ', 'ᛗ', 'ᛚ', 'ᛜ', 'ᛞ', 'ᛟ'];
 

@@ -16,6 +16,14 @@ async function loadComponent(elementId, filePath) {
         const html = await response.text();
         element.innerHTML = html;
         
+        // Execute scripts in the loaded component
+        Array.from(element.querySelectorAll('script')).forEach(oldScript => {
+            const newScript = document.createElement('script');
+            Array.from(oldScript.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
+            newScript.appendChild(document.createTextNode(oldScript.innerHTML));
+            oldScript.parentNode.replaceChild(newScript, oldScript);
+        });
+        
         if (elementId === 'sidebar-container') {
             highlightActiveLink();
             setupSidebarNavigation();

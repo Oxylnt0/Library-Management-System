@@ -3,6 +3,7 @@ const cors = require('cors');
 const path = require('path');
 require('dotenv').config();
 const { db } = require('./db_config.js');
+const { sendAdminWelcomeEmail } = require('./email_service.js');
 
 const app = express();
 const PORT = 3000;
@@ -241,6 +242,23 @@ app.post('/api/donations/outbound/bulk', async (req, res) => {
         res.json({ success: true, message: `Successfully donated ${books.length} items.` });
     } catch (error) {
         console.error("Bulk Outbound Donation Error:", error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+// 6.6 GET /api/donations/outbound/history
+app.get('/api/donations/outbound/history', async (req, res) => {
+    try {
+        const result = await db.execute({
+            sql: `SELECT b.book_id, b.title, b.book_category, b.book_condition, b.status, d.donation_date, d.recipient_organization
+                  FROM BOOK b
+                  LEFT JOIN DONATION d ON b.book_id = d.book_id AND d.donation_type = 'Outbound'
+                  WHERE b.status = 'Donated Outbound'
+                  ORDER BY d.donation_date DESC`
+        });
+        res.json({ success: true, data: result.rows });
+    } catch (error) {
+        console.error("Fetch Donated History Error:", error);
         res.status(500).json({ success: false, message: error.message });
     }
 });
@@ -914,6 +932,130 @@ app.post('/api/admin/weeding/archive-all', async (req, res) => {
         res.json({ success: true, message: "All outdated and obsolete items have been archived." });
     } catch (error) {
         console.error("Bulk Archive Error:", error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+// 23. POST /api/admin/create
+app.post('/api/admin/create', async (req, res) => {
+    const { full_name, email, password, role } = req.body;
+
+    try {
+        await db.execute({
+            sql: "INSERT INTO ADMIN (full_name, email, password, role, status) VALUES (?, ?, ?, ?, 'Active')",
+            args: [full_name, email, password, role]
+        });
+
+        // Send Welcome Email
+        await sendAdminWelcomeEmail(email, full_name, role);
+
+        res.json({ success: true, message: "Admin created successfully." });
+    } catch (error) {
+        console.error("Create Admin Error:", error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+// 24. POST /api/admin/login
+app.post('/api/admin/login', async (req, res) => {
+    const { email, password } = req.body;
+    try {
+        const result = await db.execute({
+            sql: "SELECT * FROM ADMIN WHERE email = ? AND password = ? AND status = 'Active'",
+            args: [email, password]
+        });
+
+        if (result.rows.length > 0) {
+            const admin = result.rows[0];
+            // Remove password from response
+            delete admin.password;
+            res.json({ success: true, admin });
+        } else {
+            res.status(401).json({ success: false, message: "Invalid credentials or inactive account." });
+        }
+    } catch (error) {
+        console.error("Admin Login Error:", error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+// 25. GET /api/admin/:id
+app.get('/api/admin/:id', async (req, res) => {
+    const { id } = req.params;
+    try {
+        const result = await db.execute({
+            sql: "SELECT admin_id, full_name, email, role, status FROM ADMIN WHERE admin_id = ?",
+            args: [id]
+        });
+
+        if (result.rows.length > 0) {
+            res.json({ success: true, data: result.rows[0] });
+        } else {
+            res.status(404).json({ success: false, message: "Admin not found." });
+        }
+    } catch (error) {
+        console.error("Fetch Admin Error:", error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+// 26. PUT /api/admin/:id/password
+app.put('/api/admin/:id/password', async (req, res) => {
+    const { id } = req.params;
+    const { password } = req.body;
+    try {
+        await db.execute({
+            sql: "UPDATE ADMIN SET password = ? WHERE admin_id = ?",
+            args: [password, id]
+        });
+        res.json({ success: true, message: "Password updated successfully." });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+// 27. PUT /api/admin/:id (Update Profile Info)
+app.put('/api/admin/:id', async (req, res) => {
+    const { id } = req.params;
+    const { full_name, email, role } = req.body;
+    try {
+        if (role) {
+            await db.execute({
+                sql: "UPDATE ADMIN SET full_name = ?, email = ?, role = ? WHERE admin_id = ?",
+                args: [full_name, email, role, id]
+            });
+        } else {
+            await db.execute({
+                sql: "UPDATE ADMIN SET full_name = ?, email = ? WHERE admin_id = ?",
+                args: [full_name, email, id]
+            });
+        }
+        res.json({ success: true, message: "Admin profile updated successfully." });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+// 28. GET /api/admins (List all admins)
+app.get('/api/admins', async (req, res) => {
+    try {
+        const result = await db.execute("SELECT admin_id, full_name, email, role, status FROM ADMIN ORDER BY admin_id ASC");
+        res.json({ success: true, data: result.rows });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+// 29. DELETE /api/admin/:id (Delete admin)
+app.delete('/api/admin/:id', async (req, res) => {
+    const { id } = req.params;
+    try {
+        await db.execute({
+            sql: "DELETE FROM ADMIN WHERE admin_id = ?",
+            args: [id]
+        });
+        res.json({ success: true, message: "Admin deleted successfully." });
+    } catch (error) {
         res.status(500).json({ success: false, message: error.message });
     }
 });

@@ -42,6 +42,10 @@
                         </div>
 
                         <div class="flex gap-3">
+                            <button id="btn-toggle-history" onclick="toggleHistoryView()" 
+                                class="bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 px-4 py-2 rounded-lg font-medium shadow-sm flex items-center gap-2 transition-colors">
+                                View Donated Books
+                            </button>
                             <a href="admin_donations.html"
                                 class="bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 px-4 py-2 rounded-lg font-medium shadow-sm flex items-center gap-2 transition-colors">
                                 <span>←</span> Back to Donations
@@ -129,6 +133,7 @@
 
         let eligibleBooks = [];
         let selectedBooks = new Set();
+        let isHistoryView = false;
 
         async function fetchEligibleBooks() {
             try {
@@ -143,6 +148,41 @@
                 }
             } catch (error) {
                 console.error("Error fetching eligible books:", error);
+            }
+        }
+
+        async function fetchDonatedHistory() {
+            try {
+                const response = await fetch('http://localhost:3000/api/donations/outbound/history');
+                const result = await response.json();
+                if (result.success) {
+                    eligibleBooks = result.data;
+                    renderTable();
+                }
+            } catch (error) { console.error(error); }
+        }
+
+        window.toggleHistoryView = function() {
+            isHistoryView = !isHistoryView;
+            const btn = document.getElementById('btn-toggle-history');
+            const title = document.querySelector('h2');
+            const subtitle = document.querySelector('p.text-sm');
+            const footer = document.querySelector('.border-t');
+
+            if (isHistoryView) {
+                btn.innerText = "View Eligible Books";
+                btn.classList.add('bg-purple-50', 'text-purple-700', 'border-purple-200');
+                title.innerText = "Donated Books History";
+                subtitle.innerText = "Archive of books donated to other organizations";
+                if(footer) footer.classList.add('hidden');
+                fetchDonatedHistory();
+            } else {
+                btn.innerText = "View Donated Books";
+                btn.classList.remove('bg-purple-50', 'text-purple-700', 'border-purple-200');
+                title.innerText = "Outbound Donations";
+                subtitle.innerText = "Identify and process books for donation (Outdated / Obsolete)";
+                if(footer) footer.classList.remove('hidden');
+                fetchEligibleBooks();
             }
         }
 
@@ -165,9 +205,31 @@
         }
 
         function renderTable() {
+            const thead = document.querySelector('thead tr');
             const tbody = document.getElementById('eligible-list');
             const noMsg = document.getElementById('no-eligible-msg');
             tbody.innerHTML = '';
+
+            // Update Headers
+            if (isHistoryView) {
+                thead.innerHTML = `
+                    <th class="p-4 text-xs font-bold text-slate-500 uppercase border-b">Book Title</th>
+                    <th class="p-4 text-xs font-bold text-slate-500 uppercase border-b">Category</th>
+                    <th class="p-4 text-xs font-bold text-slate-500 uppercase border-b">Condition</th>
+                    <th class="p-4 text-xs font-bold text-slate-500 uppercase border-b">Recipient</th>
+                    <th class="p-4 text-xs font-bold text-slate-500 uppercase border-b">Date Donated</th>
+                `;
+            } else {
+                thead.innerHTML = `
+                    <th class="p-4 border-b w-10"><input type="checkbox" id="select-all" class="w-4 h-4 rounded border-slate-300 text-[#183B5B] focus:ring-[#183B5B]"></th>
+                    <th class="p-4 text-xs font-bold text-slate-500 uppercase border-b">Book Title</th>
+                    <th class="p-4 text-xs font-bold text-slate-500 uppercase border-b">Category</th>
+                    <th class="p-4 text-xs font-bold text-slate-500 uppercase border-b">Condition</th>
+                    <th class="p-4 text-xs font-bold text-slate-500 uppercase border-b">Status</th>
+                    <th class="p-4 text-xs font-bold text-slate-500 uppercase border-b">Date Added</th>
+                `;
+                bindSelectAll();
+            }
 
             if (eligibleBooks.length === 0) {
                 noMsg.classList.remove('hidden');
@@ -178,29 +240,40 @@
             eligibleBooks.forEach(book => {
                 const tr = document.createElement('tr');
                 tr.className = 'hover:bg-slate-50 transition-colors';
-                const isChecked = selectedBooks.has(book.book_id);
                 
                 // Condition Badge
                 let condBadge = `<span class="px-2 py-1 rounded text-xs font-bold bg-slate-100 text-slate-600">${book.book_condition}</span>`;
                 if(book.book_condition === 'Obsolete') condBadge = `<span class="px-2 py-1 rounded text-xs font-bold bg-red-100 text-red-700 border border-red-200">Obsolete</span>`;
                 else if(book.book_condition === 'Outdated') condBadge = `<span class="px-2 py-1 rounded text-xs font-bold bg-amber-100 text-amber-700 border border-amber-200">Outdated</span>`;
 
-                const statusBadge = `<span class="px-2 py-1 rounded text-xs font-bold ${book.status === 'Available' ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-500'}">${book.status}</span>`;
-
-                tr.innerHTML = `
-                    <td class="p-4 border-b">
-                        <input type="checkbox" class="book-checkbox w-4 h-4 rounded border-slate-300 text-[#183B5B] focus:ring-[#183B5B]" 
-                            value="${book.book_id}" ${isChecked ? 'checked' : ''} onchange="toggleSelection(${book.book_id})">
-                    </td>
-                    <td class="p-4 border-b font-medium text-slate-800">${book.title}</td>
-                    <td class="p-4 border-b text-slate-600">${book.book_category}</td>
-                    <td class="p-4 border-b">${condBadge}</td>
-                    <td class="p-4 border-b">${statusBadge}</td>
-                    <td class="p-4 border-b text-slate-500 text-xs">${new Date(book.date_added).toLocaleDateString()}</td>
-                `;
+                if (isHistoryView) {
+                    const dateStr = book.donation_date ? new Date(book.donation_date).toLocaleDateString() : 'N/A';
+                    const recipient = book.recipient_organization || 'Unknown';
+                    tr.innerHTML = `
+                        <td class="p-4 border-b font-medium text-slate-800">${book.title}</td>
+                        <td class="p-4 border-b text-slate-600">${book.book_category}</td>
+                        <td class="p-4 border-b">${condBadge}</td>
+                        <td class="p-4 border-b text-slate-700">${recipient}</td>
+                        <td class="p-4 border-b text-slate-500 text-xs">${dateStr}</td>
+                    `;
+                } else {
+                    const isChecked = selectedBooks.has(book.book_id);
+                    const statusBadge = `<span class="px-2 py-1 rounded text-xs font-bold ${book.status === 'Available' ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-500'}">${book.status}</span>`;
+                    tr.innerHTML = `
+                        <td class="p-4 border-b">
+                            <input type="checkbox" class="book-checkbox w-4 h-4 rounded border-slate-300 text-[#183B5B] focus:ring-[#183B5B]" 
+                                value="${book.book_id}" ${isChecked ? 'checked' : ''} onchange="toggleSelection(${book.book_id})">
+                        </td>
+                        <td class="p-4 border-b font-medium text-slate-800">${book.title}</td>
+                        <td class="p-4 border-b text-slate-600">${book.book_category}</td>
+                        <td class="p-4 border-b">${condBadge}</td>
+                        <td class="p-4 border-b">${statusBadge}</td>
+                        <td class="p-4 border-b text-slate-500 text-xs">${new Date(book.date_added).toLocaleDateString()}</td>
+                    `;
+                }
                 tbody.appendChild(tr);
             });
-            updateSelectionUI();
+            if (!isHistoryView) updateSelectionUI();
         }
 
         window.toggleSelection = function(bookId) {
@@ -232,14 +305,18 @@
         }
 
         // Select All Logic
-        document.getElementById('select-all').addEventListener('change', (e) => {
-            if (e.target.checked) {
-                eligibleBooks.forEach(b => selectedBooks.add(b.book_id));
-            } else {
-                selectedBooks.clear();
-            }
-            renderTable();
-        });
+        function bindSelectAll() {
+            const sa = document.getElementById('select-all');
+            if(sa) sa.addEventListener('change', (e) => {
+                if (e.target.checked) {
+                    eligibleBooks.forEach(b => selectedBooks.add(b.book_id));
+                } else {
+                    selectedBooks.clear();
+                }
+                renderTable();
+            });
+        }
+        bindSelectAll(); // Initial bind
 
         // Modal Logic
         window.openBulkModal = function() {
