@@ -559,6 +559,10 @@ app.get('/api/books', async (req, res) => {
                  WHERE bt.book_id = b.book_id 
                  AND bt.user_id = ? 
                  AND bt.status IN ('Pending', 'Borrowed')) as user_already_has_it,
+                (SELECT status FROM BORROW_TRANSACTION bt 
+                 WHERE bt.book_id = b.book_id 
+                 AND bt.user_id = ? 
+                 AND bt.status IN ('Pending', 'Borrowed') LIMIT 1) as user_transaction_status,
                 (SELECT COUNT(*) FROM RESERVATION r 
                  WHERE r.book_id = b.book_id 
                  AND r.user_id = ? 
@@ -567,7 +571,7 @@ app.get('/api/books', async (req, res) => {
                 WHERE b.book_condition NOT IN ('Outdated', 'Obsolete') 
                 AND b.status NOT IN ('Archived', 'Donated Outbound', 'Lost')
             `;
-            args = [userId, userId];
+            args = [userId, userId, userId];
         }
 
         const result = await db.execute({ sql, args });

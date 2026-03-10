@@ -133,13 +133,16 @@
             // Dynamic Action Button Logic
             const available = book.available_copies || 0;
             const total = book.total_copies || 0;
-            const userHasIt = book.user_already_has_it > 0;
+            const userStatus = book.user_transaction_status;
             const userWaitlisted = book.user_is_waitlisted > 0;
             let btnHtml = '';
 
-            if (userHasIt) {
-                // STATE 1: User already has the book (Pending or Borrowed)
-                btnHtml = `<button class="w-full py-2.5 rounded-lg bg-slate-200 text-slate-500 text-sm font-semibold cursor-not-allowed shadow-sm" disabled>✅ Pending - Go to Desk</button>`;
+            if (userStatus === 'Borrowed') {
+                // STATE 1: User has actively borrowed the book
+                btnHtml = `<button class="w-full py-2.5 rounded-lg bg-amber-100 text-amber-800 border border-amber-200 text-sm font-semibold cursor-not-allowed shadow-sm" disabled>📖 Currently Borrowed</button>`;
+            } else if (userStatus === 'Pending') {
+                // STATE 2: User has a pending hold (Go to Desk)
+                btnHtml = `<button class="w-full py-2.5 rounded-lg bg-blue-50 text-blue-600 border border-blue-100 text-sm font-semibold cursor-not-allowed shadow-sm" disabled>✅ Go to Desk</button>`;
             } else if (userWaitlisted) {
                 // STATE 1.5: User is on waitlist
                 btnHtml = `<button class="w-full py-2.5 rounded-lg bg-slate-200 text-slate-500 text-sm font-semibold cursor-not-allowed shadow-sm" disabled>⏳ Waitlisted</button>`;
