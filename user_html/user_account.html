@@ -190,6 +190,20 @@
             </div>
         </section>
 
+        <!-- Custom Alert Modal -->
+        <div id="custom-alert" class="fixed inset-0 z-[100] hidden flex items-center justify-center bg-black/50 backdrop-blur-sm transition-opacity duration-300">
+            <div class="bg-[#fdfbf7] border-2 border-[#D6A84A] rounded-lg p-8 max-w-sm w-full shadow-2xl transform scale-100 transition-transform duration-300 relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-16 h-16 border-t-4 border-l-4 border-[#183B5B]/20 rounded-tl-lg"></div>
+                <div class="absolute bottom-0 right-0 w-16 h-16 border-b-4 border-r-4 border-[#183B5B]/20 rounded-br-lg"></div>
+                
+                <h3 id="custom-alert-title" class="text-xl font-bold text-[#183B5B] font-cinzel mb-4 text-center">Notification</h3>
+                <p id="custom-alert-msg" class="text-slate-700 text-center mb-6 font-inter"></p>
+                <div id="custom-alert-actions" class="flex justify-center gap-4">
+                    <!-- Buttons injected via JS -->
+                </div>
+            </div>
+        </div>
+
                 </main>
 
             </div>
@@ -259,10 +273,11 @@
                     body: JSON.stringify(data)
                 });
                 const result = await response.json();
-                alert(result.message);
-                if (result.success) loadUserProfile(); // Refresh UI
+                showCustomAlert(result.message, () => {
+                    if (result.success) loadUserProfile(); // Refresh UI
+                });
             } catch (error) {
-                alert('Failed to update profile.');
+                showCustomAlert('Failed to update profile.');
             }
         }
 
@@ -310,12 +325,12 @@
             const specialValid = /[^A-Za-z0-9]/.test(newPassword);
 
             if (!lengthValid || !numberValid || !specialValid) {
-                alert("Password must be at least 12 characters long, contain at least 1 number, and 1 special character.");
+                showCustomAlert("Password must be at least 12 characters long, contain at least 1 number, and 1 special character.");
                 return;
             }
 
             if (newPassword !== confirmPassword) {
-                alert("New passwords do not match!");
+                showCustomAlert("New passwords do not match!");
                 return;
             }
 
@@ -326,13 +341,13 @@
                     body: JSON.stringify({ newPassword })
                 });
                 const result = await response.json();
-                alert(result.message);
+                showCustomAlert(result.message);
                 if (result.success) {
                     document.getElementById('input-new-pass').value = '';
                     document.getElementById('input-confirm-pass').value = '';
                 }
             } catch (error) {
-                alert('Failed to update password.');
+                showCustomAlert('Failed to update password.');
             }
         }
 
@@ -345,18 +360,57 @@
                     method: 'POST'
                 });
                 const result = await response.json();
-                alert(result.message);
+                showCustomAlert(result.message);
             } catch (error) {
-                alert('Failed to resend QR code.');
+                showCustomAlert('Failed to resend QR code.');
             }
         }
 
         function logout() {
-            if (confirm("Are you sure you want to sign out?")) {
+            showCustomConfirm("Are you sure you want to sign out?", () => {
                 localStorage.clear();
                 sessionStorage.clear();
                 window.location.href = '../public_view/login.html';
+            });
+        }
+
+        // Custom Alert Helpers
+        function showCustomAlert(message, callback) {
+            const alertBox = document.getElementById('custom-alert');
+            const alertMsg = document.getElementById('custom-alert-msg');
+            const alertTitle = document.getElementById('custom-alert-title');
+            const alertActions = document.getElementById('custom-alert-actions');
+            
+            alertTitle.textContent = "Notification";
+            alertMsg.textContent = message;
+            alertBox.classList.remove('hidden');
+            
+            alertActions.innerHTML = `<button class="px-6 py-2 bg-[#183B5B] text-[#D6A84A] font-bold font-cinzel rounded hover:bg-[#244D75] transition-colors">OK</button>`;
+            
+            const btn = alertActions.querySelector('button');
+            btn.onclick = function() {
+                alertBox.classList.add('hidden');
+                if (callback) callback();
             }
+        }
+
+        function showCustomConfirm(message, onYes) {
+            const alertBox = document.getElementById('custom-alert');
+            const alertMsg = document.getElementById('custom-alert-msg');
+            const alertTitle = document.getElementById('custom-alert-title');
+            const alertActions = document.getElementById('custom-alert-actions');
+            
+            alertTitle.textContent = "Confirmation";
+            alertMsg.textContent = message;
+            alertBox.classList.remove('hidden');
+            
+            alertActions.innerHTML = `
+                <button id="confirm-no" class="px-4 py-2 border border-slate-300 text-slate-600 font-bold font-cinzel rounded hover:bg-slate-100 transition-colors">Cancel</button>
+                <button id="confirm-yes" class="px-6 py-2 bg-[#183B5B] text-[#D6A84A] font-bold font-cinzel rounded hover:bg-[#244D75] transition-colors">Confirm</button>
+            `;
+            
+            document.getElementById('confirm-no').onclick = () => alertBox.classList.add('hidden');
+            document.getElementById('confirm-yes').onclick = () => { alertBox.classList.add('hidden'); if (onYes) onYes(); };
         }
     </script>
 </body>

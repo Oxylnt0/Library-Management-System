@@ -212,7 +212,7 @@
                 res.rows.forEach(book => {
                     const imgUrl = book.image_url || 'https://via.placeholder.com/150x220?text=No+Cover';
                     const html = `
-                        <div class="group cursor-pointer" onclick="window.location.href='user_catalog.html'">
+                        <div class="group cursor-pointer" onclick="navigateTo('user_catalog.html')">
                             <div class="aspect-[2/3] bg-slate-200 rounded-xl mb-3 overflow-hidden shadow-md group-hover:shadow-xl group-hover:-translate-y-1.5 transition-all relative">
                                 <img src="${imgUrl}" class="w-full h-full object-cover transition-transform group-hover:scale-105" alt="${book.title}">
                                 <div class="absolute top-2 right-2 bg-[#D6A84A] text-white text-[10px] font-bold px-2 py-1 rounded">NEW</div>
