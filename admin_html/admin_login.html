@@ -271,13 +271,13 @@
                     <div class="w-full max-w-xs mx-auto space-y-6">
                         <div class="form-group">
                             <label class="form-label">Email Address</label>
-                            <input type="email" id="login-email" class="form-input" placeholder="Enter admin email">
+                            <input type="email" id="login-email" class="form-input" placeholder="Enter admin email" onkeypress="handleEnter(event, 'login-password')">
                         </div>
 
                         <div class="form-group">
                             <label class="form-label">Password</label>
                             <div class="relative">
-                                <input type="password" id="login-password" class="form-input pr-8" placeholder="Enter password">
+                                <input type="password" id="login-password" class="form-input pr-8" placeholder="Enter password" onkeypress="handleEnter(event)">
                                 <button type="button" onclick="togglePassword()" class="absolute right-0 top-2 opacity-50 hover:opacity-100 transition-opacity focus:outline-none">
                                     <img src="../Assets/Icons/show_pass.png" alt="Show" class="w-5 h-5">
                                 </button>
@@ -335,6 +335,16 @@
 
         function showContactInfo() {
             showCustomAlert("For account recovery or password resets, please contact the IT Department at andresimoun0@gmail.com");
+        }
+
+        function handleEnter(event, nextId) {
+            if (event.key === 'Enter') {
+                if (nextId) {
+                    document.getElementById(nextId).focus();
+                } else {
+                    handleLogin();
+                }
+            }
         }
 
         window.handleLogin = function() {

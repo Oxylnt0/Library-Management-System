@@ -59,7 +59,7 @@
                     </header>
 
                     <!-- Profile Overview -->
-                    <section class="bg-white/80 backdrop-blur-md border border-[#D6A84A]/30 rounded-xl shadow-lg p-6 mb-8 flex flex-col sm:flex-row gap-6">
+                    <section class="bg-white/80 backdrop-blur-md border border-[#D6A84A]/30 rounded-xl shadow-lg p-6 mb-8 flex flex-col sm:flex-row gap-6 items-start">
                         <div class="flex-shrink-0">
                             <div class="w-24 h-24 rounded-full bg-[#183B5B] text-[#D6A84A] flex items-center justify-center text-3xl font-cinzel border-4 border-[#D6A84A]">
                                 A
@@ -78,6 +78,13 @@
                                     Full System Access
                                 </span>
                             </div>
+                        </div>
+
+                        <div class="mt-4 sm:mt-0">
+                            <button onclick="logout()" class="px-4 py-2 rounded-lg border border-red-200 text-red-600 text-sm font-bold hover:bg-red-50 transition-colors flex items-center gap-2 shadow-sm">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+                                Sign Out
+                            </button>
                         </div>
                     </section>
 
@@ -544,6 +551,14 @@
                 alert('Failed to update password.');
             }
         });
+
+        function logout() {
+            if (confirm("Are you sure you want to sign out?")) {
+                localStorage.clear();
+                sessionStorage.clear();
+                window.location.href = 'admin_login.html';
+            }
+        }
     </script>
 </body>
 
