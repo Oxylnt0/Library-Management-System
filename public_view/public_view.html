@@ -474,31 +474,39 @@
         </div>
 
         <script>
-            // --- Particles ---
-            document.addEventListener('DOMContentLoaded', () => {
+            // ================= API & LOGIC (Globals) =================
+            var API_BASE = 'http://localhost:3000/api';
+            var allCatalogBooks = [];
+
+            // --- Particles & Initial Load ---
+            function initPage() {
                 const container = document.getElementById('particles-container');
-                const particleCount = 40;
-                const runes = ['ᚠ', 'ᚢ', 'ᚦ', 'ᚨ', 'ᚱ', 'ᚲ', 'ᚷ', 'ᚹ', 'ᚺ', 'ᚾ', 'ᛁ', 'ᛃ', 'ᛈ', 'ᛇ', 'ᛉ', 'ᛊ', 'ᛏ', 'ᛒ', 'ᛖ', 'ᛗ', 'ᛚ', 'ᛜ', 'ᛞ', 'ᛟ'];
-    
-                for (let i = 0; i < particleCount; i++) {
-                    const particle = document.createElement('div');
-                    particle.className = 'enchant-particle';
-                    particle.textContent = runes[Math.floor(Math.random() * runes.length)];
-                    particle.style.left = Math.random() * 100 + '%';
-                    particle.style.top = Math.random() * 100 + '%';
-                    particle.style.animationDelay = Math.random() * 5 + 's';
-                    particle.style.fontSize = (Math.random() * 10 + 10) + 'px';
-                    container.appendChild(particle);
+                if (container) {
+                    const particleCount = 40;
+                    const runes = ['ᚠ', 'ᚢ', 'ᚦ', 'ᚨ', 'ᚱ', 'ᚲ', 'ᚷ', 'ᚹ', 'ᚺ', 'ᚾ', 'ᛁ', 'ᛃ', 'ᛈ', 'ᛇ', 'ᛉ', 'ᛊ', 'ᛏ', 'ᛒ', 'ᛖ', 'ᛗ', 'ᛚ', 'ᛜ', 'ᛞ', 'ᛟ'];
+        
+                    for (let i = 0; i < particleCount; i++) {
+                        const particle = document.createElement('div');
+                        particle.className = 'enchant-particle';
+                        particle.textContent = runes[Math.floor(Math.random() * runes.length)];
+                        particle.style.left = Math.random() * 100 + '%';
+                        particle.style.top = Math.random() * 100 + '%';
+                        particle.style.animationDelay = Math.random() * 5 + 's';
+                        particle.style.fontSize = (Math.random() * 10 + 10) + 'px';
+                        container.appendChild(particle);
+                    }
                 }
 
                 // Initial Load: New Arrivals
                 loadNewArrivals();
                 loadPublicAnnouncements();
-            });
+            }
 
-            // ================= API & LOGIC =================
-            const API_BASE = 'http://localhost:3000/api';
-            let allCatalogBooks = [];
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', initPage);
+            } else {
+                initPage();
+            }
 
             // --- Navigation Logic ---
             function showSection(sectionId) {
@@ -521,8 +529,16 @@
                 }
 
                 // Load catalog if needed
-                if (sectionId === 'catalog' && allCatalogBooks.length === 0) {
-                    loadCatalog();
+                if (sectionId === 'catalog') {
+                    if (allCatalogBooks.length === 0) {
+                        loadCatalog();
+                    } else {
+                        // If data exists but grid is empty (e.g. loaded via openBookDetails), render it
+                        const grid = document.getElementById('catalog-grid');
+                        if (grid.children.length === 0 || grid.innerHTML.includes('Loading')) {
+                            sortCatalog();
+                        }
+                    }
                 }
             }
 
@@ -754,10 +770,10 @@
             }
 
             // --- 2. Modal Logic ---
-            const modal = document.getElementById('info-modal');
-            const modalPanel = document.getElementById('modal-panel');
-            const modalTitle = document.getElementById('modal-title');
-            const modalBody = document.getElementById('modal-body');
+            var modal = document.getElementById('info-modal');
+            var modalPanel = document.getElementById('modal-panel');
+            var modalTitle = document.getElementById('modal-title');
+            var modalBody = document.getElementById('modal-body');
 
             function openModal(title, contentHtml) {
                 modalTitle.textContent = title;
@@ -781,7 +797,21 @@
             }
 
             // --- 3. Features ---
-            function openBookDetails(bookId) {
+            async function openBookDetails(bookId) {
+                // Ensure catalog data is loaded
+                if (allCatalogBooks.length === 0) {
+                    try {
+                        const res = await fetch(`${API_BASE}/books`);
+                        const result = await res.json();
+                        if (result.success) {
+                            allCatalogBooks = result.data;
+                        }
+                    } catch (error) {
+                        console.error("Error fetching book details:", error);
+                        return;
+                    }
+                }
+
                 // Find book in cached catalog or fetch
                 const book = allCatalogBooks.find(b => b.book_id == bookId);
                 if (!book) return;

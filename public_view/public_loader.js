@@ -49,10 +49,13 @@ async function navigateTo(url) {
         const newPageContainer = doc.getElementById('page-container');
         const newTitle = doc.querySelector('title').innerText;
         const newStyles = doc.querySelectorAll('head style');
+        const newBodyClass = doc.body.className;
 
         setTimeout(() => {
             if (newPageContainer) {
                 pageContainer.innerHTML = newPageContainer.innerHTML;
+                pageContainer.className = newPageContainer.className;
+                document.body.className = newBodyClass;
                 document.title = newTitle;
                 window.history.pushState({ path: url }, newTitle, url);
 
