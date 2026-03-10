@@ -136,7 +136,7 @@
                         </div>
 
                         <div class="flex justify-end">
-                            <button onclick="closeLoanDetailsPanel()" class="px-4 py-2 rounded-lg bg-[#183B5B] text-white hover:bg-[#2E5F87] transition shadow-md">Close</button>
+                            <button onclick="closeLoanDetailsPanel()" class="px-6 py-2 rounded-full bg-[#183B5B] text-[#D6A84A] font-bold hover:bg-[#2E5F87] transition shadow-md">Close</button>
                         </div>
                     </div>
                 </div>
@@ -166,8 +166,8 @@
                         </div>
 
                         <div class="flex justify-end gap-3">
-                            <button onclick="closeExtensionPanel()" class="px-4 py-2 rounded-lg text-slate-600 hover:bg-slate-100 transition">Cancel</button>
-                            <button onclick="closeExtensionPanel()" class="px-4 py-2 rounded-lg bg-[#5B8C5A] text-white hover:bg-[#5B8C5A]/80 transition shadow-md">Confirm Extension</button>
+                            <button onclick="closeExtensionPanel()" class="px-6 py-2 rounded-full text-slate-600 font-bold hover:bg-slate-100 transition">Cancel</button>
+                            <button onclick="closeExtensionPanel()" class="px-6 py-2 rounded-full bg-[#5B8C5A] text-white font-bold hover:bg-[#5B8C5A]/80 transition shadow-md">Confirm Extension</button>
                         </div>
                     </div>
                 </div>
@@ -339,15 +339,15 @@
                     const safeAuthor = loan.author.replace(/'/g, "\\'");
 
                     // Actions
-                    let actionButtons = `<button onclick="openLoanDetailsPanel('${safeTitle}', '${safeAuthor}', '${borrowDateStr}', '${dueDateStr}', '${statusLabel}')" class="px-3 py-1.5 bg-[#183B5B] text-white text-xs font-semibold rounded-lg hover:bg-[#2E5F87] transition-colors shadow-sm">View Details</button>`;
+                    let actionButtons = `<button onclick="openLoanDetailsPanel('${safeTitle}', '${safeAuthor}', '${borrowDateStr}', '${dueDateStr}', '${statusLabel}')" class="px-4 py-1.5 bg-[#183B5B] text-[#D6A84A] text-xs font-bold rounded-full hover:bg-[#2E5F87] transition-colors shadow-sm">View Details</button>`;
                     
                     if (loan.status === 'Pending') {
-                        actionButtons = `<button onclick="cancelHold(${loan.borrow_id})" class="px-3 py-1.5 bg-red-50 border border-red-200 text-red-600 text-xs font-semibold rounded-lg hover:bg-red-100 transition-colors shadow-sm">Cancel Hold</button>`;
+                        actionButtons = `<button onclick="cancelHold(${loan.borrow_id})" class="px-4 py-1.5 bg-red-50 border border-red-200 text-red-600 text-xs font-bold rounded-full hover:bg-red-100 transition-colors shadow-sm">Cancel Hold</button>`;
                     } else if (loan.status !== 'Returned') {
                         if (!isOverdue) {
-                            actionButtons += `<button onclick="openExtensionPanel('${safeTitle}', '${dueDateStr}')" class="px-3 py-1.5 bg-white/80 border border-white/30 text-[#1A202C] text-xs font-semibold rounded-lg hover:bg-white hover:text-[#183B5B] transition-colors shadow-sm ml-3">Request Extension</button>`;
+                            actionButtons += `<button onclick="openExtensionPanel('${safeTitle}', '${dueDateStr}')" class="px-4 py-1.5 bg-white/80 border border-white/30 text-[#183B5B] text-xs font-bold rounded-full hover:bg-[#183B5B] hover:text-[#D6A84A] transition-colors shadow-sm ml-3">Request Extension</button>`;
                         } else {
-                            actionButtons += `<button class="px-3 py-1.5 bg-white/50 border border-white/20 text-slate-400 text-xs font-semibold rounded-lg cursor-not-allowed ml-3" disabled>Request Extension</button>`;
+                            actionButtons += `<button class="px-4 py-1.5 bg-white/50 border border-white/20 text-slate-400 text-xs font-bold rounded-full cursor-not-allowed ml-3" disabled>Request Extension</button>`;
                         }
                     }
 

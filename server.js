@@ -159,6 +159,47 @@ app.post('/api/checkout', async (req, res) => {
     }
 });
 
+// POST /api/reservations/cancel
+app.post('/api/reservations/cancel', async (req, res) => {
+    const { reservation_id } = req.body;
+    
+    try {
+        // 1. Get reservation details for logging and re-ordering
+        const resResult = await db.execute({
+            sql: `SELECT r.book_id, r.priority_no, r.user_id, b.title 
+                  FROM RESERVATION r 
+                  JOIN BOOK b ON r.book_id = b.book_id
+                  WHERE r.reservation_id = ?`,
+            args: [reservation_id]
+        });
+
+        if (resResult.rows.length === 0) {
+            return res.status(404).json({ success: false, message: "Reservation not found." });
+        }
+        const { book_id, priority_no, user_id, title } = resResult.rows[0];
+
+        // 2. Delete the reservation
+        await db.execute({
+            sql: "DELETE FROM RESERVATION WHERE reservation_id = ?",
+            args: [reservation_id]
+        });
+
+        // 3. Update priorities for the rest of the waitlist for that book
+        await db.execute({
+            sql: "UPDATE RESERVATION SET priority_no = priority_no - 1 WHERE book_id = ? AND priority_no > ?",
+            args: [book_id, priority_no]
+        });
+
+        // 4. Log the action
+        await logUserAction(user_id, 'CANCEL_RESERVATION', 'RESERVATION', reservation_id, `User cancelled reservation for '${title}'`);
+
+        res.json({ success: true, message: "Reservation cancelled." });
+    } catch (error) {
+        console.error("Cancel Reservation Error:", error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
 // 4. POST /api/donations/inbound
 app.post('/api/donations/inbound', async (req, res) => {
     const { user_id, donor_name, book_title, category, quantity, adminId } = req.body;
@@ -1026,13 +1067,13 @@ app.get('/api/admin/audit-logs', async (req, res) => {
         let queries = [];
 
         if (filter === 'all' || filter === 'admin') {
-            queries.push(`SELECT 'Admin' as role, admin_id as actor_id, action, target_table, target_id, details, date_time FROM ADMIN_AUDIT_LOG`);
+            queries.push(`SELECT 'Admin' as role, admin_id as actor_id, action, target_table, target_id, details, DATETIME(date_time, '+8 hours') as date_time FROM ADMIN_AUDIT_LOG`);
         }
         if (filter === 'all' || filter === 'user') {
-            queries.push(`SELECT 'User' as role, user_id as actor_id, action, target_table, target_id, details, date_time FROM USER_AUDIT_LOG`);
+            queries.push(`SELECT 'User' as role, user_id as actor_id, action, target_table, target_id, details, DATETIME(date_time, '+8 hours') as date_time FROM USER_AUDIT_LOG`);
         }
         if (filter === 'all' || filter === 'guardian') {
-            queries.push(`SELECT 'Guardian' as role, guardian_id as actor_id, action, target_table, target_id, details, date_time FROM GUARDIAN_AUDIT_LOG`);
+            queries.push(`SELECT 'Guardian' as role, guardian_id as actor_id, action, target_table, target_id, details, DATETIME(date_time, '+8 hours') as date_time FROM GUARDIAN_AUDIT_LOG`);
         }
 
         if (queries.length === 0) {

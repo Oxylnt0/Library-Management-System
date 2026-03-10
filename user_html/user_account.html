@@ -81,7 +81,7 @@
             </div>
 
             <div class="mt-4 sm:mt-0">
-                <button onclick="logout()" class="px-4 py-2 rounded-lg border border-red-200 text-red-600 text-sm font-bold hover:bg-red-50 transition-colors flex items-center gap-2 shadow-sm">
+                <button onclick="logout()" class="px-4 py-2 rounded-full border border-red-200 text-red-600 text-sm font-bold hover:bg-red-50 transition-colors flex items-center gap-2 shadow-sm">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
                     Sign Out
                 </button>
@@ -127,7 +127,7 @@
             </form>
 
             <div class="mt-6 text-right">
-                <button onclick="updateProfile()" class="px-6 py-2 rounded-lg bg-[#183B5B] text-white text-sm font-bold hover:bg-[#244D75] transition-colors shadow-md">
+                <button onclick="updateProfile()" class="px-6 py-2 rounded-full bg-[#183B5B] text-[#D6A84A] text-sm font-bold hover:bg-[#244D75] transition-colors shadow-md">
                     Save Changes
                 </button>
             </div>
@@ -170,7 +170,7 @@
             </div>
 
             <div class="mt-6 text-right">
-                <button onclick="updatePassword()" class="px-6 py-2 rounded-lg bg-[#183B5B] text-white text-sm font-bold hover:bg-[#244D75] transition-colors shadow-md">
+                <button onclick="updatePassword()" class="px-6 py-2 rounded-full bg-[#183B5B] text-[#D6A84A] text-sm font-bold hover:bg-[#244D75] transition-colors shadow-md">
                     Update Password
                 </button>
             </div>
@@ -183,7 +183,7 @@
                 <div>
                     <p class="text-sm text-slate-600">Lost your QR code? You can have it resent to your registered email address.</p>
                 </div>
-                <button onclick="resendQrCode()" class="w-full sm:w-auto px-6 py-2 rounded-lg bg-[#183B5B] text-white text-sm font-bold hover:bg-[#244D75] transition-colors shadow-md flex items-center justify-center gap-2">
+                <button onclick="resendQrCode()" class="w-full sm:w-auto px-6 py-2 rounded-full bg-[#183B5B] text-[#D6A84A] text-sm font-bold hover:bg-[#244D75] transition-colors shadow-md flex items-center justify-center gap-2">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
                     Resend QR Code
                 </button>
@@ -385,7 +385,7 @@
             alertMsg.textContent = message;
             alertBox.classList.remove('hidden');
             
-            alertActions.innerHTML = `<button class="px-6 py-2 bg-[#183B5B] text-[#D6A84A] font-bold font-cinzel rounded hover:bg-[#244D75] transition-colors">OK</button>`;
+            alertActions.innerHTML = `<button class="px-6 py-2 bg-[#183B5B] text-[#D6A84A] font-bold font-cinzel rounded-full hover:bg-[#244D75] transition-colors">OK</button>`;
             
             const btn = alertActions.querySelector('button');
             btn.onclick = function() {
@@ -405,8 +405,8 @@
             alertBox.classList.remove('hidden');
             
             alertActions.innerHTML = `
-                <button id="confirm-no" class="px-4 py-2 border border-slate-300 text-slate-600 font-bold font-cinzel rounded hover:bg-slate-100 transition-colors">Cancel</button>
-                <button id="confirm-yes" class="px-6 py-2 bg-[#183B5B] text-[#D6A84A] font-bold font-cinzel rounded hover:bg-[#244D75] transition-colors">Confirm</button>
+                <button id="confirm-no" class="px-6 py-2 border border-slate-300 text-slate-600 font-bold font-cinzel rounded-full hover:bg-slate-100 transition-colors">Cancel</button>
+                <button id="confirm-yes" class="px-6 py-2 bg-[#183B5B] text-[#D6A84A] font-bold font-cinzel rounded-full hover:bg-[#244D75] transition-colors">Confirm</button>
             `;
             
             document.getElementById('confirm-no').onclick = () => alertBox.classList.add('hidden');

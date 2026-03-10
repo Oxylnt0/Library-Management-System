@@ -11,11 +11,26 @@
 
     <link href="../output.css" rel="stylesheet">
 
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
     <style>
         body {
             font-family: 'Inter', sans-serif;
+        }
+        .font-cinzel {
+            font-family: 'Cinzel', serif;
+        }
+        /* Wave Animation */
+        .parallax > use {
+            animation: move-forever 25s cubic-bezier(.55, .5, .45, .5) infinite;
+        }
+        .parallax > use:nth-child(1) { animation-delay: -2s; animation-duration: 14s; }
+        .parallax > use:nth-child(2) { animation-delay: -3s; animation-duration: 20s; }
+        .parallax > use:nth-child(3) { animation-delay: -4s; animation-duration: 26s; }
+        .parallax > use:nth-child(4) { animation-delay: -5s; animation-duration: 40s; }
+        @keyframes move-forever {
+            0% { transform: translate3d(-90px, 0, 0); }
+            100% { transform: translate3d(85px, 0, 0); }
         }
     </style>
 </head>
@@ -41,26 +56,36 @@
 
                     <div class="relative z-10 space-y-6">
 
-                        <div
-                            class="h-28 rounded-xl shadow-lg bg-gradient-to-r from-cyan-800 to-blue-900 flex items-center justify-center relative overflow-hidden">
-                            <div
-                                class="absolute top-0 left-0 w-full h-full opacity-20 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]">
-                            </div>
-                            <div
-                                class="bg-white/10 backdrop-blur-md px-8 py-3 rounded-xl border border-white/20 shadow-2xl z-10">
-                                <h2 class="text-xl font-bold text-white tracking-wide">Admin Dashboard</h2>
-                            </div>
+                    <div class="bg-gradient-to-r from-[#183B5B] to-[#244D75] rounded-2xl p-6 md:p-10 mb-5 shadow-xl relative overflow-hidden border border-[#D6A84A]/30 shrink-0">
+                        <!-- Waves Background -->
+                        <div class="absolute bottom-0 left-0 w-full h-full overflow-hidden opacity-30 pointer-events-none">
+                            <svg class="absolute bottom-0 w-full h-20" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 24 150 28" preserveAspectRatio="none" shape-rendering="auto">
+                                <defs>
+                                    <path id="gentle-wave-card" d="M-160 44c30 0 58-18 88-18s 58 18 88 18 58-18 88-18 58 18 88 18 v44h-352z" />
+                                </defs>
+                                <g class="parallax">
+                                    <use xlink:href="#gentle-wave-card" x="48" y="0" fill="rgba(255,255,255,0.7)" />
+                                    <use xlink:href="#gentle-wave-card" x="48" y="3" fill="rgba(255,255,255,0.5)" />
+                                    <use xlink:href="#gentle-wave-card" x="48" y="5" fill="rgba(255,255,255,0.3)" />
+                                    <use xlink:href="#gentle-wave-card" x="48" y="7" fill="rgba(255,255,255,0.1)" />
+                                </g>
+                            </svg>
                         </div>
+
+                        <div class="relative z-10 w-full max-w-3xl mx-auto text-center">
+                            <h2 class="text-3xl font-bold mb-2 font-cinzel text-[#D6A84A]">Admin Dashboard</h2>
+                            <p class="text-blue-100 mb-6">Welcome back, Admin. Ready to manage the library?</p>
+                        </div>
+                    </div>
 
                         <div class="bg-white rounded-2xl shadow-md border border-slate-200 p-8">
                             <div class="flex items-center justify-between mb-6">
                                 <h3 class="text-lg font-bold text-slate-700 uppercase tracking-wider">System Overview</h3>
-                                <span class="text-sm text-slate-400 bg-slate-50 px-3 py-1 rounded-full border border-slate-100">Live Data</span>
                             </div>
                             
                             <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                                 <!-- Total Books -->
-                                <div class="flex flex-col p-6 rounded-2xl bg-slate-50 border border-slate-100 hover:shadow-lg transition-all duration-300 group">
+                                <a href="admin_books.html" class="flex flex-col p-6 rounded-2xl bg-slate-50 border border-slate-100 hover:shadow-lg transition-all duration-300 group cursor-pointer">
                                     <div class="flex items-center justify-between mb-4">
                                         <div class="h-14 w-14 rounded-2xl bg-blue-100 text-blue-600 flex items-center justify-center group-hover:scale-110 transition-transform">
                                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -68,15 +93,14 @@
                                                 d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
                                         </svg>
                                     </div>
-                                        <span class="text-xs font-bold text-green-600 bg-green-100 px-2 py-1 rounded-full">+12 New</span>
                                     </div>
                                     <p class="text-sm font-bold text-slate-500 uppercase tracking-wide">Total Collection</p>
                                     <p class="text-3xl font-bold text-slate-800 mt-2" id="stat-total-books">Loading...</p>
                                     <p class="text-xs text-slate-400 mt-2">Books, Journals, and Media</p>
-                                </div>
+                                </a>
 
                                 <!-- Borrowed Books -->
-                                <div class="flex flex-col p-6 rounded-2xl bg-amber-50 border border-amber-100 hover:shadow-lg transition-all duration-300 group">
+                                <a href="admin_loans.html" class="flex flex-col p-6 rounded-2xl bg-amber-50 border border-amber-100 hover:shadow-lg transition-all duration-300 group cursor-pointer">
                                     <div class="flex items-center justify-between mb-4">
                                         <div class="h-14 w-14 rounded-2xl bg-amber-100 text-amber-600 flex items-center justify-center group-hover:scale-110 transition-transform">
                                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -84,15 +108,14 @@
                                                 d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
                                         </svg>
                                     </div>
-                                        <span class="text-xs font-bold text-amber-600 bg-amber-100 px-2 py-1 rounded-full">Active</span>
                                     </div>
                                     <p class="text-sm font-bold text-slate-500 uppercase tracking-wide">Currently Borrowed</p>
                                     <p class="text-3xl font-bold text-slate-800 mt-2" id="stat-borrowed">Loading...</p>
                                     <p class="text-xs text-slate-400 mt-2">Across all user categories</p>
-                                </div>
+                                </a>
 
                                 <!-- Reservations -->
-                                <div class="flex flex-col p-6 rounded-2xl bg-purple-50 border border-purple-100 hover:shadow-lg transition-all duration-300 group">
+                                <a href="admin_reservations.html" class="flex flex-col p-6 rounded-2xl bg-purple-50 border border-purple-100 hover:shadow-lg transition-all duration-300 group cursor-pointer">
                                     <div class="flex items-center justify-between mb-4">
                                         <div class="h-14 w-14 rounded-2xl bg-purple-100 text-purple-600 flex items-center justify-center group-hover:scale-110 transition-transform">
                                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -100,15 +123,14 @@
                                                 d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                                         </svg>
                                     </div>
-                                        <span class="text-xs font-bold text-purple-600 bg-purple-100 px-2 py-1 rounded-full">Pending</span>
                                     </div>
                                     <p class="text-sm font-bold text-slate-500 uppercase tracking-wide">Reservations</p>
                                     <p class="text-3xl font-bold text-slate-800 mt-2" id="stat-reservations">Loading...</p>
                                     <p class="text-xs text-slate-400 mt-2">Awaiting pickup or approval</p>
-                                </div>
+                                </a>
 
                                 <!-- Donations -->
-                                <div class="flex flex-col p-6 rounded-2xl bg-emerald-50 border border-emerald-100 hover:shadow-lg transition-all duration-300 group">
+                                <a href="admin_donations.html" class="flex flex-col p-6 rounded-2xl bg-emerald-50 border border-emerald-100 hover:shadow-lg transition-all duration-300 group cursor-pointer">
                                     <div class="flex items-center justify-between mb-4">
                                         <div class="h-14 w-14 rounded-2xl bg-emerald-100 text-emerald-600 flex items-center justify-center group-hover:scale-110 transition-transform">
                                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -116,15 +138,14 @@
                                                 d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                         </svg>
                                     </div>
-                                        <span class="text-xs font-bold text-emerald-600 bg-emerald-100 px-2 py-1 rounded-full">Inbound</span>
                                     </div>
                                     <p class="text-sm font-bold text-slate-500 uppercase tracking-wide">Pending Donations</p>
                                     <p class="text-3xl font-bold text-slate-800 mt-2" id="stat-donations">Loading...</p>
                                     <p class="text-xs text-slate-400 mt-2">Items to be cataloged</p>
-                                </div>
+                                </a>
 
                                 <!-- Overdue -->
-                                <div class="flex flex-col p-6 rounded-2xl bg-red-50 border border-red-100 hover:shadow-lg transition-all duration-300 group">
+                                <a href="admin_loans.html" class="flex flex-col p-6 rounded-2xl bg-red-50 border border-red-100 hover:shadow-lg transition-all duration-300 group cursor-pointer">
                                     <div class="flex items-center justify-between mb-4">
                                         <div class="h-14 w-14 rounded-2xl bg-red-100 text-red-600 flex items-center justify-center group-hover:scale-110 transition-transform">
                                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -132,15 +153,14 @@
                                                 d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                                         </svg>
                                     </div>
-                                        <span class="text-xs font-bold text-red-600 bg-red-100 px-2 py-1 rounded-full">Action Req.</span>
                                     </div>
                                     <p class="text-sm font-bold text-slate-500 uppercase tracking-wide">Overdue Books</p>
                                     <p class="text-3xl font-bold text-slate-800 mt-2" id="stat-overdue">Loading...</p>
                                     <p class="text-xs text-slate-400 mt-2">Past return deadline</p>
-                                </div>
+                                </a>
 
                                 <!-- Fines -->
-                                <div class="flex flex-col p-6 rounded-2xl bg-orange-50 border border-orange-100 hover:shadow-lg transition-all duration-300 group">
+                                <a href="admin_fines.html" class="flex flex-col p-6 rounded-2xl bg-orange-50 border border-orange-100 hover:shadow-lg transition-all duration-300 group cursor-pointer">
                                     <div class="flex items-center justify-between mb-4">
                                         <div class="h-14 w-14 rounded-2xl bg-orange-100 text-orange-600 flex items-center justify-center group-hover:scale-110 transition-transform">
                                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -148,12 +168,11 @@
                                                 d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2h-2m-4-1V7a2 2 0 012-2h2a2 2 0 012 2v5M8 7h12m0 0l-4-4m4 4l-4 4" />
                                         </svg>
                                     </div>
-                                        <span class="text-xs font-bold text-orange-600 bg-orange-100 px-2 py-1 rounded-full">Unpaid</span>
                                     </div>
                                     <p class="text-sm font-bold text-slate-500 uppercase tracking-wide">Pending Fines</p>
                                     <p class="text-3xl font-bold text-slate-800 mt-2" id="stat-fines">Loading...</p>
                                     <p class="text-xs text-slate-400 mt-2">Uncollected revenue</p>
-                                </div>
+                                </a>
                             </div>
                         </div>
 

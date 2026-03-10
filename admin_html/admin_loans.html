@@ -69,6 +69,7 @@
                     <div class="flex border-b border-slate-200">
                         <button onclick="switchTab('borrowed')" id="tab-borrowed" class="px-6 py-4 text-sm font-bold text-[#183B5B] border-b-2 border-[#183B5B] transition-colors hover:bg-slate-50">Recently Borrowed</button>
                         <button onclick="switchTab('returned')" id="tab-returned" class="px-6 py-4 text-sm font-medium text-slate-500 border-b-2 border-transparent transition-colors hover:text-slate-700 hover:bg-slate-50">Recently Returned</button>
+                        <button onclick="switchTab('overdue')" id="tab-overdue" class="px-6 py-4 text-sm font-medium text-slate-500 border-b-2 border-transparent transition-colors hover:text-slate-700 hover:bg-slate-50">Overdue Books</button>
                     </div>
 
                     <div class="flex-1 relative">
@@ -101,6 +102,22 @@
                                     </tr>
                                 </thead>
                                 <tbody id="tbody-returned" class="divide-y divide-slate-100 text-sm"></tbody>
+                            </table>
+                        </div>
+
+                        <!-- Overdue List -->
+                        <div id="list-overdue" class="hidden absolute inset-0 overflow-y-auto">
+                            <table class="w-full text-left border-collapse">
+                                <thead class="bg-slate-50 sticky top-0 z-10 shadow-sm">
+                                    <tr>
+                                        <th class="p-4 text-xs font-bold text-slate-500 uppercase border-b">Name</th>
+                                        <th class="p-4 text-xs font-bold text-slate-500 uppercase border-b">Book Title</th>
+                                        <th class="p-4 text-xs font-bold text-slate-500 uppercase border-b cursor-pointer hover:bg-slate-100 select-none" onclick="sortActivity('overdue')">
+                                            Due Date <span id="sort-icon-overdue">▼</span>
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tbody-overdue" class="divide-y divide-slate-100 text-sm"></tbody>
                             </table>
                         </div>
                     </div>
@@ -232,26 +249,22 @@
         }
 
         function switchTab(tab) {
-            const tabBorrowed = document.getElementById('tab-borrowed');
-            const tabReturned = document.getElementById('tab-returned');
-            const listBorrowed = document.getElementById('list-borrowed');
-            const listReturned = document.getElementById('list-returned');
-
-            if (tab === 'borrowed') {
-                tabBorrowed.classList.add('text-[#183B5B]', 'border-[#183B5B]', 'font-bold');
-                tabBorrowed.classList.remove('text-slate-500', 'border-transparent', 'font-medium');
-                tabReturned.classList.add('text-slate-500', 'border-transparent', 'font-medium');
-                tabReturned.classList.remove('text-[#183B5B]', 'border-[#183B5B]', 'font-bold');
-                listBorrowed.classList.remove('hidden');
-                listReturned.classList.add('hidden');
-            } else {
-                tabReturned.classList.add('text-[#183B5B]', 'border-[#183B5B]', 'font-bold');
-                tabReturned.classList.remove('text-slate-500', 'border-transparent', 'font-medium');
-                tabBorrowed.classList.add('text-slate-500', 'border-transparent', 'font-medium');
-                tabBorrowed.classList.remove('text-[#183B5B]', 'border-[#183B5B]', 'font-bold');
-                listReturned.classList.remove('hidden');
-                listBorrowed.classList.add('hidden');
-            }
+            const tabs = ['borrowed', 'returned', 'overdue'];
+            
+            tabs.forEach(t => {
+                const btn = document.getElementById(`tab-${t}`);
+                const list = document.getElementById(`list-${t}`);
+                
+                if (t === tab) {
+                    btn.classList.add('text-[#183B5B]', 'border-[#183B5B]', 'font-bold');
+                    btn.classList.remove('text-slate-500', 'border-transparent', 'font-medium');
+                    list.classList.remove('hidden');
+                } else {
+                    btn.classList.remove('text-[#183B5B]', 'border-[#183B5B]', 'font-bold');
+                    btn.classList.add('text-slate-500', 'border-transparent', 'font-medium');
+                    list.classList.add('hidden');
+                }
+            });
         }
     </script>
 

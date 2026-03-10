@@ -242,7 +242,7 @@
                                         <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Location</label>
                                         <div class="flex gap-2">
                                             <input type="text" id="inp-location" name="location" class="w-full p-2 rounded-lg bg-white/80 border border-slate-200 focus:ring-2 focus:ring-[#D6A84A]/50 focus:border-[#D6A84A] outline-none transition-all text-sm text-slate-500" placeholder="Select shelf from map..." readonly>
-                                            <button type="button" id="open-map-btn" class="px-3 py-2 bg-slate-200 text-slate-600 rounded-lg hover:bg-slate-300 transition-colors text-xs font-bold whitespace-nowrap">
+                                            <button type="button" id="open-map-btn" class="px-4 py-2.5 bg-[#183B5B] text-[#D6A84A] font-bold rounded-full hover:bg-[#2E5F87] transition-colors text-xs whitespace-nowrap shadow-sm">
                                                 🗺️ Map
                                             </button>
                                         </div>
@@ -308,8 +308,9 @@
                                             <input type="text" id="inp-image"
                                                 class="flex-1 p-2 rounded-lg bg-white/80 border border-slate-200 focus:ring-2 focus:ring-[#D6A84A]/50 focus:border-[#D6A84A] outline-none text-sm font-mono text-slate-600 transition-all"
                                                 placeholder="Paste link here...">
-                                            <button type="button" id="btn-preview"
-                                                class="px-4 py-2 bg-[#183B5B] text-[#D6A84A] font-bold rounded-lg hover:bg-[#2E5F87] transition text-sm">Check</button>
+                                            <button type="button" id="btn-preview" class="px-4 py-2.5 bg-[#183B5B] text-[#D6A84A] font-bold rounded-full hover:bg-[#2E5F87] transition text-sm shadow-sm">
+                                                Check
+                                            </button>
                                         </div>
                                     </div>
                                 </div>
@@ -346,12 +347,12 @@
 
                             <div class="mt-8 w-full">
                                 <button id="btn-save"
-                                    class="w-full py-4 rounded-xl font-bold text-[#D6A84A] bg-[#183B5B] shadow-lg hover:bg-[#2E5F87] transition-all flex justify-center items-center gap-2 transform hover:scale-105">
+                                    class="w-full py-3 rounded-full font-bold text-[#D6A84A] bg-[#183B5B] shadow-lg hover:bg-[#2E5F87] transition-all flex justify-center items-center gap-2 transform hover:scale-105">
                                     <span>
                                     </span> Save to Library
                                 </button>
                                 <button onclick="window.location.reload()"
-                                    class="w-full mt-3 py-3 rounded-xl font-bold text-slate-500 hover:bg-slate-100 transition-colors">
+                                    class="w-full mt-3 py-3 rounded-full font-bold text-slate-500 hover:bg-slate-100 transition-colors shadow-sm">
                                     Reset Form
                                 </button>
                             </div>

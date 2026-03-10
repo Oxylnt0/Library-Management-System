@@ -56,85 +56,85 @@
             class="w-72 bg-white/60 backdrop-blur-md border-r border-white/20 flex-shrink-0 hidden md:flex flex-col h-full overflow-y-auto p-6 z-30">
             <div class="flex items-center justify-between mb-6">
                 <h2 class="font-bold text-[#183B5B] text-lg font-cinzel">Filters</h2>
-                <button id="reset-filters-btn" class="text-xs text-[#2E5F87] font-medium hover:underline">Reset</button>
+                <button id="reset-filters-btn" class="text-xs text-[#2E5F87] font-medium hover:text-[#183B5B] hover:underline">Reset</button>
             </div>
 
             <div class="mb-6">
                 <h4 class="text-xs font-bold text-slate-400 uppercase mb-2">Availability</h4>
-                <div class="space-y-2 text-sm">
-                    <label class="flex items-center gap-2 cursor-pointer"><input type="radio" name="status" value="All" checked class="text-[#183B5B] focus:ring-[#183B5B]"> All Books</label>
-                    <label class="flex items-center gap-2 cursor-pointer"><input type="radio" name="status" value="Available" class="text-[#183B5B] focus:ring-[#183B5B]"> Available Now</label>
+                <div class="space-y-2 text-sm text-slate-600">
+                    <label class="flex items-center gap-2 cursor-pointer hover:text-[#183B5B] transition-colors"><input type="radio" name="status" value="All" checked class="text-[#183B5B] focus:ring-[#183B5B]"> All Books</label>
+                    <label class="flex items-center gap-2 cursor-pointer hover:text-[#183B5B] transition-colors"><input type="radio" name="status" value="Available" class="text-[#183B5B] focus:ring-[#183B5B]"> Available Now</label>
                 </div>
             </div>
 
             <div class="space-y-4">
                 <details class="group">
-                    <summary class="font-bold text-sm text-[#183B5B] cursor-pointer list-none flex justify-between items-center">
+                    <summary class="font-bold text-sm text-[#183B5B] cursor-pointer list-none flex justify-between items-center hover:text-[#2E5F87] transition-colors">
                         Fiction & Lit
                         <span class="transition group-open:rotate-180 text-xs">▼</span>
                     </summary>
                     <div class="mt-2 space-y-2 text-sm pl-2 text-slate-600">
-                        <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="genre-filter rounded text-[#183B5B] focus:ring-[#183B5B]" value="Action & Adventure"> Action & Adventure</label>
-                        <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="genre-filter rounded text-[#183B5B] focus:ring-[#183B5B]" value="Classic Fiction"> Classic Fiction</label>
-                        <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="genre-filter rounded text-[#183B5B] focus:ring-[#183B5B]" value="Fantasy"> Fantasy</label>
-                        <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="genre-filter rounded text-[#183B5B] focus:ring-[#183B5B]" value="Historical Fiction"> Historical Fiction</label>
-                        <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="genre-filter rounded text-[#183B5B] focus:ring-[#183B5B]" value="Mystery & Thriller"> Mystery & Thriller</label>
-                        <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="genre-filter rounded text-[#183B5B] focus:ring-[#183B5B]" value="Romance"> Romance</label>
-                        <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="genre-filter rounded text-[#183B5B] focus:ring-[#183B5B]" value="Science Fiction (Sci-Fi)"> Sci-Fi</label>
-                        <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="genre-filter rounded text-[#183B5B] focus:ring-[#183B5B]" value="Young Adult (YA)"> Young Adult</label>
-                        <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="genre-filter rounded text-[#183B5B] focus:ring-[#183B5B]" value="Children's Literature"> Children's Lit</label>
-                        <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="genre-filter rounded text-[#183B5B] focus:ring-[#183B5B]" value="Graphic Novel / Comic"> Graphic Novel</label>
+                        <label class="flex items-center gap-2 cursor-pointer hover:text-[#183B5B] transition-colors"><input type="checkbox" class="genre-filter rounded text-[#183B5B] focus:ring-[#183B5B]" value="Action & Adventure"> Action & Adventure</label>
+                        <label class="flex items-center gap-2 cursor-pointer hover:text-[#183B5B] transition-colors"><input type="checkbox" class="genre-filter rounded text-[#183B5B] focus:ring-[#183B5B]" value="Classic Fiction"> Classic Fiction</label>
+                        <label class="flex items-center gap-2 cursor-pointer hover:text-[#183B5B] transition-colors"><input type="checkbox" class="genre-filter rounded text-[#183B5B] focus:ring-[#183B5B]" value="Fantasy"> Fantasy</label>
+                        <label class="flex items-center gap-2 cursor-pointer hover:text-[#183B5B] transition-colors"><input type="checkbox" class="genre-filter rounded text-[#183B5B] focus:ring-[#183B5B]" value="Historical Fiction"> Historical Fiction</label>
+                        <label class="flex items-center gap-2 cursor-pointer hover:text-[#183B5B] transition-colors"><input type="checkbox" class="genre-filter rounded text-[#183B5B] focus:ring-[#183B5B]" value="Mystery & Thriller"> Mystery & Thriller</label>
+                        <label class="flex items-center gap-2 cursor-pointer hover:text-[#183B5B] transition-colors"><input type="checkbox" class="genre-filter rounded text-[#183B5B] focus:ring-[#183B5B]" value="Romance"> Romance</label>
+                        <label class="flex items-center gap-2 cursor-pointer hover:text-[#183B5B] transition-colors"><input type="checkbox" class="genre-filter rounded text-[#183B5B] focus:ring-[#183B5B]" value="Science Fiction (Sci-Fi)"> Sci-Fi</label>
+                        <label class="flex items-center gap-2 cursor-pointer hover:text-[#183B5B] transition-colors"><input type="checkbox" class="genre-filter rounded text-[#183B5B] focus:ring-[#183B5B]" value="Young Adult (YA)"> Young Adult</label>
+                        <label class="flex items-center gap-2 cursor-pointer hover:text-[#183B5B] transition-colors"><input type="checkbox" class="genre-filter rounded text-[#183B5B] focus:ring-[#183B5B]" value="Children's Literature"> Children's Lit</label>
+                        <label class="flex items-center gap-2 cursor-pointer hover:text-[#183B5B] transition-colors"><input type="checkbox" class="genre-filter rounded text-[#183B5B] focus:ring-[#183B5B]" value="Graphic Novel / Comic"> Graphic Novel</label>
                     </div>
                 </details>
 
                 <details class="group">
-                    <summary class="font-bold text-sm text-[#183B5B] cursor-pointer list-none flex justify-between items-center">
+                    <summary class="font-bold text-sm text-[#183B5B] cursor-pointer list-none flex justify-between items-center hover:text-[#2E5F87] transition-colors">
                         Non-Fiction
                         <span class="transition group-open:rotate-180 text-xs">▼</span>
                     </summary>
                     <div class="mt-2 space-y-2 text-sm pl-2 text-slate-600">
-                        <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="genre-filter rounded text-[#183B5B] focus:ring-[#183B5B]" value="Biography & Autobiography"> Biography</label>
-                        <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="genre-filter rounded text-[#183B5B] focus:ring-[#183B5B]" value="Self-Help & Motivation"> Self-Help</label>
-                        <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="genre-filter rounded text-[#183B5B] focus:ring-[#183B5B]" value="Business & Economics"> Business</label>
-                        <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="genre-filter rounded text-[#183B5B] focus:ring-[#183B5B]" value="History & Geography"> History</label>
-                        <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="genre-filter rounded text-[#183B5B] focus:ring-[#183B5B]" value="Philosophy & Psychology"> Philosophy</label>
-                        <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="genre-filter rounded text-[#183B5B] focus:ring-[#183B5B]" value="Religion & Theology"> Religion</label>
-                        <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="genre-filter rounded text-[#183B5B] focus:ring-[#183B5B]" value="True Crime"> True Crime</label>
-                        <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="genre-filter rounded text-[#183B5B] focus:ring-[#183B5B]" value="Arts & Music"> Arts & Music</label>
+                        <label class="flex items-center gap-2 cursor-pointer hover:text-[#183B5B] transition-colors"><input type="checkbox" class="genre-filter rounded text-[#183B5B] focus:ring-[#183B5B]" value="Biography & Autobiography"> Biography</label>
+                        <label class="flex items-center gap-2 cursor-pointer hover:text-[#183B5B] transition-colors"><input type="checkbox" class="genre-filter rounded text-[#183B5B] focus:ring-[#183B5B]" value="Self-Help & Motivation"> Self-Help</label>
+                        <label class="flex items-center gap-2 cursor-pointer hover:text-[#183B5B] transition-colors"><input type="checkbox" class="genre-filter rounded text-[#183B5B] focus:ring-[#183B5B]" value="Business & Economics"> Business</label>
+                        <label class="flex items-center gap-2 cursor-pointer hover:text-[#183B5B] transition-colors"><input type="checkbox" class="genre-filter rounded text-[#183B5B] focus:ring-[#183B5B]" value="History & Geography"> History</label>
+                        <label class="flex items-center gap-2 cursor-pointer hover:text-[#183B5B] transition-colors"><input type="checkbox" class="genre-filter rounded text-[#183B5B] focus:ring-[#183B5B]" value="Philosophy & Psychology"> Philosophy</label>
+                        <label class="flex items-center gap-2 cursor-pointer hover:text-[#183B5B] transition-colors"><input type="checkbox" class="genre-filter rounded text-[#183B5B] focus:ring-[#183B5B]" value="Religion & Theology"> Religion</label>
+                        <label class="flex items-center gap-2 cursor-pointer hover:text-[#183B5B] transition-colors"><input type="checkbox" class="genre-filter rounded text-[#183B5B] focus:ring-[#183B5B]" value="True Crime"> True Crime</label>
+                        <label class="flex items-center gap-2 cursor-pointer hover:text-[#183B5B] transition-colors"><input type="checkbox" class="genre-filter rounded text-[#183B5B] focus:ring-[#183B5B]" value="Arts & Music"> Arts & Music</label>
                     </div>
                 </details>
 
                 <details class="group">
-                    <summary class="font-bold text-sm text-[#183B5B] cursor-pointer list-none flex justify-between items-center">
+                    <summary class="font-bold text-sm text-[#183B5B] cursor-pointer list-none flex justify-between items-center hover:text-[#2E5F87] transition-colors">
                         Academic
                         <span class="transition group-open:rotate-180 text-xs">▼</span>
                     </summary>
                     <div class="mt-2 space-y-2 text-sm pl-2 text-slate-600">
-                        <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="genre-filter rounded text-[#183B5B] focus:ring-[#183B5B]" value="Computer Science & Technology"> Comp Sci</label>
-                        <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="genre-filter rounded text-[#183B5B] focus:ring-[#183B5B]" value="Medicine & Health"> Medicine</label>
-                        <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="genre-filter rounded text-[#183B5B] focus:ring-[#183B5B]" value="Biology & Life Sciences"> Biology</label>
-                        <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="genre-filter rounded text-[#183B5B] focus:ring-[#183B5B]" value="Chemistry & Physics"> Chemistry/Physics</label>
-                        <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="genre-filter rounded text-[#183B5B] focus:ring-[#183B5B]" value="Mathematics"> Mathematics</label>
-                        <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="genre-filter rounded text-[#183B5B] focus:ring-[#183B5B]" value="Engineering"> Engineering</label>
-                        <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="genre-filter rounded text-[#183B5B] focus:ring-[#183B5B]" value="Law & Politics"> Law & Politics</label>
-                        <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="genre-filter rounded text-[#183B5B] focus:ring-[#183B5B]" value="Education & Teaching"> Education</label>
+                        <label class="flex items-center gap-2 cursor-pointer hover:text-[#183B5B] transition-colors"><input type="checkbox" class="genre-filter rounded text-[#183B5B] focus:ring-[#183B5B]" value="Computer Science & Technology"> Comp Sci</label>
+                        <label class="flex items-center gap-2 cursor-pointer hover:text-[#183B5B] transition-colors"><input type="checkbox" class="genre-filter rounded text-[#183B5B] focus:ring-[#183B5B]" value="Medicine & Health"> Medicine</label>
+                        <label class="flex items-center gap-2 cursor-pointer hover:text-[#183B5B] transition-colors"><input type="checkbox" class="genre-filter rounded text-[#183B5B] focus:ring-[#183B5B]" value="Biology & Life Sciences"> Biology</label>
+                        <label class="flex items-center gap-2 cursor-pointer hover:text-[#183B5B] transition-colors"><input type="checkbox" class="genre-filter rounded text-[#183B5B] focus:ring-[#183B5B]" value="Chemistry & Physics"> Chemistry/Physics</label>
+                        <label class="flex items-center gap-2 cursor-pointer hover:text-[#183B5B] transition-colors"><input type="checkbox" class="genre-filter rounded text-[#183B5B] focus:ring-[#183B5B]" value="Mathematics"> Mathematics</label>
+                        <label class="flex items-center gap-2 cursor-pointer hover:text-[#183B5B] transition-colors"><input type="checkbox" class="genre-filter rounded text-[#183B5B] focus:ring-[#183B5B]" value="Engineering"> Engineering</label>
+                        <label class="flex items-center gap-2 cursor-pointer hover:text-[#183B5B] transition-colors"><input type="checkbox" class="genre-filter rounded text-[#183B5B] focus:ring-[#183B5B]" value="Law & Politics"> Law & Politics</label>
+                        <label class="flex items-center gap-2 cursor-pointer hover:text-[#183B5B] transition-colors"><input type="checkbox" class="genre-filter rounded text-[#183B5B] focus:ring-[#183B5B]" value="Education & Teaching"> Education</label>
                     </div>
                 </details>
 
                 <details class="group">
-                    <summary class="font-bold text-sm text-[#183B5B] cursor-pointer list-none flex justify-between items-center">
+                    <summary class="font-bold text-sm text-[#183B5B] cursor-pointer list-none flex justify-between items-center hover:text-[#2E5F87] transition-colors">
                         Reference & Special
                         <span class="transition group-open:rotate-180 text-xs">▼</span>
                     </summary>
                     <div class="mt-2 space-y-2 text-sm pl-2 text-slate-600">
-                        <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="genre-filter rounded text-[#183B5B] focus:ring-[#183B5B]" value="Dictionary"> Dictionary</label>
-                        <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="genre-filter rounded text-[#183B5B] focus:ring-[#183B5B]" value="Encyclopedia"> Encyclopedia</label>
-                        <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="genre-filter rounded text-[#183B5B] focus:ring-[#183B5B]" value="Atlas & Maps"> Atlas & Maps</label>
-                        <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="genre-filter rounded text-[#183B5B] focus:ring-[#183B5B]" value="Almanac"> Almanac</label>
-                        <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="genre-filter rounded text-[#183B5B] focus:ring-[#183B5B]" value="Thesaurus"> Thesaurus</label>
-                        <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="genre-filter rounded text-[#183B5B] focus:ring-[#183B5B]" value="Filipiniana"> Filipiniana</label>
-                        <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="genre-filter rounded text-[#183B5B] focus:ring-[#183B5B]" value="Periodical / Journal"> Periodical</label>
-                        <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="genre-filter rounded text-[#183B5B] focus:ring-[#183B5B]" value="Thesis / Dissertation"> Thesis</label>
+                        <label class="flex items-center gap-2 cursor-pointer hover:text-[#183B5B] transition-colors"><input type="checkbox" class="genre-filter rounded text-[#183B5B] focus:ring-[#183B5B]" value="Dictionary"> Dictionary</label>
+                        <label class="flex items-center gap-2 cursor-pointer hover:text-[#183B5B] transition-colors"><input type="checkbox" class="genre-filter rounded text-[#183B5B] focus:ring-[#183B5B]" value="Encyclopedia"> Encyclopedia</label>
+                        <label class="flex items-center gap-2 cursor-pointer hover:text-[#183B5B] transition-colors"><input type="checkbox" class="genre-filter rounded text-[#183B5B] focus:ring-[#183B5B]" value="Atlas & Maps"> Atlas & Maps</label>
+                        <label class="flex items-center gap-2 cursor-pointer hover:text-[#183B5B] transition-colors"><input type="checkbox" class="genre-filter rounded text-[#183B5B] focus:ring-[#183B5B]" value="Almanac"> Almanac</label>
+                        <label class="flex items-center gap-2 cursor-pointer hover:text-[#183B5B] transition-colors"><input type="checkbox" class="genre-filter rounded text-[#183B5B] focus:ring-[#183B5B]" value="Thesaurus"> Thesaurus</label>
+                        <label class="flex items-center gap-2 cursor-pointer hover:text-[#183B5B] transition-colors"><input type="checkbox" class="genre-filter rounded text-[#183B5B] focus:ring-[#183B5B]" value="Filipiniana"> Filipiniana</label>
+                        <label class="flex items-center gap-2 cursor-pointer hover:text-[#183B5B] transition-colors"><input type="checkbox" class="genre-filter rounded text-[#183B5B] focus:ring-[#183B5B]" value="Periodical / Journal"> Periodical</label>
+                        <label class="flex items-center gap-2 cursor-pointer hover:text-[#183B5B] transition-colors"><input type="checkbox" class="genre-filter rounded text-[#183B5B] focus:ring-[#183B5B]" value="Thesis / Dissertation"> Thesis</label>
                     </div>
                 </details>
             </div>
@@ -162,7 +162,7 @@
                         <input type="text" id="search-input" placeholder="Search by title, author, or ISBN..."
                             class="w-full pl-10 pr-14 py-3 bg-white/80 border border-white/30 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-[#D6A84A]/50 focus:border-[#D6A84A] transition-all shadow-inner text-[#1A202C]">
                         <button id="search-btn"
-                            class="absolute right-1.5 top-1.5 bottom-1.5 px-4 bg-[#D6A84A] text-white text-xs font-bold rounded-full hover:brightness-110 transition-colors shadow-sm">
+                            class="absolute right-1.5 top-1.5 bottom-1.5 px-4 bg-[#183B5B] text-[#D6A84A] text-xs font-bold rounded-full hover:bg-[#2E5F87] transition-colors shadow-sm">
                             Search
                         </button>
                     </div>

@@ -139,19 +139,19 @@
 
             if (userStatus === 'Borrowed') {
                 // STATE 1: User has actively borrowed the book
-                btnHtml = `<button class="w-full py-2.5 rounded-lg bg-amber-100 text-amber-800 border border-amber-200 text-sm font-semibold cursor-not-allowed shadow-sm" disabled>📖 Currently Borrowed</button>`;
+                btnHtml = `<button class="w-full py-2.5 rounded-full bg-amber-100 text-amber-800 border border-amber-200 text-sm font-semibold cursor-not-allowed shadow-sm" disabled><svg class="w-4 h-4 mr-2 inline-block" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg> Currently Borrowed</button>`;
             } else if (userStatus === 'Pending') {
                 // STATE 2: User has a pending hold (Go to Desk)
-                btnHtml = `<button class="w-full py-2.5 rounded-lg bg-blue-50 text-blue-600 border border-blue-100 text-sm font-semibold cursor-not-allowed shadow-sm" disabled>✅ Go to Desk</button>`;
+                btnHtml = `<button class="w-full py-2.5 rounded-full bg-blue-50 text-blue-600 border border-blue-100 text-sm font-semibold cursor-not-allowed shadow-sm" disabled><svg class="w-4 h-4 mr-2 inline-block" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> Go to Desk</button>`;
             } else if (userWaitlisted) {
                 // STATE 1.5: User is on waitlist
-                btnHtml = `<button class="w-full py-2.5 rounded-lg bg-slate-200 text-slate-500 text-sm font-semibold cursor-not-allowed shadow-sm" disabled>⏳ Waitlisted</button>`;
+                btnHtml = `<button class="w-full py-2.5 rounded-full bg-slate-200 text-slate-500 text-sm font-semibold cursor-not-allowed shadow-sm" disabled><svg class="w-4 h-4 mr-2 inline-block" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> Waitlisted</button>`;
             } else if (available > 0) {
                 // STATE 2: Available to borrow
-                btnHtml = `<button class="dynamic-action-btn w-full py-2.5 rounded-lg bg-emerald-600 text-white text-sm font-semibold hover:bg-emerald-700 transition-all shadow-sm" data-action="borrow" data-id="${book.book_id}">Borrow (30 Min Hold)</button>`;
+                btnHtml = `<button class="dynamic-action-btn w-full py-2.5 rounded-full bg-[#183B5B] text-[#D6A84A] text-sm font-bold hover:bg-[#2E5F87] transition-colors shadow-sm" data-action="borrow" data-id="${book.book_id}">Borrow (30 Min Hold)</button>`;
             } else {
                 // STATE 3: Unavailable, join waitlist
-                btnHtml = `<button class="dynamic-action-btn w-full py-2.5 rounded-lg bg-amber-500 text-white text-sm font-semibold hover:bg-amber-600 transition-all shadow-sm" data-action="waitlist" data-id="${book.book_id}">Join Waitlist</button>`;
+                btnHtml = `<button class="dynamic-action-btn w-full py-2.5 rounded-full bg-[#183B5B] text-[#D6A84A] text-sm font-bold hover:bg-[#2E5F87] transition-colors shadow-sm" data-action="waitlist" data-id="${book.book_id}">Join Waitlist</button>`;
             }
 
             card.innerHTML = `
@@ -177,7 +177,7 @@
                         <span class="truncate max-w-[100px]">${book.genre}</span>
                     </div>
                     <button onclick="openBookDetails(${book.book_id})" 
-                            class="w-full mb-2 py-2.5 rounded-lg border border-[#183B5B] text-[#183B5B] text-sm font-semibold hover:bg-[#183B5B] hover:text-white transition-all active:scale-95 shadow-sm">
+                            class="w-full mb-2 py-2.5 rounded-full bg-[#183B5B] text-[#D6A84A] text-sm font-bold hover:bg-[#2E5F87] transition-colors active:scale-95 shadow-sm">
                         View Details
                     </button>
                     ${btnHtml}

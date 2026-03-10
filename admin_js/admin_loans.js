@@ -7,9 +7,11 @@
         // Initialize
         let borrowedData = [];
         let returnedData = [];
-        let sortState = { borrowed: 'desc', returned: 'desc' };
+        let overdueData = [];
+        let sortState = { borrowed: 'desc', returned: 'desc', overdue: 'asc' };
 
         fetchRecentActivity();
+        fetchOverdueBooks();
         fetchLoanStats();
 
         // Function called when a user QR code is scanned
@@ -382,6 +384,23 @@
             }
         }
 
+        async function fetchOverdueBooks() {
+            try {
+                const overdueRes = await db.execute({
+                    sql: `SELECT bt.due_date, b.title, u.first_name, u.last_name 
+                          FROM BORROW_TRANSACTION bt 
+                          JOIN BOOK b ON bt.book_id = b.book_id 
+                          JOIN USER u ON bt.user_id = u.user_id 
+                          WHERE bt.status = 'Overdue' OR (bt.status = 'Borrowed' AND bt.due_date < DATE('now', '+8 hours'))
+                          ORDER BY bt.due_date ASC`
+                });
+                overdueData = overdueRes.rows;
+                renderActivityTable('tbody-overdue', overdueData, 'due_date');
+            } catch (error) {
+                console.error("Error fetching overdue books:", error);
+            }
+        }
+
         async function fetchRecentActivity() {
             try {
                 // Fetch Recently Borrowed
@@ -431,9 +450,9 @@
         }
 
         function sortActivity(type) {
-            const field = type === 'borrowed' ? 'borrow_date' : 'return_date';
-            const data = type === 'borrowed' ? borrowedData : returnedData;
-            const tbodyId = type === 'borrowed' ? 'tbody-borrowed' : 'tbody-returned';
+            const field = type === 'borrowed' ? 'borrow_date' : (type === 'returned' ? 'return_date' : 'due_date');
+            const data = type === 'borrowed' ? borrowedData : (type === 'returned' ? returnedData : overdueData);
+            const tbodyId = type === 'borrowed' ? 'tbody-borrowed' : (type === 'returned' ? 'tbody-returned' : 'tbody-overdue');
             
             // Toggle sort
             sortState[type] = sortState[type] === 'desc' ? 'asc' : 'desc';

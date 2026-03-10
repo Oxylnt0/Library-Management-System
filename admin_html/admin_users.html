@@ -40,19 +40,23 @@
                         <div class="flex justify-between items-center">
                             <h2 class="text-2xl font-bold text-slate-800">User Directory</h2>
                             <a href="admin_add_users.html"
-                                class="bg-[#183B5B] hover:bg-[#2E5F87] text-white px-4 py-2 rounded-lg font-medium shadow-md flex items-center gap-2 transition-colors">
+                                class="bg-[#183B5B] hover:bg-[#2E5F87] text-[#D6A84A] px-4 py-2 rounded-full font-bold shadow-md flex items-center gap-2 transition-colors text-sm">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
                                 <span>Add User</span>
                             </a>
                         </div>
 
                         <div class="flex gap-3">
-                            <div class="relative flex-1 max-w-md">
-                                <input type="text" oninput="searchUsers(this.value)" placeholder="Search name, ID..."
-                                    class="w-full pl-10 pr-4 py-2 rounded-full border border-slate-300 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 shadow-sm">
-                                <span class="absolute left-3 top-2.5 text-slate-400">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                                </span>
+                            <div class="relative flex-1 max-w-md group">
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <svg class="h-5 w-5 text-slate-400 group-focus-within:text-[#D6A84A] transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                                </div>
+                                <input type="text" id="user-search-input" oninput="searchUsers(this.value)" placeholder="Search name, ID..."
+                                    class="w-full pl-10 pr-24 py-2.5 bg-white border border-slate-300 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-[#D6A84A]/50 focus:border-[#D6A84A] transition-all shadow-sm text-slate-800">
+                                <button onclick="searchUsers(document.getElementById('user-search-input').value)"
+                                    class="absolute right-1.5 top-1.5 bottom-1.5 px-4 bg-[#183B5B] text-[#D6A84A] text-xs font-bold rounded-full hover:bg-[#2E5F87] transition-colors shadow-sm">
+                                    Search
+                                </button>
                             </div>
                             <div class="relative">
                                 <button onclick="toggleFilterMenu()"
@@ -144,7 +148,7 @@
                     </div>
 
                     <button
-                        onclick="exportUserData()" class="w-full mt-6 bg-slate-800 hover:bg-slate-900 text-white font-bold py-3 rounded-xl shadow-md transition-colors text-sm">
+                        onclick="exportUserData()" class="w-full mt-6 bg-[#183B5B] hover:bg-[#2E5F87] text-[#D6A84A] font-bold py-3 rounded-full shadow-md transition-colors text-sm">
                         Export User Data
                     </button>
                 </aside>
@@ -279,10 +283,10 @@
                             <td class="p-4 text-right">
                                 ${user.status === 'Pending' ? `
                                     <div class="flex justify-end gap-2">
-                                        <button onclick="updateUserStatus(${user.user_id}, 'Active')" class="p-1.5 rounded bg-green-100 text-green-600 hover:bg-green-200 transition-colors" title="Accept">
+                                        <button onclick="updateUserStatus(${user.user_id}, 'Active')" class="p-2 rounded-full bg-green-100 text-green-600 hover:bg-green-200 transition-colors" title="Accept">
                                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
                                         </button>
-                                        <button onclick="updateUserStatus(${user.user_id}, 'Rejected')" class="p-1.5 rounded bg-red-100 text-red-600 hover:bg-red-200 transition-colors" title="Reject">
+                                        <button onclick="updateUserStatus(${user.user_id}, 'Rejected')" class="p-2 rounded-full bg-red-100 text-red-600 hover:bg-red-200 transition-colors" title="Reject">
                                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                                         </button>
                                     </div>

@@ -24,7 +24,10 @@
             { id: 'disciplinary', label: 'Disciplinary History', title: 'Disciplinary & Ban History' }
         ],
         audits: [
-            { id: 'audit_logs', label: 'Master Audit Trail', title: 'Master Audit Trail' }
+            { id: 'audit_all', label: 'All Audits', title: 'System-Wide Audit Log' },
+            { id: 'audit_admin', label: 'Admin Audits', title: 'Administrator Actions Log' },
+            { id: 'audit_user', label: 'User Audits', title: 'User Activity Log' },
+            { id: 'audit_guardian', label: 'Guardian Audits', title: 'Guardian Activity Log' }
         ]
     };
 
@@ -50,7 +53,7 @@
         const reports = reportConfig[tabId] || [];
         reports.forEach((rep, index) => {
             const btn = document.createElement('button');
-            btn.className = `px-4 py-2 rounded-full text-xs font-bold border transition-colors ${index === 0 ? 'bg-[#183B5B] text-white border-[#183B5B]' : 'bg-white text-slate-600 border-slate-300 hover:bg-slate-100'}`;
+            btn.className = `px-4 py-2 rounded-full text-xs font-bold border transition-colors ${index === 0 ? 'bg-[#183B5B] text-[#D6A84A] border-[#183B5B]' : 'bg-white text-slate-600 border-slate-300 hover:bg-slate-100'}`;
             btn.innerText = rep.label;
             btn.onclick = () => {
                 // Reset other chips
@@ -58,7 +61,7 @@
                     c.className = 'px-4 py-2 rounded-full text-xs font-bold border transition-colors bg-white text-slate-600 border-slate-300 hover:bg-slate-100';
                 });
                 // Highlight this one
-                btn.className = 'px-4 py-2 rounded-full text-xs font-bold border transition-colors bg-[#183B5B] text-white border-[#183B5B]';
+                btn.className = 'px-4 py-2 rounded-full text-xs font-bold border transition-colors bg-[#183B5B] text-[#D6A84A] border-[#183B5B]';
                 loadReportData(rep.id, rep.title);
             };
             selector.appendChild(btn);
@@ -112,8 +115,9 @@
 
         try {
             let url = `http://localhost:3000/api/reports/view?type=${reportId}`;
-            if (reportId === 'audit_logs') {
-                url = `http://localhost:3000/api/admin/audit-logs?filter=all`; // Reuse existing audit endpoint
+            if (reportId.startsWith('audit_')) {
+                const filter = reportId.replace('audit_', '');
+                url = `http://localhost:3000/api/admin/audit-logs?filter=${filter}`; // Reuse existing audit endpoint
             } else {
                 url += `&startDate=${startDate}&endDate=${endDate}`;
             }
@@ -173,7 +177,9 @@
                 let val = row[col];
                 
                 // Simple formatting
-                if (col.includes('date') || col.includes('at')) {
+                if (col === 'date_time') {
+                    try { val = new Date(val).toLocaleString(); } catch(e){}
+                } else if (col.includes('date') || col.includes('at')) {
                     try { val = new Date(val).toLocaleDateString(); } catch(e){}
                 }
                 if (col.includes('amount') || col.includes('price') || col.includes('revenue')) {

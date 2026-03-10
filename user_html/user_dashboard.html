@@ -52,6 +52,18 @@
             box-shadow: 0 0 6px rgba(46, 95, 135, 0.3);
             animation: rise linear infinite;
         }
+        /* Wave Animation */
+        .parallax > use {
+            animation: move-forever 25s cubic-bezier(.55, .5, .45, .5) infinite;
+        }
+        .parallax > use:nth-child(1) { animation-delay: -2s; animation-duration: 14s; }
+        .parallax > use:nth-child(2) { animation-delay: -3s; animation-duration: 20s; }
+        .parallax > use:nth-child(3) { animation-delay: -4s; animation-duration: 26s; }
+        .parallax > use:nth-child(4) { animation-delay: -5s; animation-duration: 40s; }
+        @keyframes move-forever {
+            0% { transform: translate3d(-90px, 0, 0); }
+            100% { transform: translate3d(85px, 0, 0); }
+        }
     </style>
 </head>
 
@@ -88,9 +100,22 @@
                 <div class="flex-1 flex flex-col overflow-y-auto p-4 no-scrollbar">
 
                     <div class="bg-gradient-to-r from-[#183B5B] to-[#244D75] rounded-2xl p-6 md:p-10 mb-5 shadow-xl relative overflow-hidden border border-[#D6A84A]/30 shrink-0">
-                        <div class="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]"></div>
+                        <!-- Waves Background -->
+                        <div class="absolute bottom-0 left-0 w-full h-full overflow-hidden opacity-30 pointer-events-none">
+                            <svg class="absolute bottom-0 w-full h-20" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 24 150 28" preserveAspectRatio="none" shape-rendering="auto">
+                                <defs>
+                                    <path id="gentle-wave-card" d="M-160 44c30 0 58-18 88-18s 58 18 88 18 58-18 88-18 58 18 88 18 v44h-352z" />
+                                </defs>
+                                <g class="parallax">
+                                    <use xlink:href="#gentle-wave-card" x="48" y="0" fill="rgba(255,255,255,0.7)" />
+                                    <use xlink:href="#gentle-wave-card" x="48" y="3" fill="rgba(255,255,255,0.5)" />
+                                    <use xlink:href="#gentle-wave-card" x="48" y="5" fill="rgba(255,255,255,0.3)" />
+                                    <use xlink:href="#gentle-wave-card" x="48" y="7" fill="rgba(255,255,255,0.1)" />
+                                </g>
+                            </svg>
+                        </div>
 
-                        <div class="relative z-10 w-full max-w-3xl">
+                        <div class="relative z-10 w-full max-w-3xl mx-auto text-center">
                             <h2 class="text-3xl font-bold mb-2 font-cinzel text-[#D6A84A]">Welcome to Puerto Palabra</h2>
                             <p class="text-blue-100 mb-6">Your port for discovery. What will you read today, Simoun?</p>
 
@@ -148,7 +173,6 @@
                     <div class="mb-8">
                         <div class="flex items-center justify-between mb-4">
                             <h3 class="font-bold text-[#1A202C] font-cinzel">My Fines</h3>
-                            <a href="#" class="text-xs text-[#183B5B] hover:underline font-semibold">Details</a>
                         </div>
                         <div
                             class="bg-gradient-to-br from-[#183B5B] to-[#0f2438] text-white rounded-xl p-5 text-center shadow-lg relative overflow-hidden border border-[#D6A84A]/30">
@@ -320,6 +344,46 @@
             let hasNotifs = false;
 
             try {
+                // 0. Announcements (Public)
+                const annQuery = `
+                    SELECT title, content, date_posted, priority 
+                    FROM ANNOUNCEMENT 
+                    WHERE status = 'Published' 
+                    AND (valid_until IS NULL OR valid_until > DATETIME('now', '+8 hours'))
+                    ORDER BY 
+                        CASE priority WHEN 'Urgent' THEN 1 WHEN 'High' THEN 2 ELSE 3 END, 
+                        date_posted DESC
+                    LIMIT 3
+                `;
+                const annRes = await db.execute(annQuery);
+                
+                annRes.rows.forEach(ann => {
+                    hasNotifs = true;
+                    const datePosted = new Date(ann.date_posted).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                    let priorityColor = 'border-blue-200 bg-[#e3f2fd]/90';
+                    let titleColor = 'text-[#2E5F87]';
+                    
+                    if (ann.priority === 'Urgent') {
+                        priorityColor = 'border-red-200 bg-[#fee2e2]/90';
+                        titleColor = 'text-[#C05640]';
+                    } else if (ann.priority === 'High') {
+                        priorityColor = 'border-amber-200 bg-[#fff8e1]/90';
+                        titleColor = 'text-[#d97706]';
+                    }
+
+                    const html = `
+                        <div class="${priorityColor} backdrop-blur-sm border p-3 rounded-lg shadow-sm">
+                            <div class="flex justify-between items-start mb-1">
+                                <p class="text-xs font-bold ${titleColor} uppercase">${ann.priority === 'Normal' ? 'Announcement' : ann.priority}</p>
+                                <span class="text-[10px] text-slate-500">${datePosted}</span>
+                            </div>
+                            <h4 class="text-sm font-bold text-[#1A202C] mb-1">${ann.title}</h4>
+                            <p class="text-xs text-slate-600 line-clamp-3">${ann.content}</p>
+                        </div>
+                    `;
+                    container.insertAdjacentHTML('beforeend', html);
+                });
+
                 // 1. Due Soon (<= 3 days)
                 const dueQuery = `
                     SELECT b.title, bt.due_date 
