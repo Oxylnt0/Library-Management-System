@@ -92,9 +92,10 @@
         <section class="mt-14">
             <h2 class="text-xl font-semibold mb-4 text-[#1A202C] font-cinzel">My Active Reservations</h2>
 
-            <div class="bg-white/70 backdrop-blur-md rounded-xl border border-white/20 shadow-lg overflow-hidden">
+            <div class="bg-white/70 backdrop-blur-md rounded-xl border border-white/20 shadow-lg overflow-hidden flex flex-col max-h-[500px]">
+                <div class="overflow-y-auto">
                 <table class="w-full text-sm">
-                    <thead class="bg-white/50 text-[#1A202C]">
+                    <thead class="bg-white/90 text-[#1A202C] sticky top-0 backdrop-blur-sm z-10 shadow-sm">
                         <tr>
                             <th class="text-left px-5 py-3">Title</th>
                             <th class="text-left px-5 py-3">Author</th>
@@ -108,6 +109,7 @@
                         <!-- Dynamic content will be loaded here -->
                     </tbody>
                 </table>
+                </div>
             </div>
         </section>
 

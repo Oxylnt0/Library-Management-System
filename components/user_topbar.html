@@ -1,7 +1,14 @@
-<header class="h-20 bg-[#3E2723] backdrop-blur-md text-[#D4AF37] flex items-center justify-end pr-6 shadow-sm border-b border-[#2D1B18] shrink-0 relative z-20 overflow-hidden">
+<header class="h-20 bg-[#3E2723] backdrop-blur-md text-[#D4AF37] flex items-center justify-between px-6 shadow-sm border-b border-[#2D1B18] shrink-0 relative z-20 overflow-hidden">
 
     <!-- Enchantment Particles -->
     <div id="particles-container" class="absolute inset-0 pointer-events-none"></div>
+
+    <!-- LEFT: Nav Links -->
+    <div class="flex items-center gap-8 relative z-10 hidden md:flex">
+        <button onclick="openTopbarModal('about')" class="font-cinzel font-bold text-sm hover:text-white transition-colors">About</button>
+        <button onclick="openTopbarModal('contact')" class="font-cinzel font-bold text-sm hover:text-white transition-colors">Contact</button>
+        <button onclick="openTopbarModal('faq')" class="font-cinzel font-bold text-sm hover:text-white transition-colors">FAQ</button>
+    </div>
 
     <div class="flex items-center space-x-6 relative z-10">
         <div class="flex items-center gap-3">
@@ -31,5 +38,25 @@
             text-shadow: 0 0 2px rgba(212, 175, 55, 0.2);
             animation: float-enchant 4s linear infinite;
         }
+        /* Scrollbar for modal */
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f1f1; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #D4AF37; border-radius: 3px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #b59226; }
     </style>
 </header>
+
+<!-- TOPBAR MODAL -->
+<div id="topbar-modal" class="fixed inset-0 z-[100] hidden bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 opacity-0 transition-opacity duration-300 font-sans">
+    <div class="bg-[#fffaf0] w-full max-w-5xl max-h-[85vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden border border-[#D4AF37] transform scale-95 transition-transform duration-300" id="topbar-modal-panel">
+        <!-- Modal Header -->
+        <div class="p-5 border-b border-[#D4AF37]/30 flex justify-between items-center bg-gradient-to-r from-[#3E2723] to-[#5D4037] text-white">
+            <h3 id="topbar-modal-title" class="text-2xl font-bold font-cinzel text-[#D4AF37]">Title</h3>
+            <button onclick="closeTopbarModal()" class="text-white/70 hover:text-[#D4AF37] transition-colors text-3xl leading-none">&times;</button>
+        </div>
+        <!-- Modal Body -->
+        <div id="topbar-modal-body" class="p-8 overflow-y-auto custom-scrollbar text-slate-800">
+            <!-- Dynamic Content -->
+        </div>
+    </div>
+</div>

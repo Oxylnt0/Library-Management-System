@@ -8,7 +8,7 @@
 
     <meta http-equiv="Content-Security-Policy"
         content="default-src 'self' 'unsafe-inline' https:; connect-src 'self' http://localhost:3000; font-src 'self' https://fonts.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https:;">
-
+    <script src="../user_js/user_topbar.js"></script>
     <link href="../output.css" rel="stylesheet">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -172,14 +172,32 @@
 
                     <div class="mb-8">
                         <div class="flex items-center justify-between mb-4">
-                            <h3 class="font-bold text-[#1A202C] font-cinzel">My Fines</h3>
+                            <h3 class="font-bold text-[#1A202C] font-cinzel">My Activity</h3>
                         </div>
                         <div
-                            class="bg-gradient-to-br from-[#183B5B] to-[#0f2438] text-white rounded-xl p-5 text-center shadow-lg relative overflow-hidden border border-[#D6A84A]/30">
+                            class="bg-gradient-to-br from-[#183B5B] to-[#0f2438] text-white rounded-xl p-5 text-center shadow-lg relative overflow-hidden border border-[#D6A84A]/30 mb-4">
                             <div class="relative z-10">
-                                <p class="text-xs text-blue-200 uppercase tracking-widest">Total Outstanding</p>
+                                <p class="text-xs text-blue-200 uppercase tracking-widest">Total Outstanding Fines</p>
                                 <h2 class="text-3xl font-bold mt-1 text-[#5B8C5A]" id="total-fines-amount">₱0.00</h2>
                                 <p class="text-xs text-blue-200 mt-2" id="fines-status-text">Good job! No fines.</p>
+                            </div>
+                        </div>
+
+                        <!-- Borrowed Books Card -->
+                        <div class="bg-gradient-to-br from-[#183B5B] to-[#0f2438] text-white rounded-xl p-5 text-center shadow-lg relative overflow-hidden border border-[#D6A84A]/30 mb-4">
+                            <div class="relative z-10">
+                                <p class="text-xs text-blue-200 uppercase tracking-widest">Books Borrowed</p>
+                                <h2 class="text-3xl font-bold mt-1 text-[#D6A84A]" id="total-borrowed-count">0</h2>
+                                <p class="text-xs text-blue-200 mt-2">Active Loans</p>
+                            </div>
+                        </div>
+
+                        <!-- Reservations Card -->
+                        <div class="bg-gradient-to-br from-[#183B5B] to-[#0f2438] text-white rounded-xl p-5 text-center shadow-lg relative overflow-hidden border border-[#D6A84A]/30">
+                            <div class="relative z-10">
+                                <p class="text-xs text-blue-200 uppercase tracking-widest">Reservations</p>
+                                <h2 class="text-3xl font-bold mt-1 text-[#D6A84A]" id="total-reservations-count">0</h2>
+                                <p class="text-xs text-blue-200 mt-2">Pending Requests</p>
                             </div>
                         </div>
                     </div>
@@ -223,8 +241,8 @@
             // 3. Load Notifications
             await loadNotifications(userId);
             
-            // 4. Load Fines
-            await loadFines(userId);
+            // 4. Load Sidebar Statistics (Fines, Borrowed, Reservations)
+            await loadSidebarStats(userId);
         }
 
         async function loadNewArrivals() {
@@ -437,24 +455,32 @@
             }
         }
 
-        async function loadFines(userId) {
+        async function loadSidebarStats(userId) {
             try {
-                const query = `
+                // 1. Get Unpaid Fines Total
+                const finesQuery = `
                     SELECT SUM(f.amount) as total 
                     FROM FINE f 
                     JOIN BORROW_TRANSACTION bt ON f.borrow_id = bt.borrow_id 
                     WHERE bt.user_id = ? AND f.status = 'Unpaid'
                 `;
-                const res = await db.execute({ sql: query, args: [userId] });
-                const total = res.rows[0].total || 0;
+                const finesRes = await db.execute({ sql: finesQuery, args: [userId] });
+                const totalFines = finesRes.rows[0].total || 0;
+
+                // 2. Get Total Borrowed Books (Active)
+                const borrowRes = await db.execute({ sql: "SELECT COUNT(*) as count FROM BORROW_TRANSACTION WHERE user_id = ? AND status IN ('Borrowed', 'Overdue')", args: [userId] });
+
+                // 3. Get Total Reservations
+                const resRes = await db.execute({ sql: "SELECT COUNT(*) as count FROM RESERVATION WHERE user_id = ? AND status = 'Pending'", args: [userId] });
                 
+                // Update UI - Fines
                 const amountEl = document.getElementById('total-fines-amount');
                 const statusEl = document.getElementById('fines-status-text');
                 
-                if (amountEl) amountEl.innerText = `₱${total.toFixed(2)}`;
+                if (amountEl) amountEl.innerText = `₱${totalFines.toFixed(2)}`;
                 
                 if (statusEl) {
-                    if (total > 0) {
+                    if (totalFines > 0) {
                         statusEl.innerText = "Please settle your balance.";
                         statusEl.className = "text-xs text-red-300 mt-2";
                         amountEl.className = "text-3xl font-bold mt-1 text-red-400";
@@ -464,8 +490,17 @@
                         amountEl.className = "text-3xl font-bold mt-1 text-[#5B8C5A]";
                     }
                 }
+
+                // Update UI - Borrowed
+                const borrowedEl = document.getElementById('total-borrowed-count');
+                if (borrowedEl) borrowedEl.innerText = borrowRes.rows[0].count;
+
+                // Update UI - Reservations
+                const reservedEl = document.getElementById('total-reservations-count');
+                if (reservedEl) reservedEl.innerText = resRes.rows[0].count;
+
             } catch (e) {
-                console.error("Fines Error:", e);
+                console.error("Sidebar Stats Error:", e);
             }
         }
 

@@ -80,9 +80,10 @@
         <section class="mb-14">
             <h2 class="text-xl font-semibold mb-4 text-[#1A202C] font-cinzel">Unpaid Fines</h2>
 
-            <div class="bg-white/70 backdrop-blur-md border border-white/20 rounded-xl shadow-lg overflow-hidden">
+            <div class="bg-white/70 backdrop-blur-md border border-white/20 rounded-xl shadow-lg overflow-hidden flex flex-col max-h-[400px]">
+                <div class="overflow-y-auto custom-scrollbar">
                 <table class="w-full text-sm">
-                    <thead class="bg-white/50 text-[#1A202C]">
+                    <thead class="bg-white/90 text-[#1A202C] sticky top-0 backdrop-blur-sm z-10 shadow-sm">
                         <tr>
                             <th class="text-left px-5 py-3">Book</th>
                             <th class="text-left px-5 py-3">Borrow ID</th>
@@ -97,6 +98,7 @@
                         </tr>
                     </tbody>
                 </table>
+                </div>
             </div>
         </section>
 
@@ -104,24 +106,29 @@
         <section>
             <h2 class="text-xl font-semibold mb-4 text-[#1A202C] font-cinzel">Payment History</h2>
 
-            <div class="bg-white/70 backdrop-blur-md border border-white/20 rounded-xl shadow-lg overflow-hidden">
+            <div class="bg-white/70 backdrop-blur-md border border-white/20 rounded-xl shadow-lg overflow-hidden flex flex-col max-h-[500px]">
+                <div class="overflow-y-auto custom-scrollbar">
                 <table class="w-full text-sm">
-                    <thead class="bg-white/50 text-[#1A202C]">
+                    <thead class="bg-white/90 text-[#1A202C] sticky top-0 backdrop-blur-sm z-10 shadow-sm">
                         <tr>
                             <th class="text-left px-5 py-3">Book</th>
                             <th class="text-left px-5 py-3">Borrow ID</th>
                             <th class="text-left px-5 py-3">Reason</th>
                             <th class="text-left px-5 py-3">Paid On</th>
+                            <th class="text-left px-5 py-3">Method</th>
+                            <th class="text-left px-5 py-3">OR No.</th>
+                            <th class="text-left px-5 py-3">Remarks</th>
                             <th class="text-left px-5 py-3">Amount</th>
                             <th class="text-left px-5 py-3">Status</th>
                         </tr>
                     </thead>
                     <tbody id="payment-history-body">
                         <tr>
-                            <td colspan="6" class="px-5 py-4 text-center text-slate-500 italic">No payment history available.</td>
+                            <td colspan="9" class="px-5 py-4 text-center text-slate-500 italic">No payment history available.</td>
                         </tr>
                     </tbody>
                 </table>
+                </div>
             </div>
         </section>
 
@@ -142,11 +149,11 @@
                 
                 // Set loading state
                 unpaidBody.innerHTML = '<tr><td colspan="5" class="px-5 py-4 text-center text-slate-500">Loading fines...</td></tr>';
-                historyBody.innerHTML = '<tr><td colspan="6" class="px-5 py-4 text-center text-slate-500">Loading history...</td></tr>';
+                historyBody.innerHTML = '<tr><td colspan="9" class="px-5 py-4 text-center text-slate-500">Loading history...</td></tr>';
 
                 if (!userId) {
                     unpaidBody.innerHTML = '<tr><td colspan="5" class="px-5 py-4 text-center text-red-500">Please log in to view fines.</td></tr>';
-                    historyBody.innerHTML = '<tr><td colspan="6" class="px-5 py-4 text-center text-red-500">Please log in to view history.</td></tr>';
+                    historyBody.innerHTML = '<tr><td colspan="9" class="px-5 py-4 text-center text-red-500">Please log in to view history.</td></tr>';
                     return;
                 }
 
@@ -166,11 +173,16 @@
                             b.return_date,
                             bk.title as book_title,
                             u.first_name,
-                            u.last_name
+                            u.last_name,
+                            p.payment_date,
+                            p.payment_method,
+                            p.or_number,
+                            p.remarks
                         FROM FINE f
                         JOIN BORROW_TRANSACTION b ON f.borrow_id = b.borrow_id
                         JOIN USER u ON b.user_id = u.user_id
                         LEFT JOIN BOOK bk ON b.book_id = bk.book_id
+                        LEFT JOIN PAYMENT p ON f.fine_id = p.fine_id
                         WHERE b.user_id = ?
                         ORDER BY f.status DESC, b.return_date DESC
                     `;
@@ -215,9 +227,9 @@
 
                 fines.forEach(fine => {
                     const amount = parseFloat(fine.amount);
-                    const date = new Date(fine.fine_date).toLocaleDateString();
                     
                     if (fine.status === 'Unpaid') {
+                        const date = new Date(fine.fine_date).toLocaleDateString();
                         totalUnpaid += amount;
                         outstandingCount++;
                         
@@ -230,6 +242,9 @@
                                 <td class="px-5 py-4 font-medium text-[#1A202C]">₱${amount.toFixed(2)}</td>
                             </tr>`;
                     } else {
+                        const date = fine.payment_date 
+                            ? new Date(fine.payment_date).toLocaleDateString() 
+                            : new Date(fine.fine_date).toLocaleDateString(); // Fallback if payment record missing
                         totalPaid += amount;
                         paidCount++;
                         // Using fine date as proxy for paid date if payment table isn't joined
@@ -239,6 +254,9 @@
                                 <td class="px-5 py-4 text-slate-500 text-xs">#${fine.borrow_id}</td>
                                 <td class="px-5 py-4 text-[#2E5F87]">${fine.reason}</td>
                                 <td class="px-5 py-4 text-[#2E5F87]">${date}</td>
+                                <td class="px-5 py-4 text-[#1A202C] text-xs">${fine.payment_method || '-'}</td>
+                                <td class="px-5 py-4 text-[#1A202C] text-xs font-mono">${fine.or_number || '-'}</td>
+                                <td class="px-5 py-4 text-slate-500 text-xs max-w-[150px] truncate" title="${fine.remarks || ''}">${fine.remarks || '-'}</td>
                                 <td class="px-5 py-4 text-[#1A202C]">₱${amount.toFixed(2)}</td>
                                 <td class="px-5 py-4">
                                     <span class="px-3 py-1 text-xs rounded-full bg-[#5B8C5A]/10 text-[#5B8C5A]">Paid</span>
@@ -248,7 +266,7 @@
                 });
 
                 if (outstandingCount === 0) {
-                    unpaidBody.innerHTML = '<tr><td colspan="4" class="px-5 py-4 text-center text-slate-500 italic">No unpaid fines. Good job!</td></tr>';
+                    unpaidBody.innerHTML = '<tr><td colspan="5" class="px-5 py-4 text-center text-slate-500 italic">No unpaid fines. Good job!</td></tr>';
                 } else {
                     unpaidBody.innerHTML += `
                         <tr class="bg-[#183B5B]/5 font-bold border-t-2 border-[#183B5B]/10">
@@ -258,11 +276,11 @@
                 }
 
                 if (paidCount === 0) {
-                    historyBody.innerHTML = '<tr><td colspan="5" class="px-5 py-4 text-center text-slate-500 italic">No payment history available.</td></tr>';
+                    historyBody.innerHTML = '<tr><td colspan="9" class="px-5 py-4 text-center text-slate-500 italic">No payment history available.</td></tr>';
                 } else {
                     historyBody.innerHTML += `
                         <tr class="bg-[#183B5B]/5 font-bold border-t-2 border-[#183B5B]/10">
-                            <td colspan="4" class="px-5 py-4 text-right text-[#183B5B]">Total Paid:</td>
+                            <td colspan="7" class="px-5 py-4 text-right text-[#183B5B]">Total Paid:</td>
                             <td class="px-5 py-4 text-[#5B8C5A]">₱${totalPaid.toFixed(2)}</td>
                             <td></td>
                         </tr>`;
