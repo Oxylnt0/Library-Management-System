@@ -334,7 +334,7 @@
                         b.borrow_id, b.due_date, b.return_date, b.status as borrow_status,
                         u.first_name, u.last_name, u.email,
                         bk.title as book_title,
-                        p.payment_method
+                        p.payment_method, p.or_number, p.payment_date
                     FROM FINE f
                     JOIN BORROW_TRANSACTION b ON f.borrow_id = b.borrow_id
                     JOIN USER u ON b.user_id = u.user_id
@@ -396,6 +396,15 @@
             filtered.forEach(fine => {
                 const row = document.createElement('tr');
                 row.className = 'hover:bg-slate-50 transition-colors border-b border-slate-100';
+
+                if (fine.fine_status === 'Paid') {
+                    row.classList.add('cursor-pointer');
+                    row.title = "Click to view receipt";
+                    row.onclick = (e) => {
+                        if (e.target.closest('button')) return; // Prevent triggering if button clicked
+                        openHistoricalReceipt(fine);
+                    };
+                }
                 
                 const statusColor = fine.fine_status === 'Paid' 
                     ? 'bg-green-100 text-green-700 border-green-200' 
@@ -436,6 +445,22 @@
                 `;
                 tableBody.appendChild(row);
             });
+        }
+
+        function openHistoricalReceipt(fine) {
+            const reason = getFineReason(fine);
+            const receiptData = {
+                orNumber: fine.or_number || 'N/A',
+                user: `${fine.first_name} ${fine.last_name}`,
+                book: fine.book_title || 'N/A',
+                reason: reason,
+                amount: fine.amount,
+                tendered: fine.amount, // History doesn't track tendered/change, assume exact
+                change: 0,
+                date: fine.payment_date ? new Date(fine.payment_date).toLocaleDateString() : 'N/A',
+                paymentMethod: fine.payment_method || 'Cash'
+            };
+            showReceiptModal(receiptData);
         }
 
         function filterFines(term) {
@@ -545,6 +570,24 @@
                         args: [borrowId, fineId, amount, orNumber, remarks]
                     });
                 }
+            
+            // 3.5 Check for Reactivation (If all fines paid)
+            if (borrowId) {
+                // Get User ID from Borrow ID
+                const userRes = await db.execute({ sql: "SELECT user_id FROM BORROW_TRANSACTION WHERE borrow_id = ?", args: [borrowId] });
+                if (userRes.rows.length > 0) {
+                    const userId = userRes.rows[0].user_id;
+                    // Check remaining
+                    const remRes = await db.execute({ 
+                        sql: `SELECT COUNT(*) as count FROM FINE f JOIN BORROW_TRANSACTION b ON f.borrow_id = b.borrow_id WHERE b.user_id = ? AND f.status = 'Unpaid'`, 
+                        args: [userId] 
+                    });
+                    if (remRes.rows[0].count === 0) {
+                        await db.execute({ sql: "UPDATE USER SET status = 'Active' WHERE user_id = ? AND status = 'Suspended'", args: [userId] });
+                        await db.execute({ sql: "UPDATE BAN_TERMINATION SET end_date = DATE('now', '+8 hours') WHERE user_id = ? AND end_date IS NULL", args: [userId] });
+                    }
+                }
+            }
 
                 // 4. Prepare Receipt Data
                 const receiptData = {

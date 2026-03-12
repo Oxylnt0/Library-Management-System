@@ -155,11 +155,47 @@
 
                 </main>
 
+    <!-- Suspension Modal -->
+    <div id="suspend-modal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center backdrop-blur-sm">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden transform transition-all scale-100">
+            <div class="bg-red-600 p-4 text-white flex justify-between items-center">
+                <h3 class="font-bold text-lg">Suspend User</h3>
+                <button onclick="closeSuspendModal()" class="text-white/70 hover:text-white">&times;</button>
+            </div>
+            <div class="p-6 space-y-4">
+                <input type="hidden" id="suspend-user-id">
+                
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 mb-1">Suspension Reason</label>
+                    <select id="suspend-reason" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-red-600 focus:border-red-600">
+                        <option value="Unpaid Fines">Unpaid Fines (Financial)</option>
+                        <option value="Noise Violation">Noise Violation</option>
+                        <option value="Vandalism">Vandalism</option>
+                        <option value="Disrespecting Staff">Disrespecting Staff</option>
+                        <option value="Repeated Overdue">Repeated Overdue Books</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 mb-1">Duration (Days)</label>
+                    <input type="number" id="suspend-duration" placeholder="Leave blank for indefinite (Financial)"
+                        class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-red-600 focus:border-red-600">
+                    <p class="text-[10px] text-slate-400 mt-1 italic">Financial suspensions are usually indefinite until paid.</p>
+                </div>
+
+                <button onclick="confirmSuspend()" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 rounded-full shadow-md transition-colors mt-4">
+                    Confirm Suspension
+                </button>
+            </div>
+        </div>
+    </div>
+
     <script>
       {
         const path = require('path');
         const { db } = require(path.join(process.cwd(), 'db_config.js'));
 
+        let allUsers = []; // Store users for client-side filtering
         let currentSearchTerm = '';
         let currentFilter = 'all';
         let currentSort = 'newest';
@@ -187,7 +223,7 @@
         }
 
         function searchUsers(term) {
-            currentSearchTerm = term.trim();
+            currentSearchTerm = term.trim().toLowerCase();
             loadUsers();
         }
         window.searchUsers = searchUsers;
@@ -197,49 +233,40 @@
             tbody.innerHTML = '<tr><td colspan="4" class="p-4 text-center">Loading users...</td></tr>';
 
             try {
-                // Fetch users with ban status check
-                // Using a subquery to check for active bans
-                let sql = `
-                    SELECT u.*, 
-                        (SELECT COUNT(*) FROM BAN_TERMINATION b WHERE b.user_id = u.user_id AND (b.end_date IS NULL OR b.end_date > DATE('now'))) as is_banned
-                    FROM USER u
-                `;
+                // 1. Fetch Users from API (if not already fetched or force refresh needed)
+                // For simplicity, we fetch fresh every time to ensure status updates are reflected
+                const response = await fetch('http://localhost:3000/api/admin/users');
+                const result = await response.json();
                 
-                const args = [];
-                const conditions = [];
+                if (!result.success) throw new Error(result.message);
+                allUsers = result.data;
 
-                if (currentSearchTerm) {
-                    conditions.push("(u.first_name LIKE ? OR u.last_name LIKE ? OR CAST(u.user_id AS TEXT) LIKE ?)");
-                    const term = `%${currentSearchTerm}%`;
-                    args.push(term, term, term);
-                }
+                // 2. Client-Side Filtering & Sorting
+                let users = allUsers.filter(user => {
+                    // Search
+                    const matchesSearch = !currentSearchTerm || 
+                        (user.first_name + ' ' + user.last_name).toLowerCase().includes(currentSearchTerm) ||
+                        user.email?.toLowerCase().includes(currentSearchTerm) ||
+                        user.user_id.toString().includes(currentSearchTerm);
 
-                if (currentFilter === 'child') {
-                    conditions.push("u.guardian_id IS NOT NULL");
-                } else if (currentFilter === 'pending') {
-                    conditions.push("u.status = 'Pending'");
-                } else if (currentFilter === 'active') {
-                    conditions.push("(SELECT COUNT(*) FROM BAN_TERMINATION b WHERE b.user_id = u.user_id AND (b.end_date IS NULL OR b.end_date > DATE('now'))) = 0");
-                } else if (currentFilter === 'suspended') {
-                    conditions.push("(SELECT COUNT(*) FROM BAN_TERMINATION b WHERE b.user_id = u.user_id AND (b.end_date IS NULL OR b.end_date > DATE('now'))) > 0");
-                }
+                    // Filter
+                    let matchesFilter = true;
+                    if (currentFilter === 'child') matchesFilter = user.guardian_id !== null;
+                    if (currentFilter === 'pending') matchesFilter = user.status === 'Pending';
+                    if (currentFilter === 'active') matchesFilter = user.status === 'Active';
+                    if (currentFilter === 'suspended') matchesFilter = user.status === 'Suspended' || user.status === 'Banned';
 
-                if (conditions.length > 0) {
-                    sql += " WHERE " + conditions.join(" AND ");
-                }
+                    return matchesSearch && matchesFilter;
+                });
 
-                if (currentSort === 'newest') {
-                    sql += " ORDER BY u.user_id DESC";
-                } else if (currentSort === 'oldest') {
-                    sql += " ORDER BY u.user_id ASC";
-                } else if (currentSort === 'name_asc') {
-                    sql += " ORDER BY u.last_name ASC, u.first_name ASC";
-                } else if (currentSort === 'name_desc') {
-                    sql += " ORDER BY u.last_name DESC, u.first_name DESC";
-                }
-                
-                const result = await db.execute({ sql, args });
-                const users = result.rows;
+                // Sorting
+                users.sort((a, b) => {
+                    if (currentSort === 'newest') return b.user_id - a.user_id;
+                    if (currentSort === 'oldest') return a.user_id - b.user_id;
+                    if (currentSort === 'name_asc') return a.last_name.localeCompare(b.last_name);
+                    if (currentSort === 'name_desc') return b.last_name.localeCompare(a.last_name);
+                    return 0;
+                });
 
                 tbody.innerHTML = '';
 
@@ -252,19 +279,65 @@
                 let suspendedCount = 0;
 
                 users.forEach(user => {
-                    const isBanned = user.is_banned > 0;
+                    const isBanned = user.status === 'Suspended' || user.status === 'Banned';
                     if (isBanned) suspendedCount++;
 
                     let statusHtml = '';
                     if (user.status === 'Pending') {
                         statusHtml = '<span class="bg-amber-100 text-amber-700 px-2 py-1 rounded-full text-xs font-bold">Pending</span>';
-                    } else if (isBanned) {
-                        statusHtml = '<span class="bg-red-100 text-red-700 px-2 py-1 rounded-full text-xs font-bold">Suspended</span>';
+                    } else if (user.status === 'Suspended' || user.status === 'Banned' || isBanned) {
+                        // TWO-TIER SUSPENSION LOGIC
+                        const isFinancial = user.ban_reason && user.ban_reason.includes('Unpaid Fines');
+                        const badgeColor = isFinancial ? 'bg-yellow-100 text-yellow-700 border-yellow-200' : 'bg-red-100 text-red-700 border-red-200';
+                        const badgeText = isFinancial ? 'Suspended (Fines)' : 'Suspended (Behavioral)';
+                        const tooltip = `Reason: ${user.ban_reason || 'N/A'}\nEnds: ${user.ban_end_date ? new Date(user.ban_end_date).toLocaleDateString() : 'Indefinite'}`;
+                        
+                        statusHtml = `<span class="${badgeColor} px-2 py-1 rounded-full text-xs font-bold cursor-help border" title="${tooltip}">${badgeText}</span>`;
+                    } else if (user.status === 'Rejected') {
+                        statusHtml = '<span class="bg-gray-100 text-gray-700 px-2 py-1 rounded-full text-xs font-bold">Rejected</span>';
                     } else {
                         statusHtml = '<span class="bg-green-100 text-green-700 px-2 py-1 rounded-full text-xs font-bold">Active</span>';
                     }
 
                     const initials = ((user.first_name?.[0] || '') + (user.last_name?.[0] || '')).toUpperCase();
+
+                    let actionButtons = '';
+                    if (user.status === 'Pending') {
+                        actionButtons = `
+                            <div class="flex justify-end gap-2">
+                                <button onclick="updateUserStatus(${user.user_id}, 'Active')" class="p-2 rounded-full bg-green-100 text-green-600 hover:bg-green-200 transition-colors" title="Accept">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                                </button>
+                                <button onclick="updateUserStatus(${user.user_id}, 'Rejected')" class="p-2 rounded-full bg-red-100 text-red-600 hover:bg-red-200 transition-colors" title="Reject">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                                </button>
+                            </div>`;
+                    } else if (user.status === 'Active') {
+                        actionButtons = `
+                            <div class="flex justify-end gap-2">
+                                <button onclick="openSuspendModal(${user.user_id})" class="text-xs font-bold text-red-600 hover:bg-red-50 border border-red-200 px-3 py-1 rounded-full transition-colors">
+                                    Suspend
+                                </button>
+                            </div>`;
+                    } else if (user.status === 'Suspended' || user.status === 'Banned' || user.status === 'Rejected') {
+                        const isFinancialSuspension = (user.status === 'Suspended' || user.status === 'Banned') && user.ban_reason && user.ban_reason.includes('Unpaid Fines');
+                        
+                        if (isFinancialSuspension) {
+                            actionButtons = `
+                            <div class="flex justify-end gap-2">
+                                <a href="admin_fines.html" class="text-xs font-bold text-blue-600 hover:bg-blue-50 border border-blue-200 px-3 py-1 rounded-full transition-colors flex items-center justify-center">
+                                    Pay Fines
+                                </a>
+                            </div>`;
+                        } else {
+                            actionButtons = `
+                            <div class="flex justify-end gap-2">
+                                <button onclick="updateUserStatus(${user.user_id}, 'Active')" class="text-xs font-bold text-green-600 hover:bg-green-50 border border-green-200 px-3 py-1 rounded-full transition-colors">
+                                    Activate
+                                </button>
+                            </div>`;
+                        }
+                    }
                     
                     const row = `
                         <tr class="hover:bg-slate-50 transition-colors">
@@ -281,16 +354,7 @@
                             <td class="p-4 text-slate-600">${user.contact_number || 'No Contact'}</td>
                             <td class="p-4">${statusHtml}</td>
                             <td class="p-4 text-right">
-                                ${user.status === 'Pending' ? `
-                                    <div class="flex justify-end gap-2">
-                                        <button onclick="updateUserStatus(${user.user_id}, 'Active')" class="p-2 rounded-full bg-green-100 text-green-600 hover:bg-green-200 transition-colors" title="Accept">
-                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                                        </button>
-                                        <button onclick="updateUserStatus(${user.user_id}, 'Rejected')" class="p-2 rounded-full bg-red-100 text-red-600 hover:bg-red-200 transition-colors" title="Reject">
-                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                                        </button>
-                                    </div>
-                                ` : ''}
+                                ${actionButtons}
                             </td>
                         </tr>
                     `;
@@ -307,7 +371,15 @@
         }
 
         window.updateUserStatus = async function(userId, status) {
-            if (!confirm(`Are you sure you want to ${status === 'Active' ? 'APPROVE' : 'REJECT'} this user?`)) return;
+            let actionText = '';
+            if (status === 'Active') actionText = 'ACTIVATE/APPROVE';
+            else if (status === 'Rejected') actionText = 'REJECT';
+            else if (status === 'Suspended') actionText = 'SUSPEND';
+
+            // If Suspend is clicked here (via Activate button logic), bypass modal
+            // But our UI now points Suspend button to openSuspendModal.
+            // This function handles Approve, Reject, and Reactivate.
+            if (!confirm(`Are you sure you want to ${actionText} this user?`)) return;
             const adminId = localStorage.getItem('adminId');
 
             try {
@@ -323,6 +395,44 @@
                 alert("Error: " + error.message);
             }
         };
+
+        // --- SUSPENSION MODAL LOGIC ---
+        window.openSuspendModal = function(userId) {
+            document.getElementById('suspend-user-id').value = userId;
+            document.getElementById('suspend-duration').value = ''; 
+            document.getElementById('suspend-reason').value = 'Unpaid Fines';
+            document.getElementById('suspend-modal').classList.remove('hidden');
+        }
+
+        window.closeSuspendModal = function() {
+            document.getElementById('suspend-modal').classList.add('hidden');
+        }
+
+        window.confirmSuspend = async function() {
+            const userId = document.getElementById('suspend-user-id').value;
+            const reason = document.getElementById('suspend-reason').value;
+            const duration = document.getElementById('suspend-duration').value; // Can be empty
+            const adminId = localStorage.getItem('adminId');
+
+            try {
+                const response = await fetch('http://localhost:3000/api/admin/users/suspend', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ userId, reason, duration, adminId })
+                });
+                const result = await response.json();
+                if(result.success) {
+                    alert("User suspended successfully.");
+                    closeSuspendModal();
+                    loadUsers();
+                } else {
+                    alert("Error: " + result.message);
+                }
+            } catch (error) {
+                console.error(error);
+                alert("Failed to suspend user.");
+            }
+        }
 
         function updateStats(total, suspended) {
             document.getElementById('stat-total-users').innerText = total;

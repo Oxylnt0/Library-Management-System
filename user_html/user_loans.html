@@ -130,6 +130,7 @@
                 <!-- Request Extension Panel (Modal) -->
                 <div id="user_extension_panel" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden items-center justify-center z-50 transition-opacity duration-300">
                     <div class="bg-white rounded-xl shadow-2xl w-full max-w-md p-6 transform transition-all scale-100">
+                        <input type="hidden" id="extension_borrow_id">
                         <h3 class="text-2xl font-cinzel text-[#183B5B] mb-4">Request Extension</h3>
                         <p class="text-slate-600 mb-6 text-sm">
                             You are requesting a 2-day extension for <span id="extension_book_title" class="font-semibold text-[#183B5B]">Book Title</span>.
@@ -153,13 +154,13 @@
 
                         <div class="flex justify-end gap-3">
                             <button onclick="closeExtensionPanel()" class="px-6 py-2 rounded-full text-slate-600 font-bold hover:bg-slate-100 transition">Cancel</button>
-                            <button onclick="closeExtensionPanel()" class="px-6 py-2 rounded-full bg-[#5B8C5A] text-white font-bold hover:bg-[#5B8C5A]/80 transition shadow-md">Confirm Extension</button>
+                            <button onclick="submitExtensionRequest()" class="px-6 py-2 rounded-full bg-[#5B8C5A] text-white font-bold hover:bg-[#5B8C5A]/80 transition shadow-md">Confirm Extension</button>
                         </div>
                     </div>
                 </div>
 
                 <script>
-                    function openLoanDetailsPanel(title, author, borrowed, due, status) {
+                    window.openLoanDetailsPanel = function(title, author, borrowed, due, status) {
                         document.getElementById('loan_details_title').textContent = title;
                         document.getElementById('loan_details_author').textContent = author;
                         document.getElementById('loan_details_borrowed').textContent = borrowed;
@@ -182,34 +183,63 @@
                         panel.classList.add('flex');
                     }
 
-                    function closeLoanDetailsPanel() {
+                    window.closeLoanDetailsPanel = function() {
                         const panel = document.getElementById('user_loan_details_panel');
                         panel.classList.add('hidden');
                         panel.classList.remove('flex');
                     }
 
-                    function openExtensionPanel(title, currentDue) {
-                        document.getElementById('extension_book_title').textContent = title;
+                    window.openExtensionPanel = function(borrowId, title, currentDue, extensionCount) {
+                        document.getElementById('extension_borrow_id').value = borrowId;
                         document.getElementById('extension_current_due').textContent = currentDue;
+                        
+                        // Extension Logic: 1st = +4 days, 2nd = +2 days
+                        const daysToAdd = extensionCount === 0 ? 4 : 2;
                         
                         try {
                             const date = new Date(currentDue);
-                            date.setDate(date.getDate() + 2);
+                            date.setDate(date.getDate() + daysToAdd);
                             const options = { year: 'numeric', month: 'short', day: 'numeric' };
                             document.getElementById('extension_new_due').textContent = date.toLocaleDateString('en-US', options);
                         } catch (e) {
                             document.getElementById('extension_new_due').textContent = "Pending";
                         }
 
+                        // Update text to reflect days being added
+                        const pText = document.querySelector('#user_extension_panel p.text-slate-600');
+                        if(pText) pText.innerHTML = `You are requesting a <b>${daysToAdd}-day</b> extension for <span id="extension_book_title" class="font-semibold text-[#183B5B]">${title}</span>.`;
+
                         const panel = document.getElementById('user_extension_panel');
                         panel.classList.remove('hidden');
                         panel.classList.add('flex');
                     }
 
-                    function closeExtensionPanel() {
+                    window.closeExtensionPanel = function() {
                         const panel = document.getElementById('user_extension_panel');
                         panel.classList.add('hidden');
                         panel.classList.remove('flex');
+                    }
+
+                    window.submitExtensionRequest = async function() {
+                        const borrowId = document.getElementById('extension_borrow_id').value;
+                        try {
+                            const response = await fetch('http://localhost:3000/api/borrow/extend', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ borrow_id: borrowId })
+                            });
+                            const result = await response.json();
+                            if (result.success) {
+                                alert(result.message);
+                                closeExtensionPanel();
+                                loadUserLoans(); // Refresh list
+                            } else {
+                                alert("Error: " + result.message);
+                            }
+                        } catch (error) {
+                            console.error("Extension error:", error);
+                            alert("Failed to process request.");
+                        }
                     }
                 </script>
 
@@ -245,6 +275,7 @@
                         bt.expires_at,
                         bt.return_date,
                         bt.status,
+                        bt.extension_count,
                         b.title,
                         b.author,
                         b.dewey_decimal,
@@ -325,13 +356,18 @@
                     const safeAuthor = loan.author.replace(/'/g, "\\'");
 
                     // Actions
-                    let actionButtons = `<button onclick="openLoanDetailsPanel('${safeTitle}', '${safeAuthor}', '${borrowDateStr}', '${dueDateStr}', '${statusLabel}')" class="px-4 py-1.5 bg-[#183B5B] text-[#D6A84A] text-xs font-bold rounded-full hover:bg-[#2E5F87] transition-colors shadow-sm">View Details</button>`;
+                    let actionButtons = `<button onclick="window.openLoanDetailsPanel('${safeTitle}', '${safeAuthor}', '${borrowDateStr}', '${dueDateStr}', '${statusLabel}')" class="px-4 py-1.5 bg-[#183B5B] text-[#D6A84A] text-xs font-bold rounded-full hover:bg-[#2E5F87] transition-colors shadow-sm">View Details</button>`;
                     
                     if (loan.status === 'Pending') {
                         actionButtons = `<button onclick="cancelHold(${loan.borrow_id})" class="px-4 py-1.5 bg-red-50 border border-red-200 text-red-600 text-xs font-bold rounded-full hover:bg-red-100 transition-colors shadow-sm">Cancel Hold</button>`;
                     } else if (loan.status !== 'Returned') {
                         if (!isOverdue) {
-                            actionButtons += `<button onclick="openExtensionPanel('${safeTitle}', '${dueDateStr}')" class="px-4 py-1.5 bg-white/80 border border-white/30 text-[#183B5B] text-xs font-bold rounded-full hover:bg-[#183B5B] hover:text-[#D6A84A] transition-colors shadow-sm ml-3">Request Extension</button>`;
+                            if (loan.extension_count < 2) {
+                                // Pass raw due_date for calculation consistency
+                                actionButtons += `<button onclick="window.openExtensionPanel(${loan.borrow_id}, '${safeTitle}', '${dueDateStr}', ${loan.extension_count || 0})" class="px-4 py-1.5 bg-white/80 border border-white/30 text-[#183B5B] text-xs font-bold rounded-full hover:bg-[#183B5B] hover:text-[#D6A84A] transition-colors shadow-sm ml-3">Request Extension</button>`;
+                            } else {
+                                actionButtons += `<button class="px-4 py-1.5 bg-slate-100 border border-slate-200 text-slate-400 text-xs font-bold rounded-full cursor-not-allowed ml-3" disabled title="Max extensions reached">Max Extensions</button>`;
+                            }
                         } else {
                             actionButtons += `<button class="px-4 py-1.5 bg-white/50 border border-white/20 text-slate-400 text-xs font-bold rounded-full cursor-not-allowed ml-3" disabled>Request Extension</button>`;
                         }

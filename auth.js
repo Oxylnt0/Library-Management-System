@@ -125,6 +125,7 @@ async function login(email, password) {
             if (user.status === 'Pending') return { success: false, message: "Account is pending approval." };
             if (user.status === 'Rejected') return { success: false, message: "Account has been rejected." };
             if (user.status === 'Suspended') return { success: false, message: "Account is suspended." };
+            if (user.status === 'Banned') return { success: false, message: "Account is permanently banned." };
             await logUserAction(user.user_id, 'LOGIN', 'USER', user.user_id, 'User logged in successfully');
             return { success: true, role: 'user', user };
         }
@@ -140,6 +141,7 @@ async function login(email, password) {
             if (guardian.status === 'Pending') return { success: false, message: "Account is pending approval." };
             if (guardian.status === 'Rejected') return { success: false, message: "Account has been rejected." };
             if (guardian.status === 'Suspended') return { success: false, message: "Account is suspended." };
+            if (guardian.status === 'Banned') return { success: false, message: "Account is permanently banned." };
             await logGuardianAction(guardian.guardian_id, 'LOGIN', 'GUARDIAN_NAME', guardian.guardian_id, 'Guardian logged in successfully');
             return { success: true, role: 'guardian', user: guardian };
         }

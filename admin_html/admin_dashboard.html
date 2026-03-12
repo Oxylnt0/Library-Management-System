@@ -188,6 +188,9 @@
 
         async function loadDashboardStats() {
             try {
+                // Trigger auto-suspension check for overdue fines
+                fetch('http://localhost:3000/api/admin/process-suspensions', { method: 'POST' }).catch(err => console.error("Auto-suspend check failed:", err));
+
                 // 1. Total Books (Active)
                 const resBooks = await db.execute("SELECT COUNT(*) as count FROM BOOK WHERE status != 'Archived'");
                 document.getElementById('stat-total-books').innerText = resBooks.rows[0].count;

@@ -552,6 +552,36 @@ app.post('/api/borrow/cancel', async (req, res) => {
     }
 });
 
+// 10.6 POST /api/borrow/extend
+app.post('/api/borrow/extend', async (req, res) => {
+    const { borrow_id } = req.body;
+    try {
+        const resTx = await db.execute({
+            sql: "SELECT due_date, extension_count, user_id FROM BORROW_TRANSACTION WHERE borrow_id = ?",
+            args: [borrow_id]
+        });
+
+        if (resTx.rows.length === 0) return res.status(404).json({ success: false, message: "Transaction not found." });
+
+        const tx = resTx.rows[0];
+        const currentCount = tx.extension_count || 0;
+        
+        if (currentCount >= 2) return res.status(400).json({ success: false, message: "Maximum extension limit (2) reached." });
+
+        const daysToAdd = currentCount === 0 ? 4 : 2;
+
+        await db.execute({
+            sql: `UPDATE BORROW_TRANSACTION SET due_date = DATE(due_date, '+${daysToAdd} days'), extension_count = extension_count + 1 WHERE borrow_id = ?`,
+            args: [borrow_id]
+        });
+
+        await logUserAction(tx.user_id, 'EXTEND_LOAN', 'BORROW_TRANSACTION', borrow_id, `Extended loan by ${daysToAdd} days (Extension #${currentCount + 1})`);
+        res.json({ success: true, message: `Loan extended by ${daysToAdd} days.` });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
 // 11. POST /api/waitlist
 app.post('/api/waitlist', async (req, res) => {
     const { book_id, user_id } = req.body;
@@ -626,6 +656,35 @@ app.get('/api/books', async (req, res) => {
 // 13. GET /api/fines
 app.get('/api/fines', async (req, res) => {
     try {
+        // Automatic Suspension Logic: Run before fetching fines
+        // Find users with Unpaid fines who are not yet Suspended/Banned
+        const candidates = await db.execute(`
+            SELECT DISTINCT u.user_id 
+            FROM FINE f 
+            JOIN BORROW_TRANSACTION b ON f.borrow_id = b.borrow_id 
+            JOIN USER u ON b.user_id = u.user_id 
+            WHERE f.status = 'Unpaid' AND u.status NOT IN ('Suspended', 'Banned')
+        `);
+
+        if (candidates.rows.length > 0) {
+            const ids = candidates.rows.map(r => r.user_id);
+            const placeholders = ids.map(() => '?').join(',');
+
+            // 1. Update Status to Suspended
+            await db.execute({
+                sql: `UPDATE USER SET status = 'Suspended' WHERE user_id IN (${placeholders})`,
+                args: ids
+            });
+
+            // 2. Insert Ban Records
+            for (const id of ids) {
+                await db.execute({
+                    sql: "INSERT INTO BAN_TERMINATION (user_id, reason, ban_date, end_date) VALUES (?, 'Automatic Suspension: Unpaid Fines', DATE('now', '+8 hours'), NULL)",
+                    args: [id]
+                });
+            }
+        }
+
         const result = await db.execute({
             sql: `
                 SELECT 
@@ -757,6 +816,39 @@ app.post('/api/fines/pay', async (req, res) => {
                       VALUES (?, ?, ?, 'Paid', DATE('now', '+8 hours'), ?, ?, ?)`,
                 args: [borrowId, fine_id, amount, payment_method || 'Cash', reference_number || null, remarks || null]
             });
+        }
+
+        // 4. Check if user is fully paid (Reactivation Logic)
+        if (borrowId) {
+            const userRes = await db.execute({
+                sql: "SELECT user_id FROM BORROW_TRANSACTION WHERE borrow_id = ?",
+                args: [borrowId]
+            });
+
+            if (userRes.rows.length > 0) {
+                const userId = userRes.rows[0].user_id;
+                
+                // Check remaining unpaid fines
+                const countRes = await db.execute({
+                    sql: `SELECT COUNT(*) as count FROM FINE f 
+                          JOIN BORROW_TRANSACTION b ON f.borrow_id = b.borrow_id 
+                          WHERE b.user_id = ? AND f.status = 'Unpaid'`,
+                    args: [userId]
+                });
+
+                if (countRes.rows[0].count === 0) {
+                    // Reactivate User if currently Suspended
+                    await db.execute({
+                        sql: "UPDATE USER SET status = 'Active' WHERE user_id = ? AND status = 'Suspended'",
+                        args: [userId]
+                    });
+                    // Close Ban Record
+                    await db.execute({
+                        sql: "UPDATE BAN_TERMINATION SET end_date = DATE('now', '+8 hours') WHERE user_id = ? AND end_date IS NULL",
+                        args: [userId]
+                    });
+                }
+            }
         }
 
         res.json({ success: true, message: "Fine paid successfully." });
@@ -1087,6 +1179,56 @@ app.get('/api/admin/audit-logs', async (req, res) => {
 
     } catch (error) {
         console.error("Audit Log Error:", error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+// 45. GET /api/admin/users (Fetch Users with Suspension Info)
+app.get('/api/admin/users', async (req, res) => {
+    try {
+        const result = await db.execute(`
+            SELECT u.*, 
+                   b.reason as ban_reason, 
+                   b.end_date as ban_end_date,
+                   (SELECT COUNT(*) FROM BAN_TERMINATION bt WHERE bt.user_id = u.user_id AND (bt.end_date IS NULL OR bt.end_date > DATE('now'))) as is_banned_active
+            FROM USER u
+            LEFT JOIN BAN_TERMINATION b ON u.user_id = b.user_id 
+            AND b.ban_id = (
+                SELECT MAX(ban_id) FROM BAN_TERMINATION WHERE user_id = u.user_id
+            )
+            ORDER BY u.user_id DESC
+        `);
+        res.json({ success: true, data: result.rows });
+    } catch (error) {
+        console.error("Fetch Users Error:", error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+// 46. POST /api/admin/users/suspend (Suspend User)
+app.post('/api/admin/users/suspend', async (req, res) => {
+    const { userId, reason, duration, adminId } = req.body;
+    
+    try {
+        // 1. Update User Status
+        await db.execute({
+            sql: "UPDATE USER SET status = 'Suspended' WHERE user_id = ?",
+            args: [userId]
+        });
+
+        // 2. Insert Ban Record
+        // If duration is provided, calculate end_date. If not (financial), leave NULL (Indefinite).
+        const endDateExpr = duration ? `DATE('now', '+${duration} days')` : "NULL";
+        
+        await db.execute({
+            sql: `INSERT INTO BAN_TERMINATION (user_id, reason, ban_date, end_date) VALUES (?, ?, DATE('now', '+8 hours'), ${endDateExpr})`,
+            args: [userId, reason]
+        });
+
+        await logAdminAction(adminId, 'SUSPEND_USER', 'USER', userId, `Suspended user. Reason: ${reason}`);
+        res.json({ success: true, message: "User suspended successfully." });
+    } catch (error) {
+        console.error("Suspend User Error:", error);
         res.status(500).json({ success: false, message: error.message });
     }
 });
@@ -1758,6 +1900,40 @@ app.delete('/api/announcements/:id', async (req, res) => {
         await db.execute({ sql: "UPDATE ANNOUNCEMENT SET status = 'Archived' WHERE announcement_id = ?", args: [id] });
         res.json({ success: true, message: "Announcement archived." });
     } catch (e) { res.status(500).json({ success: false, message: e.message }); }
+});
+
+// 44. POST /api/admin/process-suspensions
+app.post('/api/admin/process-suspensions', async (req, res) => {
+    try {
+        const candidates = await db.execute(`
+            SELECT DISTINCT u.user_id 
+            FROM FINE f 
+            JOIN BORROW_TRANSACTION b ON f.borrow_id = b.borrow_id 
+            JOIN USER u ON b.user_id = u.user_id 
+            WHERE f.status = 'Unpaid' AND u.status NOT IN ('Suspended', 'Banned')
+        `);
+
+        if (candidates.rows.length > 0) {
+            const ids = candidates.rows.map(r => r.user_id);
+            const placeholders = ids.map(() => '?').join(',');
+
+            await db.execute({
+                sql: `UPDATE USER SET status = 'Suspended' WHERE user_id IN (${placeholders})`,
+                args: ids
+            });
+
+            for (const id of ids) {
+                await db.execute({
+                    sql: "INSERT INTO BAN_TERMINATION (user_id, reason, ban_date, end_date) VALUES (?, 'Automatic Suspension: Unpaid Fines', DATE('now', '+8 hours'), NULL)",
+                    args: [id]
+                });
+            }
+        }
+        res.json({ success: true, count: candidates.rows.length });
+    } catch (error) {
+        console.error("Auto Suspend Error:", error);
+        res.status(500).json({ success: false, message: error.message });
+    }
 });
 
 app.listen(PORT, () => {
