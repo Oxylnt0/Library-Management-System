@@ -7,7 +7,7 @@
     <title>Puerto Palabra - Reports</title>
     
     <meta http-equiv="Content-Security-Policy"
-        content="default-src 'self' 'unsafe-inline' https: http:; script-src 'self' 'unsafe-inline' https://esm.run https://cdn.jsdelivr.net https://unpkg.com https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' http://localhost:3000 https://cdnjs.cloudflare.com;">
+        content="default-src 'self' 'unsafe-inline' https: http:; script-src 'self' 'unsafe-inline' https://esm.run https://cdn.jsdelivr.net https://unpkg.com https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' http://localhost:3000 https://cdnjs.cloudflare.com https://unpkg.com;">
 
     <link href="../output.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -110,8 +110,8 @@
                 </main>
 
                 <!-- PDF Generation Libraries (Must be inside wrapper for dynamic loading) -->
-                <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-                <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+                <script src="https://unpkg.com/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+                <script src="https://unpkg.com/jspdf-autotable@3.5.31/dist/jspdf.plugin.autotable.min.js"></script>
                 
                 <script src="../admin_js/admin_reports.js"></script>
             </div>

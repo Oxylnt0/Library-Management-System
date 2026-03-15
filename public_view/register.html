@@ -565,6 +565,7 @@
                                 <p class="font-bold mb-2 text-[#183B5B]">Password Requirements:</p>
                                 <ul class="space-y-1">
                                     <li id="req-length" class="flex items-center gap-2 text-slate-500"><span class="w-1.5 h-1.5 rounded-full bg-slate-300"></span> At least 12 characters</li>
+                                    <li id="req-capital" class="flex items-center gap-2 text-slate-500"><span class="w-1.5 h-1.5 rounded-full bg-slate-300"></span> At least 1 capital letter</li>
                                     <li id="req-number" class="flex items-center gap-2 text-slate-500"><span class="w-1.5 h-1.5 rounded-full bg-slate-300"></span> At least 1 number</li>
                                     <li id="req-special" class="flex items-center gap-2 text-slate-500"><span class="w-1.5 h-1.5 rounded-full bg-slate-300"></span> At least 1 special character</li>
                                 </ul>
@@ -656,16 +657,16 @@
                             <div class="flex gap-3">
                                 <div class="form-group flex-1">
                                     <label class="form-label">Last Name</label>
-                                    <input type="text" id="guardian-lname" class="form-input" placeholder="Last Name" onkeypress="handleEnter(event, 'guardian-fname')">
+                                    <input type="text" id="guardian-lname" class="form-input" placeholder="Last Name" oninput="this.value = this.value.replace(/[^A-Za-z\sñÑ-]/g, '');" onkeypress="handleEnter(event, 'guardian-fname')">
                                 </div>
                                 <div class="form-group flex-1">
                                     <label class="form-label">First Name</label>
-                                    <input type="text" id="guardian-fname" class="form-input" placeholder="First Name" onkeypress="handleEnter(event, 'guardian-mi')">
+                                    <input type="text" id="guardian-fname" class="form-input" placeholder="First Name" oninput="this.value = this.value.replace(/[^A-Za-z\sñÑ-]/g, '');" onkeypress="handleEnter(event, 'guardian-mi')">
                                 </div>
                                 <div class="form-group w-12">
                                     <label class="form-label">M.I.</label>
                                     <input type="text" id="guardian-mi" class="form-input text-center" maxlength="2"
-                                        placeholder="M.I." onkeypress="handleEnter(event, 'guardian-rel')">
+                                        placeholder="M.I." oninput="this.value = this.value.replace(/[^A-Za-z\.]/g, '');" onkeypress="handleEnter(event, 'guardian-rel')">
                                 </div>
                             </div>
 
@@ -681,7 +682,7 @@
 
                             <div class="form-group">
                                 <label class="form-label">Contact Number</label>
-                                <input type="tel" id="guardian-contact" class="form-input" placeholder="09xxxxxxxxx" onkeypress="handleEnter(event, 'guardian-email')">
+                                <input type="tel" id="guardian-contact" class="form-input" placeholder="09xxxxxxxxx" maxlength="11" oninput="this.value = this.value.replace(/[^0-9]/g, '');" onkeypress="handleEnter(event, 'guardian-email')">
                             </div>
 
                             <div class="form-group">
@@ -776,16 +777,16 @@
                     <div class="flex gap-3">
                         <div class="form-group flex-1">
                             <label class="form-label">Last Name</label>
-                            <input type="text" id="user-lname" class="form-input" placeholder="Last Name" onkeypress="handleEnter(event, 'user-fname')">
+                            <input type="text" id="user-lname" class="form-input" placeholder="Last Name" oninput="this.value = this.value.replace(/[^a-zA-ZñÑ\s\-\.]/g, '');" onkeypress="handleEnter(event, 'user-fname')">
                         </div>
                         <div class="form-group flex-1">
                             <label class="form-label">First Name</label>
-                            <input type="text" id="user-fname" class="form-input" placeholder="First Name" onkeypress="handleEnter(event, 'user-mi')">
+                            <input type="text" id="user-fname" class="form-input" placeholder="First Name" oninput="this.value = this.value.replace(/[^a-zA-ZñÑ\s\-\.]/g, '');" onkeypress="handleEnter(event, 'user-mi')">
                         </div>
                         <div class="form-group w-12">
                             <label class="form-label">M.I.</label>
                             <input type="text" id="user-mi" class="form-input text-center" maxlength="2"
-                                placeholder="M.I." onkeypress="handleEnter(event, 'user-email')">
+                                placeholder="M.I." oninput="this.value = this.value.replace(/[^a-zA-ZñÑ\s\-\.]/g, '');" onkeypress="handleEnter(event, 'user-email')">
                         </div>
                     </div>
                     <div class="form-group">
@@ -794,7 +795,7 @@
                     </div>
                     <div class="form-group">
                         <label class="form-label">Contact Number</label>
-                        <input type="tel" id="user-contact" class="form-input" placeholder="09xxxxxxxxx" onkeypress="handleEnter(event, 'user-address')">
+                        <input type="tel" id="user-contact" class="form-input" placeholder="09xxxxxxxxx" maxlength="11" oninput="this.value = this.value.replace(/[^0-9]/g, '');" onkeypress="handleEnter(event, 'user-address')">
                     </div>
                     <div class="form-group">
                         <label class="form-label">Address</label>
@@ -834,10 +835,62 @@
                 return true;
             }
 
-            function validatePage2() {
+            function validateDate(dateStr) {
+                if (!dateStr) return false;
+                const selectedDate = new Date(dateStr);
+                const today = new Date();
+                const minDate = new Date();
+                minDate.setFullYear(today.getFullYear() - 120);
+                
+                today.setHours(23, 59, 59, 999);
+                minDate.setHours(0, 0, 0, 0);
+
+                return selectedDate >= minDate && selectedDate <= today;
+            }
+
+            async function validatePage2() {
                 if (currentFlow === 'user') {
-                    if (!validateFields(['user-lname', 'user-fname', 'user-mi', 'user-email', 'user-contact', 'user-address', 'user-dob'])) {
+                    const age = parseInt(document.getElementById('user-age').value) || 0;
+                    const email = document.getElementById('user-email').value.trim();
+                    const requiredFields = ['user-lname', 'user-fname', 'user-mi', 'user-contact', 'user-address', 'user-dob'];
+                    if (age < 60) requiredFields.push('user-email');
+
+                    if (!validateFields(requiredFields)) {
                         window.showCustomAlert("Please complete all fields.");
+                        return false;
+                    }
+                    const dob = document.getElementById('user-dob').value;
+                    if (!validateDate(dob)) {
+                        window.showCustomAlert("Please enter a valid birth date (between 120 years ago and today).");
+                        return false;
+                    }
+                    
+                    if (age < 18) {
+                        window.showCustomAlert("Users under 18 need to have a guardian to be able to register. Please go back and select the Guardian option.");
+                        return false;
+                    }
+
+                    if (age < 60) {
+                        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                            window.showCustomAlert("Please enter a valid email address.");
+                            return false;
+                        }
+                    } else if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                        window.showCustomAlert("Please enter a valid email address.");
+                        return false;
+                    }
+                    
+                    if (email && window.checkEmailExists) {
+                        const check = await window.checkEmailExists(email);
+                        if (check.exists) {
+                            window.showCustomAlert(`This email is already registered (Status: ${check.status}).`);
+                            return false;
+                        }
+                    }
+
+                    const contact = document.getElementById('user-contact').value;
+                    if (contact.length !== 11) {
+                        window.showCustomAlert("Contact number must be exactly 11 digits.");
                         return false;
                     }
                 } else {
@@ -845,10 +898,44 @@
                         window.showCustomAlert("Please complete all fields.");
                         return false;
                     }
+                    const dob = document.getElementById('guardian-dob').value;
+                    if (!validateDate(dob)) {
+                        window.showCustomAlert("Please enter a valid birth date (between 120 years ago and today).");
+                        return false;
+                    }
                     const age = parseInt(document.getElementById('guardian-age').value) || 0;
+
+                    if (age < 18) {
+                        window.showCustomAlert("You need to be 18 or older to be a guardian.");
+                        return false;
+                    }
+
                     const email = document.getElementById('guardian-email').value.trim();
-                    if (age < 60 && !email) {
-                        window.showCustomAlert("Email is required for guardians under 60.");
+                    if (age < 60) {
+                        if (!email) {
+                            window.showCustomAlert("Email is required for guardians under 60.");
+                            return false;
+                        }
+                        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                            window.showCustomAlert("Please enter a valid email address.");
+                            return false;
+                        }
+                    } else if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                        window.showCustomAlert("Please enter a valid email address.");
+                        return false;
+                    }
+                    
+                    if (email && window.checkEmailExists) {
+                        const check = await window.checkEmailExists(email);
+                        if (check.exists) {
+                            window.showCustomAlert(`This email is already registered (Status: ${check.status}).`);
+                            return false;
+                        }
+                    }
+
+                    const contact = document.getElementById('guardian-contact').value;
+                    if (contact.length !== 11) {
+                        window.showCustomAlert("Contact number must be exactly 11 digits.");
                         return false;
                     }
                 }
@@ -860,12 +947,34 @@
                     window.showCustomAlert("Please complete all child information fields.");
                     return false;
                 }
+                const dob = document.getElementById('child-dob').value;
+                if (!validateDate(dob)) {
+                    window.showCustomAlert("Please enter a valid birth date (between 120 years ago and today).");
+                    return false;
+                }
                 return true;
             }
 
             function validatePassword() {
                 if (!validateFields(['reg-password', 'confirm-password'])) {
                     window.showCustomAlert("Please enter and confirm your password.");
+                    return false;
+                }
+
+                const pass = document.getElementById('reg-password').value;
+                const confirmPass = document.getElementById('confirm-password').value;
+
+                if (pass !== confirmPass) {
+                    window.showCustomAlert("Passwords do not match!");
+                    return false;
+                }
+
+                const lengthValid = pass.length >= 12;
+                const capitalValid = /[A-Z]/.test(pass);
+                const numberValid = /\d/.test(pass);
+                const specialValid = /[^A-Za-z0-9]/.test(pass);
+                if (!lengthValid || !capitalValid || !numberValid || !specialValid) {
+                    window.showCustomAlert("Password must meet all security requirements: at least 12 characters, 1 capital letter, 1 number, and 1 special character.");
                     return false;
                 }
                 return true;
@@ -879,11 +988,11 @@
                 return true;
             }
 
-            window.handleEnter = function(e, nextId) {
+            window.handleEnter = async function(e, nextId) {
                 if (e.key === 'Enter') {
                     e.preventDefault();
                     if (nextId === 'NEXT_PAGE') {
-                        turnPage(1);
+                        await turnPage(1);
                     } else {
                         const nextEl = document.getElementById(nextId);
                         if (nextEl) nextEl.focus();
@@ -904,15 +1013,27 @@
                     if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) {
                         age--;
                     }
-                    ageInput.value = age;
+                        if (ageInput) ageInput.value = age;
 
-                    if (age >= 60) {
-                        emailInput.disabled = true;
-                        emailInput.classList.add('bg-slate-200', 'cursor-not-allowed');
-                        emailInput.value = '';
-                    } else {
-                        emailInput.disabled = false;
-                        emailInput.classList.remove('bg-slate-200', 'cursor-not-allowed');
+                        if (emailInput) {
+                            if (age >= 60) {
+                                emailInput.disabled = false;
+                                emailInput.classList.remove('bg-slate-200', 'cursor-not-allowed');
+                                emailInput.placeholder = "Senior Citizen - Email Optional";
+                                const label = emailInput.previousElementSibling;
+                                if (label && label.tagName === 'LABEL') {
+                                    label.innerHTML = "Email Address <span class='text-xs font-normal text-slate-500'>(Optional for Senior Citizen)</span>";
+                                }
+                            } else {
+                                emailInput.disabled = false;
+                                emailInput.classList.remove('bg-slate-200', 'cursor-not-allowed');
+                                emailInput.placeholder = (flow === 'user') ? "email@example.com" : "guardian@example.com";
+                                const label = emailInput.previousElementSibling;
+                                if (label && label.tagName === 'LABEL') {
+                                    label.innerHTML = "Email Address";
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -929,6 +1050,7 @@
             window.checkPasswordStrength = function(password) {
                 const strengthBox = document.getElementById('password-strength');
                 const reqLength = document.getElementById('req-length');
+                const reqCapital = document.getElementById('req-capital');
                 const reqNumber = document.getElementById('req-number');
                 const reqSpecial = document.getElementById('req-special');
 
@@ -946,6 +1068,7 @@
                 };
 
                 setValid(reqLength, password.length >= 12);
+                setValid(reqCapital, /[A-Z]/.test(password));
                 setValid(reqNumber, /\d/.test(password));
                 setValid(reqSpecial, /[^A-Za-z0-9]/.test(password));
             }
@@ -1028,7 +1151,7 @@
                 turnPage(1); // Move to next page automatically
             }
 
-            window.turnPage = function (direction) {
+            window.turnPage = async function (direction) {
                 const sheet1 = document.getElementById('sheet-1');
                 const sheet2 = document.getElementById('sheet-2');
                 const sheet3 = document.getElementById('sheet-3');
@@ -1041,7 +1164,7 @@
                         sheet1.style.zIndex = "20";
                         currentPage++;
                     } else if (currentPage === 2) {
-                        if (!validatePage2()) return;
+                        if (!(await validatePage2())) return;
                         sheet2.classList.add('flipped');
                         sheet2.style.zIndex = "30";
                         currentPage++;
@@ -1155,13 +1278,27 @@
                     particle.style.fontSize = (Math.random() * 10 + 10) + 'px';
                     container.appendChild(particle);
                 }
+
+                // Date Picker Constraints
+                const today = new Date();
+                const yyyy = today.getFullYear();
+                const mm = String(today.getMonth() + 1).padStart(2, '0');
+                const dd = String(today.getDate()).padStart(2, '0');
+                const maxDate = `${yyyy}-${mm}-${dd}`;
+                const minDate = `${yyyy - 120}-${mm}-${dd}`;
+
+                document.querySelectorAll('input[type="date"]').forEach(input => {
+                    input.max = maxDate;
+                    input.min = minDate;
+                });
             });
         </script>
 
         <script>
           {
             const path = require('path');
-            const { registerUser, registerGuardian } = require(path.join(process.cwd(), 'auth.js'));
+            const { registerUser, registerGuardian, checkEmailExists } = require(path.join(process.cwd(), 'auth.js'));
+            window.checkEmailExists = checkEmailExists;
 
             function showCustomAlert(message, callback) {
                 const alertBox = document.getElementById('custom-alert');

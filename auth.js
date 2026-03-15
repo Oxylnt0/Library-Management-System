@@ -153,4 +153,26 @@ async function login(email, password) {
     }
 }
 
-module.exports = { registerUser, registerGuardian, login };
+async function checkEmailExists(email) {
+    try {
+        const query = `
+            SELECT email, status FROM USER WHERE email = ? AND status IN ('Pending', 'Active', 'Suspended', 'Banned')
+            UNION ALL
+            SELECT email, status FROM GUARDIAN_NAME WHERE email = ? AND status IN ('Pending', 'Active', 'Suspended', 'Banned')
+        `;
+        const result = await db.execute({
+            sql: query,
+            args: [email, email]
+        });
+
+        if (result.rows.length > 0) {
+            return { exists: true, status: result.rows[0].status };
+        }
+        return { exists: false };
+    } catch (error) {
+        console.error("Email Check Error:", error);
+        return { exists: false }; 
+    }
+}
+
+module.exports = { registerUser, registerGuardian, login, checkEmailExists };

@@ -1,3 +1,6 @@
+// Keep track of loaded external scripts to prevent redeclaration errors
+window.loadedScripts = window.loadedScripts || new Set();
+
 // Function to load HTML components
 async function loadComponent(elementId, filePath) {
     const element = document.getElementById(elementId);
@@ -18,9 +21,23 @@ async function loadComponent(elementId, filePath) {
         
         // Execute scripts in the loaded component
         Array.from(element.querySelectorAll('script')).forEach(oldScript => {
+            const src = oldScript.getAttribute('src');
+            if (src) {
+                if (window.loadedScripts.has(src)) {
+                    oldScript.parentNode.removeChild(oldScript);
+                    return;
+                }
+                window.loadedScripts.add(src);
+            }
+
             const newScript = document.createElement('script');
             Array.from(oldScript.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
-            newScript.appendChild(document.createTextNode(oldScript.innerHTML));
+            
+            if (!src && oldScript.innerHTML) {
+                newScript.appendChild(document.createTextNode(`try { ${oldScript.innerHTML} } catch(e) { console.error('Inline script error:', e); }`));
+            } else {
+                newScript.appendChild(document.createTextNode(oldScript.innerHTML));
+            }
             oldScript.parentNode.replaceChild(newScript, oldScript);
         });
         
@@ -94,9 +111,23 @@ async function navigateTo(url) {
                 // Re-execute scripts in the new content
                 const scripts = Array.from(contentWrapper.querySelectorAll('script'));
                 for (const oldScript of scripts) {
+                    const src = oldScript.getAttribute('src');
+                    if (src) {
+                        if (window.loadedScripts.has(src)) {
+                            oldScript.parentNode.removeChild(oldScript);
+                            continue;
+                        }
+                        window.loadedScripts.add(src);
+                    }
+
                     const newScript = document.createElement('script');
                     Array.from(oldScript.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
-                    newScript.appendChild(document.createTextNode(oldScript.innerHTML));
+                    
+                    if (!src && oldScript.innerHTML) {
+                        newScript.appendChild(document.createTextNode(`try { ${oldScript.innerHTML} } catch(e) { console.error('Inline script error:', e); }`));
+                    } else {
+                        newScript.appendChild(document.createTextNode(oldScript.innerHTML));
+                    }
                     oldScript.parentNode.removeChild(oldScript);
                     contentWrapper.appendChild(newScript);
                 }

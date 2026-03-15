@@ -15,7 +15,6 @@ async function createAllTables() {
         DROP TABLE IF EXISTS FINE;
         DROP TABLE IF EXISTS BORROW_TRANSACTION;
         DROP TABLE IF EXISTS BOARD_GAME;
-        DROP TABLE IF EXISTS AUDIO_VISUAL;
         DROP TABLE IF EXISTS PERIODICAL;
         DROP TABLE IF EXISTS BOOK;
         DROP TABLE IF EXISTS USER_AUDIT_LOG;
@@ -24,7 +23,7 @@ async function createAllTables() {
         DROP TABLE IF EXISTS MATERIAL;
         DROP TABLE IF EXISTS ADMIN_AUDIT_LOG;
         DROP TABLE IF EXISTS OTP_VERIFICATION;
-        DROP TABLE IF EXISTS ANNOUNCEMENT; -- Added Announcement Drop
+        DROP TABLE IF EXISTS ANNOUNCEMENT;
     `;
 
     const createSchema = `
@@ -307,22 +306,13 @@ async function createAllTables() {
 
     try {
         console.log("🧹 Wiping old tables (Admin data is safe)...");
-        const dropStatements = dropSchema.split(';').filter(stmt => stmt.trim() !== '');
-        for (const statement of dropStatements) {
-            await db.execute(statement);
-        }
+        await db.executeMultiple(dropSchema);
 
         console.log("🏗️ Creating fresh tables sequentially...");
-        const createStatements = createSchema.split(';').filter(stmt => stmt.trim() !== '');
-        for (const statement of createStatements) {
-            await db.execute(statement);
-        }
+        await db.executeMultiple(createSchema);
         
         console.log("⚙️ Inserting default fine and lending settings...");
-        const seedStatements = seedSettings.split(';').filter(stmt => stmt.trim() !== '');
-        for (const statement of seedStatements) {
-            await db.execute(statement);
-        }
+        await db.executeMultiple(seedSettings);
 
         console.log("✅ SUCCESS: Setup complete! Tables are clean and dependencies are correct.");
 
