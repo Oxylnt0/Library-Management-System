@@ -20,8 +20,8 @@ function createWindow() {
 
     
     //mainWindow.loadFile('public_view/public_view.html');
-    mainWindow.loadFile('admin_html/admin_login.html');
-    //mainWindow.loadFile('admin_html/admin_dashboard.html');
+    //mainWindow.loadFile('admin_html/admin_login.html');
+    mainWindow.loadFile('admin_html/admin_dashboard.html');
 }
 
 app.whenReady().then(() => {

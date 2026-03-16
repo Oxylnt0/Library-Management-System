@@ -107,13 +107,8 @@
                                 </tbody>
                             </table>
                         </div>
-                        <div
-                            class="bg-slate-50 p-4 border-t border-slate-200 flex justify-between items-center text-xs text-slate-500 shrink-0">
-                            <span>Showing 1-3 of 450 users</span>
-                            <div class="flex gap-2">
-                                <button class="px-3 py-1 bg-white border rounded hover:bg-slate-100">Previous</button>
-                                <button class="px-3 py-1 bg-white border rounded hover:bg-slate-100">Next</button>
-                            </div>
+                        <div class="bg-slate-50 p-4 border-t border-slate-200 flex justify-center items-center text-xs text-slate-500 shrink-0">
+                            <span>Loading users...</span>
                         </div>
                     </div>
                 </div>
@@ -186,6 +181,59 @@
                 <button onclick="confirmSuspend()" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 rounded-full shadow-md transition-colors mt-4">
                     Confirm Suspension
                 </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- User Details Modal -->
+    <div id="user-details-modal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center backdrop-blur-sm">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-lg overflow-hidden transform transition-all scale-100">
+            <div class="bg-[#183B5B] p-4 text-white flex justify-between items-center">
+                <h3 class="font-bold text-lg">User Details</h3>
+                <button onclick="window.closeUserDetailsModal()" class="text-white/70 hover:text-white">&times;</button>
+            </div>
+            <div class="p-6 space-y-4 text-sm text-slate-600">
+                <div class="flex items-center gap-4 mb-6">
+                    <div id="detail-initials" class="w-16 h-16 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center text-xl font-bold"></div>
+                    <div>
+                        <h4 id="detail-name" class="text-xl font-bold text-slate-800"></h4>
+                        <span id="detail-role" class="text-xs font-bold px-2 py-1 bg-slate-100 text-slate-600 rounded-full mt-1 inline-block"></span>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <p class="text-xs font-bold text-slate-400 uppercase">Email</p>
+                        <p id="detail-email" class="font-medium text-slate-800"></p>
+                    </div>
+                    <div>
+                        <p class="text-xs font-bold text-slate-400 uppercase">Contact Number</p>
+                        <p id="detail-contact" class="font-medium text-slate-800"></p>
+                    </div>
+                    <div class="col-span-2">
+                        <p class="text-xs font-bold text-slate-400 uppercase">Address</p>
+                        <p id="detail-address" class="font-medium text-slate-800"></p>
+                    </div>
+                    <div>
+                        <p class="text-xs font-bold text-slate-400 uppercase">Birth Date</p>
+                        <p id="detail-birthdate" class="font-medium text-slate-800"></p>
+                    </div>
+                    <div>
+                        <p class="text-xs font-bold text-slate-400 uppercase">Date Joined</p>
+                        <p id="detail-joined" class="font-medium text-slate-800"></p>
+                    </div>
+                    <div>
+                        <p class="text-xs font-bold text-slate-400 uppercase">Status</p>
+                        <div id="detail-status" class="mt-1"></div>
+                    </div>
+                </div>
+                <div id="detail-suspension-box" class="hidden mt-4 p-3 bg-red-50 border border-red-100 rounded-lg">
+                    <p class="text-xs font-bold text-red-600 uppercase mb-1">Suspension Details</p>
+                    <p id="detail-suspend-reason" class="text-sm text-red-800 mb-1"></p>
+                    <p id="detail-suspend-end" class="text-xs text-red-500"></p>
+                </div>
+            </div>
+            <div class="p-4 border-t border-slate-100 flex justify-end">
+                <button onclick="window.closeUserDetailsModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-full font-bold text-sm transition-colors">Close</button>
             </div>
         </div>
     </div>
@@ -340,7 +388,7 @@
                     }
                     
                     const row = `
-                        <tr class="hover:bg-slate-50 transition-colors">
+                        <tr class="hover:bg-slate-50 transition-colors cursor-pointer" onclick="if(!event.target.closest('button') && !event.target.closest('a')) window.openUserDetails(${user.user_id})">
                             <td class="p-4">
                                 <div class="flex items-center gap-3">
                                     <div class="w-10 h-10 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center font-bold">${initials}</div>
@@ -433,6 +481,50 @@
                 alert("Failed to suspend user.");
             }
         }
+
+        window.openUserDetails = function(userId) {
+            const user = allUsers.find(u => u.user_id === userId);
+            if(!user) return;
+
+            const middleInitial = user.middle_initial ? ` ${user.middle_initial}` : '';
+            document.getElementById('detail-name').innerText = `${user.first_name}${middleInitial} ${user.last_name}`;
+            document.getElementById('detail-initials').innerText = ((user.first_name?.[0] || '') + (user.last_name?.[0] || '')).toUpperCase();
+            document.getElementById('detail-role').innerText = user.guardian_id ? 'Child Patron' : 'Adult Patron';
+            
+            document.getElementById('detail-email').innerText = user.email || 'N/A';
+            document.getElementById('detail-contact').innerText = user.contact_number || 'N/A';
+            document.getElementById('detail-address').innerText = user.address || 'N/A';
+            
+            document.getElementById('detail-birthdate').innerText = user.birth_date ? new Date(user.birth_date).toLocaleDateString() : 'N/A';
+            document.getElementById('detail-joined').innerText = user.date_created ? new Date(user.date_created).toLocaleDateString() : 'N/A';
+            
+            const statusContainer = document.getElementById('detail-status');
+            if (user.status === 'Pending') {
+                statusContainer.innerHTML = '<span class="bg-amber-100 text-amber-700 px-2 py-1 rounded-full text-xs font-bold">Pending</span>';
+            } else if (user.status === 'Active') {
+                statusContainer.innerHTML = '<span class="bg-green-100 text-green-700 px-2 py-1 rounded-full text-xs font-bold">Active</span>';
+            } else if (user.status === 'Rejected') {
+                statusContainer.innerHTML = '<span class="bg-gray-100 text-gray-700 px-2 py-1 rounded-full text-xs font-bold">Rejected</span>';
+            } else {
+                statusContainer.innerHTML = '<span class="bg-red-100 text-red-700 px-2 py-1 rounded-full text-xs font-bold">Suspended</span>';
+            }
+
+            const isBanned = user.status === 'Suspended' || user.status === 'Banned';
+            const susBox = document.getElementById('detail-suspension-box');
+            if (isBanned && user.ban_reason) {
+                susBox.classList.remove('hidden');
+                document.getElementById('detail-suspend-reason').innerText = `Reason: ${user.ban_reason}`;
+                document.getElementById('detail-suspend-end').innerText = user.ban_end_date ? `Ends: ${new Date(user.ban_end_date).toLocaleDateString()}` : 'Ends: Indefinite';
+            } else {
+                susBox.classList.add('hidden');
+            }
+
+            document.getElementById('user-details-modal').classList.remove('hidden');
+        };
+
+        window.closeUserDetailsModal = function() {
+            document.getElementById('user-details-modal').classList.add('hidden');
+        };
 
         function updateStats(total, suspended) {
             document.getElementById('stat-total-users').innerText = total;
