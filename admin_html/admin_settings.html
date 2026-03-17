@@ -40,8 +40,8 @@
                             <h2 class="text-2xl font-bold text-slate-800">System Configuration</h2>
                             <p class="text-sm text-slate-500">Manage library policies and general preferences</p>
                         </div>
-                        <button
-                            class="bg-[#183B5B] hover:bg-[#2E5F87] text-[#D6A84A] px-6 py-2 rounded-full font-bold shadow-md transition-colors">
+                        <button id="btn-save-settings"
+                            class="bg-[#183B5B] hover:bg-[#2E5F87] text-[#D6A84A] px-6 py-2 rounded-full font-bold shadow-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
                             Save Changes
                         </button>
                     </div>
@@ -115,6 +115,40 @@
 
                 </main>
 
+                <script>
+                    function applySettingsRestrictions() {
+                        const adminRole = localStorage.getItem('adminRole');
+                        if (adminRole && adminRole.trim() !== 'Administrator') {
+                            const saveBtn = document.getElementById('btn-save-settings');
+                            const inputs = document.querySelectorAll('input[type="number"]');
+                            const elementsToDisable = [saveBtn, ...inputs];
+
+                            elementsToDisable.forEach(el => {
+                                if (!el) return;
+                                el.disabled = true;
+                                el.setAttribute('disabled', 'true');
+                                if (el.tagName === 'INPUT') {
+                                    el.readOnly = true;
+                                    el.setAttribute('readonly', 'true');
+                                }
+                                el.title = "For Administrator only";
+                                el.classList.add('cursor-not-allowed', 'opacity-50');
+                            });
+                        }
+                    }
+                    
+                    // Use a polling mechanism to ensure elements are in the DOM before applying restrictions.
+                    // This is more robust for Single Page Application (SPA) navigation.
+                    function pollForElements() {
+                        const saveBtn = document.getElementById('btn-save-settings');
+                        if (saveBtn) {
+                            applySettingsRestrictions();
+                        } else {
+                            setTimeout(pollForElements, 50); // Check again in 50ms
+                        }
+                    }
+                    pollForElements();
+                </script>
             </div>
         </div>
     </div>

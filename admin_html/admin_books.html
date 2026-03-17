@@ -73,7 +73,7 @@
                             Catalog Archive
                         </button>
 
-                        <a href="../admin_html/admin_add_books.html"
+                        <a href="../admin_html/admin_add_books.html" id="btn-add-catalog"
                             class="bg-[#183B5B] hover:bg-[#2E5F87] text-[#D6A84A] px-4 py-2 rounded-full font-bold shadow-md flex items-center gap-2 transition-colors text-sm">
                             <span>+</span>
                             Add New Catalog
@@ -547,10 +547,12 @@
                     const safeTitle = (item.title || 'Untitled').replace(/'/g, "\\'");
                     const itemId = item.book_id || item.periodical_id;
 
+                    const isAssistant = localStorage.getItem('adminRole') === 'Assistant Librarian';
+
                     // Determine Action Button (Archive vs Restore)
                     let actionButton = isArchivedView 
-                        ? `<button onclick="openRestoreModal(${itemId}, '${safeTitle}')" class="text-slate-400 hover:text-green-600 transition-colors" title="Restore Book"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg></button>`
-                        : `<button onclick="openArchiveModal(${itemId}, '${safeTitle}')" class="${weedingStatus ? 'text-red-500 hover:text-red-700' : 'text-slate-400 hover:text-amber-600'} transition-colors" title="${weedingStatus ? 'Archive Candidate' : 'Archive Book'}"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"></path></svg></button>`;
+                        ? `<button ${isAssistant ? 'disabled title="Restricted"' : ''} onclick="openRestoreModal(${itemId}, '${safeTitle}')" class="text-slate-400 ${isAssistant ? 'opacity-50 cursor-not-allowed' : 'hover:text-green-600 transition-colors'}" title="Restore Book"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg></button>`
+                        : `<button ${isAssistant ? 'disabled title="Restricted"' : ''} onclick="openArchiveModal(${itemId}, '${safeTitle}')" class="${weedingStatus ? 'text-red-500 hover:text-red-700' : 'text-slate-400 hover:text-amber-600'} transition-colors ${isAssistant ? 'opacity-50 cursor-not-allowed' : ''}" title="${weedingStatus ? 'Archive Candidate' : 'Archive Book'}"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"></path></svg></button>`;
 
                     card.innerHTML = `
                         <div class="flex gap-4">
@@ -583,7 +585,7 @@
                                     Details
                                 </button>
                                 <div class="h-4 w-px bg-slate-200 mx-1"></div>
-                                <button onclick='openBookEdit(${safeItem})' class="text-slate-400 hover:text-blue-600 transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg></button>
+                                <button ${isAssistant ? 'disabled title="Restricted"' : ''} onclick='openBookEdit(${safeItem})' class="text-slate-400 ${isAssistant ? 'opacity-50 cursor-not-allowed' : 'hover:text-blue-600 transition-colors'}"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg></button>
                                 ${actionButton}
                             </div>
                         </div>
@@ -818,6 +820,21 @@
         loadBooks().then(() => {
             runAutoWeeding(); // Run automatic weeding process after initial load
         });
+
+        // Apply Top Restrictions
+        function applyBooksRestrictions() {
+            const adminRole = localStorage.getItem('adminRole');
+            if (adminRole === 'Assistant Librarian') {
+                const addBtn = document.getElementById('btn-add-catalog');
+                if (addBtn) {
+                    addBtn.style.pointerEvents = 'none';
+                    addBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                    addBtn.title = "Restricted";
+                }
+            }
+        }
+        applyBooksRestrictions();
+        setTimeout(applyBooksRestrictions, 150);
       }
     </script>
 

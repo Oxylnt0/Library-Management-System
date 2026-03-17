@@ -171,4 +171,27 @@ window.addEventListener('popstate', () => {
 document.addEventListener("DOMContentLoaded", () => {
     loadComponent('sidebar-container', '../components/user_sidebar.html');
     loadComponent('topbar-container', '../components/user_topbar.html');
+    
+    // Start the idle timeout timer when the page loads
+    resetIdleTimeout();
+});
+
+// --- Session Idle Timeout (3 Minutes) ---
+let idleTimeout;
+function resetIdleTimeout() {
+    const userId = localStorage.getItem('userId');
+    if (!userId) return; // Do not apply timeout to guests
+    
+    clearTimeout(idleTimeout);
+    idleTimeout = setTimeout(() => {
+        alert("Your session has expired due to inactivity. Please log in again.");
+        localStorage.clear();
+        sessionStorage.clear();
+        window.location.href = '../public_view/login.html';
+    }, 3 * 60 * 1000); // 3 minutes in milliseconds
+}
+
+// Attach activity listeners to reset the timer
+['mousemove', 'keydown', 'scroll', 'click', 'touchstart'].forEach(evt => {
+    document.addEventListener(evt, resetIdleTimeout, true);
 });

@@ -113,6 +113,8 @@ const validDate = item.valid_until ? new Date(item.valid_until).toLocaleString()
 // Escape for HTML attributes
 const safeItem = JSON.stringify(item).replace(/"/g, '&quot;');
 
+const isAssistant = localStorage.getItem('adminRole') === 'Assistant Librarian';
+
 tr.innerHTML = `
 <td class="p-4 font-bold text-slate-700">${item.title}</td>
 <td class="p-4">${prioBadge}</td>
@@ -120,19 +122,19 @@ tr.innerHTML = `
 <td class="p-4 text-xs text-slate-500 font-mono">${validDate}</td>
 <td class="p-4 text-xs text-slate-600">${item.author}</td>
 <td class="p-4 text-right flex justify-end gap-2">
-    <button onclick='openEditModal(${safeItem})'
-        class="text-blue-600 hover:text-blue-800 p-1 rounded hover:bg-blue-50 transition-colors" title="Edit">
+    <button ${isAssistant ? 'disabled title="Restricted"' : 'title="Edit"'} onclick='openEditModal(${safeItem})'
+        class="text-blue-600 p-1 rounded ${isAssistant ? 'opacity-50 cursor-not-allowed' : 'hover:bg-blue-50 hover:text-blue-800 transition-colors'}">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                 d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z">
             </path>
         </svg>
     </button>
-    <button onclick="archiveAnnouncement(${item.announcement_id})"
-        class="text-red-500 hover:text-red-700 p-1 rounded hover:bg-red-50 transition-colors" title="Archive">
+    <button ${isAssistant ? 'disabled title="Restricted"' : 'title="Archive"'} onclick="archiveAnnouncement(${item.announcement_id})"
+        class="text-amber-600 p-1 rounded ${isAssistant ? 'opacity-50 cursor-not-allowed' : 'hover:bg-amber-50 hover:text-amber-700 transition-colors'}">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
+                d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4">
             </path>
         </svg>
     </button>

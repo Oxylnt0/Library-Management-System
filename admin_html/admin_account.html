@@ -74,7 +74,7 @@
                                 <span class="px-3 py-1 text-xs rounded-full bg-[#183B5B]/10 text-[#183B5B] font-bold border border-[#183B5B]/20" id="profile-role">
                                     Admin
                                 </span>
-                                <span class="px-3 py-1 text-xs rounded-full bg-[#D6A84A]/20 text-[#8B6508] font-bold border border-[#D6A84A]/30">
+                                <span id="profile-access-level" class="px-3 py-1 text-xs rounded-full bg-[#D6A84A]/20 text-[#8B6508] font-bold border border-[#D6A84A]/30">
                                     Full System Access
                                 </span>
                             </div>
@@ -139,6 +139,7 @@
                                         <li id="cp-req-length" class="flex items-center gap-2 text-slate-500"><span class="w-1.5 h-1.5 rounded-full bg-slate-300"></span> At least 12 characters</li>
                                         <li id="cp-req-number" class="flex items-center gap-2 text-slate-500"><span class="w-1.5 h-1.5 rounded-full bg-slate-300"></span> At least 1 number</li>
                                         <li id="cp-req-special" class="flex items-center gap-2 text-slate-500"><span class="w-1.5 h-1.5 rounded-full bg-slate-300"></span> At least 1 special character</li>
+                                        <li id="cp-req-capital" class="flex items-center gap-2 text-slate-500"><span class="w-1.5 h-1.5 rounded-full bg-slate-300"></span> At least 1 capital letter</li>
                                     </ul>
                                 </div>
                             </div>
@@ -185,6 +186,7 @@
                                         <li id="req-length" class="flex items-center gap-2 text-slate-500"><span class="w-1.5 h-1.5 rounded-full bg-slate-300"></span> At least 12 characters</li>
                                         <li id="req-number" class="flex items-center gap-2 text-slate-500"><span class="w-1.5 h-1.5 rounded-full bg-slate-300"></span> At least 1 number</li>
                                         <li id="req-special" class="flex items-center gap-2 text-slate-500"><span class="w-1.5 h-1.5 rounded-full bg-slate-300"></span> At least 1 special character</li>
+                                        <li id="req-capital" class="flex items-center gap-2 text-slate-500"><span class="w-1.5 h-1.5 rounded-full bg-slate-300"></span> At least 1 capital letter</li>
                                     </ul>
                                 </div>
                             </div>
@@ -297,6 +299,15 @@
                     document.getElementById('profile-name').innerText = admin.full_name;
                     document.getElementById('profile-email').innerText = admin.email;
                     document.getElementById('profile-role').innerText = admin.role;
+                    
+                    const accessBadge = document.getElementById('profile-access-level');
+                    if (admin.role === 'Administrator') {
+                        accessBadge.innerText = 'Full System Access';
+                    } else if (admin.role === 'Librarian') {
+                        accessBadge.innerText = 'Library Operations';
+                    } else {
+                        accessBadge.innerText = 'Basic Access';
+                    }
 
                     // Update Form Fields
                     document.getElementById('account-name').value = admin.full_name;
@@ -413,11 +424,12 @@
             }
         }
 
-        function updateStrengthMeter(password, meterId, lengthId, numberId, specialId) {
+        function updateStrengthMeter(password, meterId, lengthId, numberId, specialId, capitalId) {
             const strengthBox = document.getElementById(meterId);
             const reqLength = document.getElementById(lengthId);
             const reqNumber = document.getElementById(numberId);
             const reqSpecial = document.getElementById(specialId);
+            const reqCapital = document.getElementById(capitalId);
 
             if (password.length > 0) {
                 strengthBox.classList.remove('hidden');
@@ -435,14 +447,15 @@
             setValid(reqLength, password.length >= 12);
             setValid(reqNumber, /\d/.test(password));
             setValid(reqSpecial, /[^A-Za-z0-9]/.test(password));
+            setValid(reqCapital, /[A-Z]/.test(password));
         }
 
         function checkPasswordStrength(password) {
-            updateStrengthMeter(password, 'password-strength', 'req-length', 'req-number', 'req-special');
+            updateStrengthMeter(password, 'password-strength', 'req-length', 'req-number', 'req-special', 'req-capital');
         }
 
         function checkChangePasswordStrength(password) {
-            updateStrengthMeter(password, 'cp-password-strength', 'cp-req-length', 'cp-req-number', 'cp-req-special');
+            updateStrengthMeter(password, 'cp-password-strength', 'cp-req-length', 'cp-req-number', 'cp-req-special', 'cp-req-capital');
         }
 
         document.getElementById('btn-save-profile').addEventListener('click', async () => {
@@ -485,9 +498,10 @@
             const lengthValid = password.length >= 12;
             const numberValid = /\d/.test(password);
             const specialValid = /[^A-Za-z0-9]/.test(password);
+            const capitalValid = /[A-Z]/.test(password);
 
-            if (!lengthValid || !numberValid || !specialValid) {
-                alert("Password must be at least 12 characters long, contain at least 1 number, and 1 special character.");
+            if (!lengthValid || !numberValid || !specialValid || !capitalValid) {
+                alert("Password must be at least 12 characters long, contain at least 1 number, 1 special character, and 1 capital letter.");
                 return;
             }
 
@@ -500,7 +514,7 @@
                 const response = await fetch('http://localhost:3000/api/admin/create', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ full_name, email, password, role, currentAdminId })
+                    body: JSON.stringify({ full_name: fullName, email, password, role, currentAdminId })
                 });
                 const result = await response.json();
                 if (result.success) {
@@ -526,9 +540,10 @@
             const lengthValid = password.length >= 12;
             const numberValid = /\d/.test(password);
             const specialValid = /[^A-Za-z0-9]/.test(password);
+            const capitalValid = /[A-Z]/.test(password);
 
-            if (!lengthValid || !numberValid || !specialValid) {
-                alert("Password must be at least 12 characters long, contain at least 1 number, and 1 special character.");
+            if (!lengthValid || !numberValid || !specialValid || !capitalValid) {
+                alert("Password must be at least 12 characters long, contain at least 1 number, 1 special character, and 1 capital letter.");
                 return;
             }
 

@@ -350,20 +350,22 @@
                     const initials = ((user.first_name?.[0] || '') + (user.last_name?.[0] || '')).toUpperCase();
 
                     let actionButtons = '';
+                    const isAssistant = localStorage.getItem('adminRole') === 'Assistant Librarian';
+
                     if (user.status === 'Pending') {
                         actionButtons = `
                             <div class="flex justify-end gap-2">
-                                <button onclick="updateUserStatus(${user.user_id}, 'Active')" class="p-2 rounded-full bg-green-100 text-green-600 hover:bg-green-200 transition-colors" title="Accept">
+                                <button ${isAssistant ? 'disabled' : ''} onclick="updateUserStatus(${user.user_id}, 'Active')" class="p-2 rounded-full bg-green-100 text-green-600 ${isAssistant ? 'opacity-50 cursor-not-allowed' : 'hover:bg-green-200 transition-colors'}" title="${isAssistant ? 'Restricted' : 'Accept'}">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
                                 </button>
-                                <button onclick="updateUserStatus(${user.user_id}, 'Rejected')" class="p-2 rounded-full bg-red-100 text-red-600 hover:bg-red-200 transition-colors" title="Reject">
+                                <button ${isAssistant ? 'disabled' : ''} onclick="updateUserStatus(${user.user_id}, 'Rejected')" class="p-2 rounded-full bg-red-100 text-red-600 ${isAssistant ? 'opacity-50 cursor-not-allowed' : 'hover:bg-red-200 transition-colors'}" title="${isAssistant ? 'Restricted' : 'Reject'}">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                                 </button>
                             </div>`;
                     } else if (user.status === 'Active') {
                         actionButtons = `
                             <div class="flex justify-end gap-2">
-                                <button onclick="openSuspendModal(${user.user_id})" class="text-xs font-bold text-red-600 hover:bg-red-50 border border-red-200 px-3 py-1 rounded-full transition-colors">
+                                <button ${isAssistant ? 'disabled title="Restricted"' : ''} onclick="openSuspendModal(${user.user_id})" class="text-xs font-bold text-red-600 border border-red-200 px-3 py-1 rounded-full ${isAssistant ? 'opacity-50 cursor-not-allowed' : 'hover:bg-red-50 transition-colors'}">
                                     Suspend
                                 </button>
                             </div>`;
@@ -380,7 +382,7 @@
                         } else {
                             actionButtons = `
                             <div class="flex justify-end gap-2">
-                                <button onclick="updateUserStatus(${user.user_id}, 'Active')" class="text-xs font-bold text-green-600 hover:bg-green-50 border border-green-200 px-3 py-1 rounded-full transition-colors">
+                                <button ${isAssistant ? 'disabled title="Restricted"' : ''} onclick="updateUserStatus(${user.user_id}, 'Active')" class="text-xs font-bold text-green-600 border border-green-200 px-3 py-1 rounded-full ${isAssistant ? 'opacity-50 cursor-not-allowed' : 'hover:bg-green-50 transition-colors'}">
                                     Activate
                                 </button>
                             </div>`;

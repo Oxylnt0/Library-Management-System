@@ -4,6 +4,7 @@ const path = require('path');
 require('dotenv').config();
 const { db } = require('./db_config.js');
 const { sendAdminWelcomeEmail, sendOtpEmail, sendAccountStatusEmail, sendLibraryCard } = require('./email_service.js');
+const { registerUser, registerGuardian, checkEmailExists } = require('./auth.js');
 const { logUserAction, logAdminAction } = require('./audit_service.js');
 
 const app = express();
@@ -12,6 +13,41 @@ const PORT = 3000;
 // Middleware
 app.use(cors());
 app.use(express.json());
+
+// --- NEW REGISTRATION API ENDPOINTS ---
+
+// Endpoint to check if email exists
+app.post('/api/register/check-email', async (req, res) => {
+    const { email } = req.body;
+    try {
+        const result = await checkEmailExists(email);
+        res.json({ success: true, ...result });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+// Endpoint to register a standard user
+app.post('/api/register/user', async (req, res) => {
+    const userData = req.body;
+    try {
+        const result = await registerUser(userData);
+        res.json(result);
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+// Endpoint to register a guardian and child
+app.post('/api/register/guardian', async (req, res) => {
+    const { guardianData, childData } = req.body;
+    try {
+        const result = await registerGuardian(guardianData, childData);
+        res.json(result);
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
 
 // 1. POST /api/reserve
 app.post('/api/reserve', async (req, res) => {

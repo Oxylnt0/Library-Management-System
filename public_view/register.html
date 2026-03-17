@@ -827,6 +827,24 @@
             window.totalPages = 3;
             window.currentFlow = ''; // 'user' or 'guardian'
 
+            window.showCustomAlert = function(message, callback) {
+                const alertBox = document.getElementById('custom-alert');
+                const alertMsg = document.getElementById('custom-alert-msg');
+                const alertBtn = document.getElementById('custom-alert-btn');
+
+                alertMsg.textContent = message;
+                alertBox.classList.remove('hidden');
+
+                // Replace button to remove old event listeners
+                const newBtn = alertBtn.cloneNode(true);
+                alertBtn.parentNode.replaceChild(newBtn, alertBtn);
+
+                newBtn.onclick = function () {
+                    alertBox.classList.add('hidden');
+                    if (callback) callback();
+                }
+            }
+
             function validateFields(ids) {
                 for (const id of ids) {
                     const el = document.getElementById(id);
@@ -880,7 +898,7 @@
                         return false;
                     }
                     
-                    if (email && window.checkEmailExists) {
+                    if (email) {
                         const check = await window.checkEmailExists(email);
                         if (check.exists) {
                             window.showCustomAlert(`This email is already registered (Status: ${check.status}).`);
@@ -925,7 +943,7 @@
                         return false;
                     }
                     
-                    if (email && window.checkEmailExists) {
+                    if (email) {
                         const check = await window.checkEmailExists(email);
                         if (check.exists) {
                             window.showCustomAlert(`This email is already registered (Status: ${check.status}).`);
@@ -1036,7 +1054,7 @@
                         }
                     }
                 }
-            }
+            
 
             window.togglePassword = function (id) {
                 const input = document.getElementById(id);
@@ -1292,130 +1310,127 @@
                     input.min = minDate;
                 });
             });
-        </script>
 
-        <script>
-          {
-            const path = require('path');
-            const { registerUser, registerGuardian, checkEmailExists } = require(path.join(process.cwd(), 'auth.js'));
-            window.checkEmailExists = checkEmailExists;
-
-            function showCustomAlert(message, callback) {
-                const alertBox = document.getElementById('custom-alert');
-                const alertMsg = document.getElementById('custom-alert-msg');
-                const alertBtn = document.getElementById('custom-alert-btn');
-
-                alertMsg.textContent = message;
-                alertBox.classList.remove('hidden');
-
-                // Replace button to remove old event listeners
-                const newBtn = alertBtn.cloneNode(true);
-                alertBtn.parentNode.replaceChild(newBtn, alertBtn);
-
-                newBtn.onclick = function () {
-                    alertBox.classList.add('hidden');
-                    if (callback) callback();
+            window.checkEmailExists = async function(email) {
+                try {
+                    const response = await fetch('http://localhost:3000/api/register/check-email', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ email })
+                    });
+                    const result = await response.json();
+                    if (result.success) {
+                        return { exists: result.exists, status: result.status };
+                    }
+                    return { exists: false }; // Default to not existing on API error
+                } catch (error) {
+                    console.error('Email check failed:', error);
+                    return { exists: false };
                 }
-            }
+            };
 
             window.submitRegistration = async function () {
                 const termsCheck = document.getElementById('terms-check');
                 if (!termsCheck.checked) {
-                    showCustomAlert("You must agree to the Terms and Conditions to register.");
+                    window.showCustomAlert("You must agree to the Terms and Conditions to register.");
                     return;
                 }
 
                 const password = document.getElementById('reg-password').value;
                 const confirmPassword = document.getElementById('confirm-password').value;
 
-                // Security Questions
                 const q1 = document.getElementById('sec-q1').value;
                 const a1 = document.getElementById('sec-a1').value;
                 const q2 = document.getElementById('sec-q2').value;
                 const a2 = document.getElementById('sec-a2').value;
                 const q3 = document.getElementById('sec-q3').value;
                 const a3 = document.getElementById('sec-a3').value;
-
+    
                 if (!q1 || !a1 || !q2 || !a2 || !q3 || !a3) {
-                    showCustomAlert("Please complete all security questions.");
+                    window.showCustomAlert("Please complete all security questions.");
                     return;
                 }
-
+    
                 if (password !== confirmPassword) {
-                    showCustomAlert("Passwords do not match!");
+                    window.showCustomAlert("Passwords do not match!");
                     return;
                 }
-
+    
                 const btn = document.getElementById('btn-submit');
                 const originalText = btn.innerHTML;
-
+    
                 // Show Loading State
                 btn.disabled = true;
                 btn.innerHTML = '<span class="spinner"></span> Processing...';
                 btn.classList.add('opacity-75', 'cursor-not-allowed');
-
+    
                 try {
+                    let endpoint = '';
+                    let payload = {};
+
                     if (window.currentFlow === 'user') {
-                        const userData = {
-                            firstName: document.getElementById('user-fname').value,
-                            lastName: document.getElementById('user-lname').value,
-                            mi: document.getElementById('user-mi').value,
-                            email: document.getElementById('user-email').value,
-                            contact: document.getElementById('user-contact').value,
-                            address: document.getElementById('user-address').value,
-                            birthDate: document.getElementById('user-dob').value,
-                            password: password,
-                            securityQuestions: [
-                                { question: q1, answer: a1 },
-                                { question: q2, answer: a2 },
-                                { question: q3, answer: a3 }
-                            ]
+                        endpoint = 'http://localhost:3000/api/register/user';
+                        payload = {
+                                firstName: document.getElementById('user-fname').value,
+                                lastName: document.getElementById('user-lname').value,
+                                mi: document.getElementById('user-mi').value,
+                                email: document.getElementById('user-email').value,
+                                contact: document.getElementById('user-contact').value,
+                                address: document.getElementById('user-address').value,
+                                birthDate: document.getElementById('user-dob').value,
+                                password: password,
+                                securityQuestions: [
+                                    { question: q1, answer: a1 },
+                                    { question: q2, answer: a2 },
+                                    { question: q3, answer: a3 }
+                                ]
                         };
-
-                        const result = await registerUser(userData);
-                        if (result.success) {
-                            showCustomAlert(result.message, () => {
-                                window.location.href = 'login.html';
-                            });
-                        } else {
-                            showCustomAlert("Registration Failed: " + result.message);
-                        }
                     } else if (window.currentFlow === 'guardian') {
-                        const guardianData = {
-                            firstName: document.getElementById('guardian-fname').value,
-                            lastName: document.getElementById('guardian-lname').value,
-                            mi: document.getElementById('guardian-mi').value,
-                            relationship: document.getElementById('guardian-rel').value,
-                            contact: document.getElementById('guardian-contact').value,
-                            email: document.getElementById('guardian-email').value,
-                            address: document.getElementById('guardian-address').value,
-                            birthDate: document.getElementById('guardian-dob').value,
-                            password: password,
-                            securityQuestions: [
-                                { question: q1, answer: a1 },
-                                { question: q2, answer: a2 },
-                                { question: q3, answer: a3 }
-                            ]
+                        endpoint = 'http://localhost:3000/api/register/guardian';
+                        payload = {
+                            guardianData: {
+                                firstName: document.getElementById('guardian-fname').value,
+                                lastName: document.getElementById('guardian-lname').value,
+                                mi: document.getElementById('guardian-mi').value,
+                                relationship: document.getElementById('guardian-rel').value,
+                                contact: document.getElementById('guardian-contact').value,
+                                email: document.getElementById('guardian-email').value,
+                                address: document.getElementById('guardian-address').value,
+                                birthDate: document.getElementById('guardian-dob').value,
+                                password: password,
+                                securityQuestions: [
+                                    { question: q1, answer: a1 },
+                                    { question: q2, answer: a2 },
+                                    { question: q3, answer: a3 }
+                                ]
+                            },
+                            childData: {
+                                firstName: document.getElementById('child-fname').value,
+                                lastName: document.getElementById('child-lname').value,
+                                mi: document.getElementById('child-mi').value,
+                                birthDate: document.getElementById('child-dob').value
+                            }
                         };
-
-                        const childData = {
-                            firstName: document.getElementById('child-fname').value,
-                            lastName: document.getElementById('child-lname').value,
-                            mi: document.getElementById('child-mi').value,
-                            birthDate: document.getElementById('child-dob').value
-                        };
-
-                        const result = await registerGuardian(guardianData, childData);
-                        if (result.success) {
-                            showCustomAlert(result.message, () => {
-                                window.location.href = 'login.html';
-                            });
-                        } else {
-                            showCustomAlert("Registration Failed: " + result.message);
-                        }
                     }
+
+                    const response = await fetch(endpoint, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+
+                    const result = await response.json();
+
+                    if (result.success) {
+                        window.showCustomAlert(result.message, () => {
+                            window.location.href = 'login.html';
+                        });
+                    } else {
+                        window.showCustomAlert("Registration Failed: " + result.message);
+                    }
+
                 } catch (error) {
-                    showCustomAlert("An unexpected error occurred: " + error.message);
+                    window.showCustomAlert("An unexpected error occurred: " + error.message);
                 } finally {
                     // Restore Button State
                     btn.disabled = false;
@@ -1423,7 +1438,6 @@
                     btn.classList.remove('opacity-75', 'cursor-not-allowed');
                 }
             }
-          }
         </script>
     </div>
 

@@ -44,7 +44,7 @@
                                 <h2 class="text-2xl font-bold text-slate-800 font-cinzel">Announcements</h2>
                                 <p class="text-sm text-slate-500">Manage library news and alerts</p>
                             </div>
-                            <button onclick="openAnnouncementModal()"
+                            <button id="btn-new-announcement" onclick="openAnnouncementModal()"
                                 class="bg-[#183B5B] hover:bg-[#2E5F87] text-[#D6A84A] px-4 py-2 rounded-full font-bold text-sm shadow-md transition-colors flex items-center gap-2">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -158,6 +158,16 @@
                 <script src="../admin_js/admin_announcements.js"></script>
                 <script>
                     if (typeof window.initAnnouncements === 'function') window.initAnnouncements();
+                    
+                    function applyAnnouncementRestrictions() {
+                        const adminRole = localStorage.getItem('adminRole');
+                        if (adminRole === 'Assistant Librarian') {
+                            const newBtn = document.getElementById('btn-new-announcement');
+                            if (newBtn) { newBtn.disabled = true; newBtn.classList.add('opacity-50', 'cursor-not-allowed'); newBtn.title = "Restricted"; }
+                        }
+                    }
+                    applyAnnouncementRestrictions();
+                    setTimeout(applyAnnouncementRestrictions, 150);
                 </script>
             </div>
         </div>
