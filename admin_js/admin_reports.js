@@ -261,6 +261,7 @@
 
     window.switchTab = switchTab;
     window.exportData = exportData;
+    window.initReports = initReports;
 
     // Initialize immediately as the script is loaded dynamically after HTML injection
     initReports();

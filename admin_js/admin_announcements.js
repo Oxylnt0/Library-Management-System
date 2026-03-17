@@ -3,7 +3,50 @@ let allAnnouncements = [];
 
 function initAnnouncements() {
 loadAnnouncements();
+
+// Re-attach form listener when DOM is reloaded
+const form = document.getElementById('announcement-form');
+if (form) {
+const newForm = form.cloneNode(true);
+form.parentNode.replaceChild(newForm, form);
+
+newForm.addEventListener('submit', async (e) => {
+e.preventDefault();
+const id = document.getElementById('ann-id').value;
+const title = document.getElementById('ann-title').value;
+const content = document.getElementById('ann-content').value;
+const priority = document.getElementById('ann-priority').value;
+const status = document.getElementById('ann-status').value;
+const valid_until = document.getElementById('ann-valid-until').value;
+const admin_id = localStorage.getItem('adminId');
+
+const payload = { title, content, priority, status, valid_until, admin_id };
+const url = id ? `http://localhost:3000/api/announcements/${id}` : 'http://localhost:3000/api/announcements';
+const method = id ? 'PUT' : 'POST';
+
+try {
+const response = await fetch(url, {
+method: method,
+headers: { 'Content-Type': 'application/json' },
+body: JSON.stringify(payload)
+});
+const result = await response.json();
+
+if (result.success) {
+closeAnnouncementModal();
+loadAnnouncements();
+} else {
+alert("Error: " + result.message);
 }
+} catch (e) {
+console.error(e);
+alert("Failed to save announcement.");
+}
+});
+}
+}
+
+window.initAnnouncements = initAnnouncements;
 
 // Initialize immediately
 initAnnouncements();
@@ -144,45 +187,4 @@ alert("Error: " + result.message);
 } catch (e) { alert("Network Error"); }
 }
 
-// Form Submit
-const form = document.getElementById('announcement-form');
-if (form) {
-// Remove old listener if exists (clone node trick)
-const newForm = form.cloneNode(true);
-form.parentNode.replaceChild(newForm, form);
-
-newForm.addEventListener('submit', async (e) => {
-e.preventDefault();
-const id = document.getElementById('ann-id').value;
-const title = document.getElementById('ann-title').value;
-const content = document.getElementById('ann-content').value;
-const priority = document.getElementById('ann-priority').value;
-const status = document.getElementById('ann-status').value;
-const valid_until = document.getElementById('ann-valid-until').value;
-const admin_id = localStorage.getItem('adminId');
-
-const payload = { title, content, priority, status, valid_until, admin_id };
-const url = id ? `http://localhost:3000/api/announcements/${id}` : 'http://localhost:3000/api/announcements';
-const method = id ? 'PUT' : 'POST';
-
-try {
-const response = await fetch(url, {
-method: method,
-headers: { 'Content-Type': 'application/json' },
-body: JSON.stringify(payload)
-});
-const result = await response.json();
-
-if (result.success) {
-closeAnnouncementModal();
-loadAnnouncements();
-} else {
-alert("Error: " + result.message);
-}
-} catch (e) {
-console.error(e);
-alert("Failed to save announcement.");
-}
-});
-}
 })();
