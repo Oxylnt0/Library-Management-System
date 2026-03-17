@@ -294,7 +294,6 @@ async function createAllTables() {
 
     const seedSettings = `
         INSERT INTO FINE_SETTINGS (fine_type, fine_amount, description) VALUES 
-        ('Minor Damage', 30.00, 'Folded pages, small tear (1-2 pages), pencil marks'),
         ('Moderate Damage', 150.00, 'Multiple torn pages, ink or highlighter marks, loose binding'),
         ('Severe Damage', 500.00, 'Missing pages or heavy water damage'),
         ('Overdue (Daily)', 5.00, 'Daily fine per day overdue');

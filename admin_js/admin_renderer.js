@@ -1,5 +1,28 @@
 console.log("Admin Dashboard Loaded Successfully");
 
+// --- Auto Logout on Inactivity (15 Minutes) ---
+let inactivityTimer;
+const INACTIVITY_LIMIT = 15 * 60 * 1000; // 15 minutes in milliseconds
+
+function logoutDueToInactivity() {
+    alert("Your session has expired due to 15 minutes of inactivity. Please log in again.");
+    localStorage.clear(); // Clear admin session data (adminId, etc.)
+    window.location.href = 'admin_login.html';
+}
+
+function resetInactivityTimer() {
+    clearTimeout(inactivityTimer);
+    inactivityTimer = setTimeout(logoutDueToInactivity, INACTIVITY_LIMIT);
+}
+
+// Attach listeners to common user interactions to reset the timer
+['mousemove', 'keydown', 'click', 'scroll', 'touchstart'].forEach(event => 
+    document.addEventListener(event, resetInactivityTimer, true)
+);
+
+// Initialize the timer immediately on script load
+resetInactivityTimer();
+
 // Future logic for charts and data loading will go here
 
 // Global Modal Functions for Admin Pages

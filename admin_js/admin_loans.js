@@ -116,8 +116,8 @@
                 console.warn("Fine settings not found, using defaults");
                 settings = [
                     { fine_type: 'Overdue (Daily)', fine_amount: 5.00 },
-                    { fine_type: 'Minor Damage', fine_amount: 30.00 },
-                    { fine_type: 'Moderate Damage', fine_amount: 150.00 }
+                    { fine_type: 'Moderate Damage', fine_amount: 150.00 },
+                    { fine_type: 'Severe Damage', fine_amount: 500.00 }
                 ];
             }
             
