@@ -232,7 +232,7 @@
                             if (result.success) {
                                 alert(result.message);
                                 closeExtensionPanel();
-                                loadUserLoans(); // Refresh list
+                                window.loadUserLoans(); // Refresh list
                             } else {
                                 alert("Error: " + result.message);
                             }
@@ -254,7 +254,7 @@
             return stored ? parseInt(stored) : null;
         }
 
-        async function loadUserLoans() {
+        window.loadUserLoans = async function() {
             const userId = getCurrentUserId();
             const tbody = document.querySelector('tbody');
             
@@ -406,7 +406,7 @@
                 });
                 const result = await response.json();
                 if (result.success) {
-                    loadUserLoans(); // Refresh table
+                    window.loadUserLoans(); // Refresh table
                 } else {
                     alert("Error: " + result.message);
                 }
@@ -416,7 +416,7 @@
             }
         }
 
-        loadUserLoans();
+        window.loadUserLoans();
       }
     </script>
 

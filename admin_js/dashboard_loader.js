@@ -20,12 +20,14 @@ async function loadComponent(elementId, filePath) {
         element.innerHTML = html;
         
         // Execute scripts in the loaded component
-        Array.from(element.querySelectorAll('script')).forEach(oldScript => {
+        const scripts = Array.from(element.querySelectorAll('script'));
+        
+        const loadScript = (oldScript) => new Promise((resolve) => {
             const src = oldScript.getAttribute('src');
             if (src) {
                 if (window.loadedScripts.has(src)) {
                     oldScript.parentNode.removeChild(oldScript);
-                    return;
+                    return resolve();
                 }
                 window.loadedScripts.add(src);
             }
@@ -33,13 +35,24 @@ async function loadComponent(elementId, filePath) {
             const newScript = document.createElement('script');
             Array.from(oldScript.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
             
-            if (!src && oldScript.innerHTML) {
-                newScript.appendChild(document.createTextNode(`try { ${oldScript.innerHTML} } catch(e) { console.error('Inline script error:', e); }`));
+            if (src) {
+                newScript.onload = resolve;
+                newScript.onerror = resolve;
+                oldScript.parentNode.replaceChild(newScript, oldScript);
             } else {
-                newScript.appendChild(document.createTextNode(oldScript.innerHTML));
+                if (oldScript.innerHTML) {
+                    newScript.appendChild(document.createTextNode(`try { ${oldScript.innerHTML} } catch(e) { console.error('Inline script error:', e); }`));
+                }
+                oldScript.parentNode.replaceChild(newScript, oldScript);
+                resolve();
             }
-            oldScript.parentNode.replaceChild(newScript, oldScript);
         });
+
+        (async () => {
+            for (const script of scripts) {
+                await loadScript(script);
+            }
+        })();
         
         if (elementId === 'sidebar-container') {
             highlightActiveLink();
@@ -110,12 +123,13 @@ async function navigateTo(url) {
                 
                 // Re-execute scripts in the new content
                 const scripts = Array.from(contentWrapper.querySelectorAll('script'));
-                for (const oldScript of scripts) {
+                
+                const loadScript = (oldScript) => new Promise((resolve) => {
                     const src = oldScript.getAttribute('src');
                     if (src) {
                         if (window.loadedScripts.has(src)) {
                             oldScript.parentNode.removeChild(oldScript);
-                            continue;
+                            return resolve();
                         }
                         window.loadedScripts.add(src);
                     }
@@ -123,14 +137,24 @@ async function navigateTo(url) {
                     const newScript = document.createElement('script');
                     Array.from(oldScript.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
                     
-                    if (!src && oldScript.innerHTML) {
-                        newScript.appendChild(document.createTextNode(`try { ${oldScript.innerHTML} } catch(e) { console.error('Inline script error:', e); }`));
+                    if (src) {
+                        newScript.onload = resolve;
+                        newScript.onerror = resolve;
+                        oldScript.parentNode.replaceChild(newScript, oldScript);
                     } else {
-                        newScript.appendChild(document.createTextNode(oldScript.innerHTML));
+                        if (oldScript.innerHTML) {
+                            newScript.appendChild(document.createTextNode(`try { ${oldScript.innerHTML} } catch(e) { console.error('Inline script error:', e); }`));
+                        }
+                        oldScript.parentNode.replaceChild(newScript, oldScript);
+                        resolve();
                     }
-                    oldScript.parentNode.removeChild(oldScript);
-                    contentWrapper.appendChild(newScript);
-                }
+                });
+
+                (async () => {
+                    for (const script of scripts) {
+                        await loadScript(script);
+                    }
+                })();
 
                 // 5. Update URL and State
                 window.history.pushState({}, '', url);
