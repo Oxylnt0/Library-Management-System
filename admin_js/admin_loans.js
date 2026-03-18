@@ -34,9 +34,10 @@
                 if (scanType === 'borrow') {
                     // A. Fetch Pending Holds (Kiosk Requests)
                     const holdsRes = await db.execute({
-                        sql: `SELECT bt.borrow_id, bt.book_id, bt.expires_at, b.title 
+                        sql: `SELECT bt.borrow_id, bc.book_id, bt.expires_at, b.title 
                               FROM BORROW_TRANSACTION bt
-                              JOIN BOOK b ON bt.book_id = b.book_id
+                              JOIN BOOK_COPY bc ON bt.material_id = bc.material_id
+                              JOIN BOOK b ON bc.book_id = b.book_id
                               WHERE bt.user_id = ? AND bt.status = 'Pending'`,
                         args: [scannedUserId]
                     });
@@ -45,9 +46,10 @@
                 } else if (scanType === 'return') {
                     // Fetch Active Loans
                     const loanResult = await db.execute({
-                        sql: `SELECT bt.borrow_id, bt.book_id, bt.borrow_date, bt.due_date, b.title, b.author, b.image_url 
+                        sql: `SELECT bt.borrow_id, bc.book_id, bt.borrow_date, bt.due_date, b.title, b.author, b.image_url 
                               FROM BORROW_TRANSACTION bt 
-                              JOIN BOOK b ON bt.book_id = b.book_id 
+                              JOIN BOOK_COPY bc ON bt.material_id = bc.material_id
+                              JOIN BOOK b ON bc.book_id = b.book_id 
                               WHERE bt.user_id = ? AND bt.status IN ('Borrowed', 'Overdue')`,
                         args: [scannedUserId]
                     });
@@ -362,10 +364,10 @@
 
                 // Insert Fines
                 if (overdueAmount > 0) {
-                    await db.execute({ sql: "INSERT INTO FINE (borrow_id, amount, fine_type, status) VALUES (?, ?, 'Overdue', 'Unpaid')", args: [borrowId, overdueAmount] });
+                    await db.execute({ sql: "INSERT INTO FINE (borrow_id, fine_amount, fine_type, status) VALUES (?, ?, 'Overdue', 'Unpaid')", args: [borrowId, overdueAmount] });
                 }
                 if (damageAmount > 0) {
-                    await db.execute({ sql: "INSERT INTO FINE (borrow_id, amount, fine_type, status) VALUES (?, ?, ?, 'Unpaid')", args: [borrowId, damageAmount, damageType] });
+                    await db.execute({ sql: "INSERT INTO FINE (borrow_id, fine_amount, fine_type, status) VALUES (?, ?, ?, 'Unpaid')", args: [borrowId, damageAmount, damageType] });
                 }
 
                 const adminId = localStorage.getItem('adminId');
@@ -389,7 +391,8 @@
                 const overdueRes = await db.execute({
                     sql: `SELECT bt.due_date, b.title, u.first_name, u.last_name 
                           FROM BORROW_TRANSACTION bt 
-                          JOIN BOOK b ON bt.book_id = b.book_id 
+                          JOIN BOOK_COPY bc ON bt.material_id = bc.material_id
+                          JOIN BOOK b ON bc.book_id = b.book_id 
                           JOIN USER u ON bt.user_id = u.user_id 
                           WHERE bt.status = 'Overdue' OR (bt.status = 'Borrowed' AND bt.due_date < DATE('now', '+8 hours'))
                           ORDER BY bt.due_date ASC`
@@ -407,7 +410,8 @@
                 const borrowedRes = await db.execute({
                     sql: `SELECT bt.borrow_date, b.title, u.first_name, u.last_name 
                           FROM BORROW_TRANSACTION bt 
-                          JOIN BOOK b ON bt.book_id = b.book_id 
+                          JOIN BOOK_COPY bc ON bt.material_id = bc.material_id
+                          JOIN BOOK b ON bc.book_id = b.book_id 
                           JOIN USER u ON bt.user_id = u.user_id 
                           WHERE bt.status = 'Borrowed' 
                           ORDER BY bt.borrow_date DESC LIMIT 50`
@@ -419,7 +423,8 @@
                 const returnedRes = await db.execute({
                     sql: `SELECT bt.return_date, b.title, u.first_name, u.last_name 
                           FROM BORROW_TRANSACTION bt 
-                          JOIN BOOK b ON bt.book_id = b.book_id 
+                          JOIN BOOK_COPY bc ON bt.material_id = bc.material_id
+                          JOIN BOOK b ON bc.book_id = b.book_id 
                           JOIN USER u ON bt.user_id = u.user_id 
                           WHERE bt.status = 'Returned' 
                           ORDER BY bt.return_date DESC LIMIT 50`

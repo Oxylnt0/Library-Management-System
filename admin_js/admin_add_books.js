@@ -7,9 +7,6 @@ const inpTitle = document.getElementById('inp-title');
 const inpPublisher = document.getElementById('inp-publisher');
 const inpGenre = document.getElementById('inp-genre');
 const inpDewey = document.getElementById('inp-dewey');
-const inpLocation = document.getElementById('inp-location');
-const inpSource = document.getElementById('inp-source');
-const inpCondition = document.getElementById('inp-condition');
 const inpCopies = document.getElementById('inp-copies');
 const inpImage = document.getElementById('inp-image');
 const inpType = document.getElementById('inp-type');
@@ -50,6 +47,7 @@ const fieldGroupPeriodicalType = document.getElementById('field-group-periodical
 // Controls
 const btnSave = document.getElementById('btn-save');
 const btnPreview = document.getElementById('btn-preview');
+const btnApplyAll = document.getElementById('btn-apply-all');
 
 // Preview Elements
 const previewTitle = document.getElementById('preview-title');
@@ -59,10 +57,67 @@ const previewGenre = document.getElementById('preview-genre');
 const imgPreview = document.getElementById('img-preview');
 const imgPlaceholder = document.getElementById('img-placeholder');
 
-// Map Elements
-const mapModal = document.getElementById('map-modal');
-const btnOpenMap = document.getElementById('open-map-btn');
-const btnCloseMap = document.getElementById('close-map-btn');
+
+// --- DYNAMIC COPIES LOGIC ---
+function renderCopyRows() {
+    const container = document.getElementById('copies-container');
+    if (!container) return;
+    const count = parseInt(inpCopies.value) || 1;
+    const currentRows = container.children.length;
+
+    if (count > currentRows) {
+        for (let i = currentRows + 1; i <= count; i++) {
+            const row = document.createElement('div');
+            row.className = 'copy-row grid grid-cols-12 gap-2 bg-white p-2 rounded-lg border border-slate-200 items-center shadow-sm';
+            row.innerHTML = `
+                <div class="col-span-2 text-xs font-bold text-slate-500 text-center uppercase">Copy ${i}</div>
+                <div class="col-span-3">
+                    <select class="copy-condition w-full p-1.5 rounded bg-slate-50 border border-slate-200 text-xs outline-none focus:border-[#3E2723]">
+                        <option value="New">New</option>
+                        <option value="Moderate Damage">Moderate Damage</option>
+                        <option value="Severe Damage">Severe Damage</option>
+                    </select>
+                </div>
+                <div class="col-span-4">
+                    <select class="copy-location w-full p-1.5 rounded bg-slate-50 border border-slate-200 text-[10px] outline-none focus:border-[#3E2723]">
+                        <optgroup label="Specialized">
+                            <option value="Front Desk">Front Desk</option>
+                            <option value="REF-1: General Reference">REF-1: General Reference</option>
+                            <option value="PER-1: Periodicals & News">PER-1: Periodicals & News</option>
+                        </optgroup>
+                        <optgroup label="Non-Fiction & Textbooks">
+                            <option value="Shelf NF-1: Comp Sci & Info (000-099)">Shelf NF-1: Comp Sci (000-099)</option>
+                            <option value="Shelf NF-2: Philosophy & Psych (100-199)">Shelf NF-2: Philosophy (100-199)</option>
+                            <option value="Shelf NF-4: Social Sciences (300-399)">Shelf NF-4: Social Sci (300-399)</option>
+                            <option value="Shelf NF-7: Technology & Med (600-699)">Shelf NF-7: Tech & Med (600-699)</option>
+                            <option value="Shelf NF-10: History & Geo (900-999)">Shelf NF-10: History (900-999)</option>
+                        </optgroup>
+                        <optgroup label="Fiction">
+                            <option value="Shelf FIC-A: Fiction (A-H)">Shelf FIC-A: Fiction (A-H)</option>
+                            <option value="Shelf FIC-B: Fiction (I-P)">Shelf FIC-B: Fiction (I-P)</option>
+                            <option value="Shelf FIC-C: Fiction (Q-Z)">Shelf FIC-C: Fiction (Q-Z)</option>
+                        </optgroup>
+                    </select>
+                </div>
+                <div class="col-span-3">
+                    <select class="copy-source w-full p-1.5 rounded bg-slate-50 border border-slate-200 text-xs outline-none focus:border-[#3E2723]">
+                        <option value="Purchased">Purchased</option>
+                        <option value="Donated">Donated</option>
+                    </select>
+                </div>
+            `;
+            container.appendChild(row);
+        }
+    } else if (count < currentRows) {
+        for (let i = currentRows; i > count; i--) {
+            container.removeChild(container.lastChild);
+        }
+    }
+
+    if (btnApplyAll) {
+        btnApplyAll.classList.toggle('hidden', count <= 1);
+    }
+}
 
 // --- 2. AUTO-FILL LOGIC (FROM URL) ---
 document.addEventListener('DOMContentLoaded', () => {
@@ -77,6 +132,11 @@ document.addEventListener('DOMContentLoaded', () => {
             option.textContent = i;
             inpYear.appendChild(option);
         }
+    }
+
+    // Retain previous material type selection if present in URL
+    if (params.has('type') && inpType) {
+        inpType.value = params.get('type');
     }
 
     // Initial form state based on material type
@@ -96,6 +156,9 @@ document.addEventListener('DOMContentLoaded', () => {
     fieldsForPreview.forEach(field => {
         if (field) field.addEventListener('input', updatePreview);
     });
+    
+    // Dynamic Copies Listener
+    if (inpCopies) inpCopies.addEventListener('input', renderCopyRows);
 
     // Check if we arrived here from the "Catalog" button on the Donations page
     if (params.has('donation_id')) {
@@ -106,42 +169,21 @@ document.addEventListener('DOMContentLoaded', () => {
         if (inpCategory) inpCategory.value = params.get('category') || 'Fiction';
         if (inpCopies) inpCopies.value = params.get('quantity') || 1;
         
-        // Set Source to Donated and visually lock it
-        if (inpSource) {
-            inpSource.value = 'Donated';
-            inpSource.disabled = true; // Prevents the librarian from changing it back to Purchased
-        }
-
+        renderCopyRows();
+        
+        // Force all copy sources to 'Donated'
+        document.querySelectorAll('.copy-source').forEach(sel => {
+            sel.value = 'Donated';
+            sel.disabled = true;
+        });
+        
         updateFormVisibility(); // Ensure correct fields are shown for donated item
+    } else {
+        renderCopyRows(); // Initial render for 1 copy
     }
 
     // Set initial preview state
     updatePreview();
-
-    // --- MAP LOGIC ---
-    if (btnOpenMap && mapModal) {
-        // Open Modal
-        btnOpenMap.addEventListener('click', () => {
-            mapModal.classList.remove('hidden');
-        });
-
-        // Close Modal
-        if (btnCloseMap) {
-            btnCloseMap.addEventListener('click', () => {
-                mapModal.classList.add('hidden');
-            });
-        }
-
-        // Handle Shelf Clicks
-        const shelves = document.querySelectorAll('.shelf');
-        shelves.forEach(shelf => {
-            shelf.addEventListener('click', () => {
-                const locationValue = shelf.getAttribute('data-loc');
-                if (inpLocation) inpLocation.value = locationValue;
-                mapModal.classList.add('hidden');
-            });
-        });
-    }
 });
 
 // --- NEW: DYNAMIC FORM VISIBILITY ---
@@ -227,6 +269,23 @@ if (btnPreview) {
     });
 }
 
+// --- DUPLICATE 1ST COPY LOGIC ---
+if (btnApplyAll) {
+    btnApplyAll.addEventListener('click', () => {
+        const copyRows = document.querySelectorAll('.copy-row');
+        if (copyRows.length <= 1) return;
+
+        const firstCondition = copyRows[0].querySelector('.copy-condition').value;
+        const firstLocation = copyRows[0].querySelector('.copy-location').value;
+        const firstSource = copyRows[0].querySelector('.copy-source').value;
+
+        for (let i = 1; i < copyRows.length; i++) {
+            copyRows[i].querySelector('.copy-condition').value = firstCondition;
+            copyRows[i].querySelector('.copy-location').value = firstLocation;
+            copyRows[i].querySelector('.copy-source').value = firstSource;
+        }
+    });
+}
 
 // --- 4. SAVE LOGIC ---
 if (btnSave) {
@@ -236,20 +295,32 @@ if (btnSave) {
         try {
             const materialType = inpType.value;
 
+            // Gather Copy Rows Data
+            const copyRows = document.querySelectorAll('.copy-row');
+            const copiesData = [];
+            copyRows.forEach(row => {
+                copiesData.push({
+                    condition: row.querySelector('.copy-condition').value,
+                    location: row.querySelector('.copy-location').value,
+                    source: row.querySelector('.copy-source').value
+                });
+            });
+
+            if (copiesData.length === 0) {
+                window.showCustomAlert("⚠️ Please add at least one copy in the Physical Inventory section.");
+                return;
+            }
+
             // Step A: Gather all the data from the form
-            // This payload is structured to match the database schema from `create_tables.js`
             const data = {
                 // Common Fields
                 donation_id: (inpDonationId && inpDonationId.value) ? inpDonationId.value : null,
                 title: inpTitle.value,
                 publisher: inpPublisher.value,
                 genre: inpGenre.value,
-                status: 'Available', // New items are always available
-                location: inpLocation.value,
-                total_copies: inpCopies.value ? parseInt(inpCopies.value) : 1,
-                available_copies: inpCopies.value ? parseInt(inpCopies.value) : 1,
                 image_url: inpImage.value,
-                material_type: materialType
+                material_type: materialType,
+                copiesData: copiesData
             };
 
             // Add type-specific fields
@@ -263,29 +334,25 @@ if (btnSave) {
                 data.edition = inpEdition.value;
                 data.age_restriction = inpAge.value ? parseInt(inpAge.value) : 0;
                 data.book_category = inpCategory.value;
-                data.book_source = inpSource.value;
-                data.book_condition = inpCondition.value;
             } else if (materialType === 'Periodical') {
                 data.issn = inpIssn.value;
                 data.publication_date = inpPublicationDate.value;
                 data.volume_no = inpVolumeNo.value;
                 data.issue_no = inpIssueNo.value;
                 data.type = inpPeriodicalType.value; // e.g., 'Magazine', 'Journal'
-                data.periodical_source = inpSource.value;
-                data.periodical_condition = inpCondition.value;
             }
 
             // Basic Validation Check
             if (!data.title) {
-                alert("⚠️ Material Title is a required field!");
+                window.showCustomAlert("⚠️ Material Title is a required field!");
                 return;
             }
             if (materialType === 'Book' && !data.author) {
-                alert("⚠️ Author is required for Books!");
+                window.showCustomAlert("⚠️ Author is required for Books!");
                 return;
             }
             if (materialType === 'Periodical' && !data.issue_no) {
-                alert("⚠️ Issue No. is required for Periodicals!");
+                window.showCustomAlert("⚠️ Issue No. is required for Periodicals!");
                 return;
             }
 
@@ -304,23 +371,21 @@ if (btnSave) {
             
             // Step C: Handle the Response
             if (result.success) {
-                alert(`✅ ${materialType} Added Successfully!`);
-                
-                // Smart Redirect: 
-                // If it was a donation, go back to the pending donations list.
-                // If it was just a normal book add, refresh the page for the next book.
-                if (data.donation_id) {
-                    window.location.href = 'admin_donations.html';
-                } else {
-                    window.location.reload();
-                }
+                window.showCustomAlert(`✅ ${materialType} Added Successfully!`, () => {
+                    // Smart Redirect
+                    if (data.donation_id) {
+                        window.location.href = 'admin_donations.html';
+                    } else {
+                        window.location.href = `admin_add_books.html?type=${materialType}`;
+                    }
+                });
             } else {
                 throw new Error(result.message || "Server rejected the request.");
             }
 
         } catch (error) {
             console.error("Save Failed:", error);
-            alert("❌ Error: " + error.message);
+            window.showCustomAlert("❌ Error: " + error.message);
         }
     });
 }

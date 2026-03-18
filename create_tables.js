@@ -247,7 +247,7 @@ async function createAllTables() {
         CREATE TABLE FINE (
             fine_id INTEGER PRIMARY KEY AUTOINCREMENT,
             borrow_id INT NOT NULL,
-            amount DECIMAL(10,2) NOT NULL,
+            fine_amount DECIMAL(10,2) NOT NULL,
             fine_type VARCHAR(50),
             status VARCHAR(20) DEFAULT 'Unpaid' CHECK (status IN ('Paid', 'Unpaid')),
             FOREIGN KEY (borrow_id) REFERENCES BORROW_TRANSACTION(borrow_id)

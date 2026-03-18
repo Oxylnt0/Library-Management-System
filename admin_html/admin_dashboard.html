@@ -271,7 +271,7 @@
                     const resPending = await db.execute("SELECT COUNT(*) as count FROM RESERVATION WHERE status = 'Pending'");
                     const resOverdue = await db.execute("SELECT COUNT(*) as count FROM BORROW_TRANSACTION WHERE status = 'Overdue' OR (status = 'Borrowed' AND due_date < DATE('now', '+8 hours'))");
                     const resBorrowed = await db.execute("SELECT COUNT(*) as count FROM BORROW_TRANSACTION WHERE status = 'Borrowed' AND borrow_date = DATE('now', '+8 hours')");
-                    const resFines = await db.execute("SELECT SUM(fine_amount) as total FROM PAYMENT WHERE payment_date = DATE('now', '+8 hours')");
+                    const resFines = await db.execute("SELECT SUM(payment_amount) as total FROM PAYMENT WHERE payment_date = DATE('now', '+8 hours')");
 
                     // Update KPIs
                     document.getElementById('kpi-pending').innerText = resPending.rows[0].count;
@@ -284,7 +284,8 @@
                     const resCategory = await db.execute(`
                         SELECT bk.book_category, COUNT(b.borrow_id) as count 
                         FROM BORROW_TRANSACTION b 
-                        JOIN BOOK bk ON b.book_id = bk.book_id 
+                        JOIN BOOK_COPY bc ON b.material_id = bc.material_id
+                        JOIN BOOK bk ON bc.book_id = bk.book_id 
                         WHERE b.status IN ('Borrowed', 'Overdue') 
                         GROUP BY bk.book_category
                     `);
@@ -327,7 +328,8 @@
                         SELECT b.borrow_id, u.first_name, u.last_name, bk.title, b.borrow_date, b.status 
                         FROM BORROW_TRANSACTION b 
                         JOIN USER u ON b.user_id = u.user_id 
-                        JOIN BOOK bk ON b.book_id = bk.book_id 
+                        JOIN BOOK_COPY bc ON b.material_id = bc.material_id
+                        JOIN BOOK bk ON bc.book_id = bk.book_id 
                         ORDER BY b.borrow_id DESC LIMIT 4
                     `);
 

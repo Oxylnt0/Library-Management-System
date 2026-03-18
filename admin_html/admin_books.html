@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' https:; script-src 'self' 'unsafe-inline' https://esm.run https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' http://localhost:3000;">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' https:; script-src 'self' 'unsafe-inline' https://esm.run https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' http://localhost:3000 https://cdn.jsdelivr.net;">
     <title>Puerto Palabra - Manage Books</title>
 
     <link href="../output.css" rel="stylesheet">
@@ -197,54 +197,9 @@
                                         </optgroup>
                                     </select>
                                 </div>
-                            </div>
-                            
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div>
-                                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Volume</label>
-                                    <input type="text" id="edit-volume" class="w-full p-2 rounded border border-slate-300 focus:ring-2 focus:ring-[#183B5B] outline-none" placeholder="e.g., 1 or IV">
-                                </div>
-                                <div>
-                                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Edition</label>
-                                    <input type="text" id="edit-edition" class="w-full p-2 rounded border border-slate-300 focus:ring-2 focus:ring-[#183B5B] outline-none" placeholder="e.g., 2nd or Revised">
-                                </div>
-                            </div>
-
-                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                                 <div>
                                     <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Dewey Decimal</label>
                                     <input type="text" id="edit-dewey" class="w-full p-2 rounded border border-slate-300 focus:ring-2 focus:ring-[#183B5B] outline-none">
-                                </div>
-                                <div>
-                                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Location</label>
-                                    <input type="text" id="edit-location" class="w-full p-2 rounded border border-slate-300 focus:ring-2 focus:ring-[#183B5B] outline-none">
-                                </div>
-                                <div>
-                                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Status</label>
-                                    <select id="edit-status" disabled class="w-full p-2 rounded border border-slate-300 bg-slate-100 cursor-not-allowed outline-none">
-                                        <option value="Available">Available</option>
-                                        <option value="Borrowed">Borrowed</option>
-                                        <option value="Archived">Archived</option>
-                                    </select>
-                                </div>
-                            </div>
-
-                            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                <div>
-                                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Pages</label>
-                                    <input type="number" id="edit-pages" class="w-full p-2 rounded border border-slate-300 focus:ring-2 focus:ring-[#183B5B] outline-none">
-                                </div>
-                                <div>
-                                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Age Limit</label>
-                                    <input type="number" id="edit-age" class="w-full p-2 rounded border border-slate-300 focus:ring-2 focus:ring-[#183B5B] outline-none">
-                                </div>
-                                <div>
-                                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Total Copies</label>
-                                    <input type="number" id="edit-total-copies" class="w-full p-2 rounded border border-slate-300 focus:ring-2 focus:ring-[#183B5B] outline-none">
-                                </div>
-                                <div>
-                                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Avail. Copies</label>
-                                    <input type="number" id="edit-avail-copies" class="w-full p-2 rounded border border-slate-300 focus:ring-2 focus:ring-[#183B5B] outline-none">
                                 </div>
                             </div>
 
@@ -259,21 +214,12 @@
                                     </select>
                                 </div>
                                 <div>
-                                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Source</label>
-                                    <select id="edit-source" disabled class="w-full p-2 rounded border border-slate-300 bg-slate-100 cursor-not-allowed outline-none">
-                                        <option value="Purchased">Purchased</option>
-                                        <option value="Donated">Donated</option>
-                                    </select>
+                                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Volume</label>
+                                    <input type="text" id="edit-volume" class="w-full p-2 rounded border border-slate-300 focus:ring-2 focus:ring-[#183B5B] outline-none" placeholder="e.g., 1 or IV">
                                 </div>
                                 <div>
-                                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Condition</label>
-                                    <select id="edit-condition" class="w-full p-2 rounded border border-slate-300 focus:ring-2 focus:ring-[#183B5B] outline-none">
-                                        <option value="New">New</option>
-                                        <option value="Moderate Damage">Moderate Damage</option>
-                                        <option value="Severe Damage">Severe Damage</option>
-                                        <option value="Outdated">Outdated</option>
-                                        <option value="Obsolete">Obsolete</option>
-                                    </select>
+                                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Edition</label>
+                                    <input type="text" id="edit-edition" class="w-full p-2 rounded border border-slate-300 focus:ring-2 focus:ring-[#183B5B] outline-none" placeholder="e.g., 2nd or Revised">
                                 </div>
                             </div>
 
@@ -312,30 +258,7 @@
                                 </div>
                             </div>
 
-                            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                <div>
-                                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Pub. Date</label>
-                                    <input type="date" id="edit-p-pub-date" class="w-full p-2 rounded border border-slate-300 focus:ring-2 focus:ring-[#183B5B] outline-none">
-                                </div>
-                                <div>
-                                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Volume No.</label>
-                                    <input type="text" id="edit-p-volume" class="w-full p-2 rounded border border-slate-300 focus:ring-2 focus:ring-[#183B5B] outline-none">
-                                </div>
-                                <div>
-                                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Issue No.</label>
-                                    <input type="text" id="edit-p-issue" class="w-full p-2 rounded border border-slate-300 focus:ring-2 focus:ring-[#183B5B] outline-none">
-                                </div>
-                                <div>
-                                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Type</label>
-                                    <select id="edit-p-type" class="w-full p-2 rounded border border-slate-300 focus:ring-2 focus:ring-[#183B5B] outline-none">
-                                        <option value="Magazine">Magazine</option>
-                                        <option value="Journal">Journal</option>
-                                        <option value="Newspaper">Newspaper</option>
-                                    </select>
-                                </div>
-                            </div>
-
-                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
                                     <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Genre</label>
                                     <select id="edit-p-genre" class="w-full p-2 rounded border border-slate-300 focus:ring-2 focus:ring-[#183B5B] outline-none">
@@ -348,46 +271,11 @@
                                     </select>
                                 </div>
                                 <div>
-                                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Location</label>
-                                    <input type="text" id="edit-p-location" class="w-full p-2 rounded border border-slate-300 focus:ring-2 focus:ring-[#183B5B] outline-none">
-                                </div>
-                                <div>
-                                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Status</label>
-                                    <select id="edit-p-status" disabled class="w-full p-2 rounded border border-slate-300 bg-slate-100 cursor-not-allowed outline-none">
-                                        <option value="Available">Available</option>
-                                        <option value="Borrowed">Borrowed</option>
-                                        <option value="Archived">Archived</option>
-                                    </select>
-                                </div>
-                            </div>
-                            
-                            <div class="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Total Copies</label>
-                                    <input type="number" id="edit-p-total-copies" class="w-full p-2 rounded border border-slate-300 focus:ring-2 focus:ring-[#183B5B] outline-none">
-                                </div>
-                                <div>
-                                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Avail. Copies</label>
-                                    <input type="number" id="edit-p-avail-copies" class="w-full p-2 rounded border border-slate-300 focus:ring-2 focus:ring-[#183B5B] outline-none">
-                                </div>
-                            </div>
-
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div>
-                                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Source</label>
-                                    <select id="edit-p-source" disabled class="w-full p-2 rounded border border-slate-300 bg-slate-100 cursor-not-allowed outline-none">
-                                        <option value="Purchased">Purchased</option>
-                                        <option value="Donated">Donated</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Condition</label>
-                                    <select id="edit-p-condition" class="w-full p-2 rounded border border-slate-300 focus:ring-2 focus:ring-[#183B5B] outline-none">
-                                        <option value="New">New</option>
-                                        <option value="Moderate Damage">Moderate Damage</option>
-                                        <option value="Severe Damage">Severe Damage</option>
-                                        <option value="Outdated">Outdated</option>
-                                        <option value="Obsolete">Obsolete</option>
+                                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Type</label>
+                                    <select id="edit-p-type" class="w-full p-2 rounded border border-slate-300 focus:ring-2 focus:ring-[#183B5B] outline-none">
+                                        <option value="Magazine">Magazine</option>
+                                        <option value="Journal">Journal</option>
+                                        <option value="Newspaper">Newspaper</option>
                                     </select>
                                 </div>
                             </div>
@@ -424,9 +312,6 @@
                                         <svg class="w-12 h-12 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
                                     </div>
                                 </div>
-                                <div class="mt-4 text-center">
-                                    <span class="inline-block px-3 py-1 rounded-full text-sm font-bold bg-green-100 text-green-700">Available</span>
-                                </div>
                             </div>
                 
                             <!-- Details Grid -->
@@ -436,14 +321,6 @@
                                     <p class="text-lg font-bold text-slate-800" id="detail-title">Noli Me Tangere</p>
                                 </div>
                                 
-                                <div>
-                                    <p class="text-xs font-bold text-slate-500 uppercase">Book ID</p>
-                                    <p class="font-mono text-slate-600" id="detail-book-id">1</p>
-                                </div>
-                                <div>
-                                    <p class="text-xs font-bold text-slate-500 uppercase">Material ID</p>
-                                    <p class="font-mono text-slate-600" id="detail-material-id">101</p>
-                                </div>
                                 <div>
                                     <p class="text-xs font-bold text-slate-500 uppercase">ISBN</p>
                                     <p class="font-mono text-slate-600" id="detail-isbn">978-1234567890</p>
@@ -477,40 +354,8 @@
                                     <p class="text-slate-700" id="detail-dewey">899.21</p>
                                 </div>
                                 <div>
-                                    <p class="text-xs font-bold text-slate-500 uppercase">Status</p>
-                                    <p class="text-slate-700" id="detail-status">Available</p>
-                                </div>
-                                <div>
-                                    <p class="text-xs font-bold text-slate-500 uppercase">Location</p>
-                                    <p class="text-slate-700" id="detail-location">Shelf A-12</p>
-                                </div>
-                                <div>
-                                    <p class="text-xs font-bold text-slate-500 uppercase">Page Count</p>
-                                    <p class="text-slate-700" id="detail-pages">480</p>
-                                </div>
-                                <div>
-                                    <p class="text-xs font-bold text-slate-500 uppercase">Age Restriction</p>
-                                    <p class="text-slate-700" id="detail-age">None</p>
-                                </div>
-                                <div>
-                                    <p class="text-xs font-bold text-slate-500 uppercase">Copies (Avail/Total)</p>
-                                    <p class="text-slate-700" id="detail-copies">5 / 5</p>
-                                </div>
-                                <div>
-                                    <p class="text-xs font-bold text-slate-500 uppercase">Date Added</p>
-                                    <p class="text-slate-700" id="detail-date">2023-10-15</p>
-                                </div>
-                                <div>
                                     <p class="text-xs font-bold text-slate-500 uppercase">Category</p>
                                     <p class="text-slate-700" id="detail-category">Fiction</p>
-                                </div>
-                                <div>
-                                    <p class="text-xs font-bold text-slate-500 uppercase">Source</p>
-                                    <p class="text-slate-700" id="detail-source">Purchased</p>
-                                </div>
-                                <div>
-                                    <p class="text-xs font-bold text-slate-500 uppercase">Condition</p>
-                                    <p class="text-slate-700" id="detail-condition">New</p>
                                 </div>
                             </div>
                         </div>
@@ -536,9 +381,6 @@
                                         <svg class="w-12 h-12 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"></path></svg>
                                     </div>
                                 </div>
-                                <div class="mt-4 text-center">
-                                    <span class="inline-block px-3 py-1 rounded-full text-sm font-bold bg-green-100 text-green-700">Available</span>
-                                </div>
                             </div>
                 
                             <!-- Details Grid -->
@@ -549,32 +391,12 @@
                                 </div>
                                 
                                 <div>
-                                    <p class="text-xs font-bold text-slate-500 uppercase">Periodical ID</p>
-                                    <p class="font-mono text-slate-600" id="detail-p-id">1</p>
-                                </div>
-                                <div>
-                                    <p class="text-xs font-bold text-slate-500 uppercase">Material ID</p>
-                                    <p class="font-mono text-slate-600" id="detail-p-material-id">101</p>
-                                </div>
-                                <div>
                                     <p class="text-xs font-bold text-slate-500 uppercase">ISSN</p>
                                     <p class="font-mono text-slate-600" id="detail-p-issn">1234-5678</p>
                                 </div>
                                 <div>
                                     <p class="text-xs font-bold text-slate-500 uppercase">Publisher</p>
                                     <p class="font-medium text-slate-700" id="detail-p-publisher">Publisher Name</p>
-                                </div>
-                                <div>
-                                    <p class="text-xs font-bold text-slate-500 uppercase">Publication Date</p>
-                                    <p class="text-slate-700" id="detail-p-pub-date">2023-01-01</p>
-                                </div>
-                                <div>
-                                    <p class="text-xs font-bold text-slate-500 uppercase">Volume No.</p>
-                                    <p class="text-slate-700" id="detail-p-volume">Vol 1</p>
-                                </div>
-                                <div>
-                                    <p class="text-xs font-bold text-slate-500 uppercase">Issue No.</p>
-                                    <p class="text-slate-700" id="detail-p-issue">Issue 1</p>
                                 </div>
                                 <div>
                                     <p class="text-xs font-bold text-slate-500 uppercase">Type</p>
@@ -584,27 +406,43 @@
                                     <p class="text-xs font-bold text-slate-500 uppercase">Genre</p>
                                     <p class="text-slate-700" id="detail-p-genre">News</p>
                                 </div>
-                                <div>
-                                    <p class="text-xs font-bold text-slate-500 uppercase">Status</p>
-                                    <p class="text-slate-700" id="detail-p-status">Available</p>
-                                </div>
-                                <div>
-                                    <p class="text-xs font-bold text-slate-500 uppercase">Location</p>
-                                    <p class="text-slate-700" id="detail-p-location">Shelf A</p>
-                                </div>
-                                <div>
-                                    <p class="text-xs font-bold text-slate-500 uppercase">Copies (Avail/Total)</p>
-                                    <p class="text-slate-700" id="detail-p-copies">5 / 5</p>
-                                </div>
-                                <div>
-                                    <p class="text-xs font-bold text-slate-500 uppercase">Source</p>
-                                    <p class="text-slate-700" id="detail-p-source">Purchased</p>
-                                </div>
-                                <div>
-                                    <p class="text-xs font-bold text-slate-500 uppercase">Condition</p>
-                                    <p class="text-slate-700" id="detail-p-condition">New</p>
-                                </div>
                             </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Copies Modal -->
+                <div id="copies-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black/50 backdrop-blur-sm transition-opacity duration-300 p-4">
+                    <div class="bg-white rounded-xl shadow-2xl w-full max-w-4xl p-6 transform transition-all scale-100 max-h-[90vh] flex flex-col">
+                        <div class="flex justify-between items-start mb-4 shrink-0">
+                            <div>
+                                <h3 class="text-2xl font-cinzel text-[#183B5B]">Material Availability</h3>
+                                <p class="text-sm text-slate-500 font-bold" id="copies-modal-title">Book Title</p>
+                            </div>
+                            <button onclick="closeModal('copies-modal')" class="text-slate-400 hover:text-slate-600">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                            </button>
+                        </div>
+                        
+                        <div class="flex-1 overflow-y-auto min-h-0 border rounded-lg border-slate-200">
+                            <table class="w-full text-left border-collapse">
+                                <thead class="bg-slate-50 sticky top-0 border-b border-slate-200 z-10 shadow-sm">
+                                    <tr>
+                                        <th class="p-3 text-xs font-bold text-slate-500 uppercase">Material ID</th>
+                                        <th class="p-3 text-xs font-bold text-slate-500 uppercase">Status</th>
+                                        <th class="p-3 text-xs font-bold text-slate-500 uppercase">Condition</th>
+                                        <th class="p-3 text-xs font-bold text-slate-500 uppercase">Location</th>
+                                        <th class="p-3 text-xs font-bold text-slate-500 uppercase">Source</th>
+                                        <th class="p-3 text-xs font-bold text-slate-500 uppercase">Added</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="copies-table-body" class="divide-y divide-slate-100 text-sm">
+                                    <!-- Copies loaded here dynamically -->
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="mt-4 flex justify-end shrink-0">
+                            <button type="button" onclick="closeModal('copies-modal')" class="px-4 py-2 rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200 transition font-bold text-sm shadow-sm">Close</button>
                         </div>
                     </div>
                 </div>
@@ -677,45 +515,81 @@
 
                 // 1. Fetch Books
                 if (filterType === 'all' || filterType === 'Book') {
-                    let sql = "SELECT *, 'Book' as material_type FROM BOOK WHERE ";
-                    sql += isArchivedView ? "status = 'Archived'" : "status NOT IN ('Archived', 'Donated Outbound')";
+                    let sql = `
+                        SELECT 
+                            b.book_id as item_id,
+                            'Book' as material_type,
+                            b.*,
+                            COUNT(c.copy_id) as total_copies,
+                            SUM(CASE WHEN c.status = 'Available' THEN 1 ELSE 0 END) as available_copies,
+                            SUM(CASE WHEN c.book_condition IN ('Outdated', 'Obsolete') THEN 1 ELSE 0 END) as weeding_copies
+                        FROM BOOK b
+                        JOIN BOOK_COPY c ON b.book_id = c.book_id
+                        WHERE 
+                    `;
+                    sql += isArchivedView ? "c.status = 'Archived'" : "c.status NOT IN ('Archived', 'Donated Outbound')";
 
                     const args = [];
                     if (currentSearchTerm) {
                         sql += " AND (title LIKE ? OR author LIKE ? OR isbn LIKE ?)";
                         args.push(term, term, term);
                     }
+                    
+                    // Condition applies to copy condition
+                    if (filterCondition !== 'all') {
+                        if (filterCondition === 'weeding') {
+                            sql += " AND c.book_condition IN ('Outdated', 'Obsolete')";
+                        } else {
+                            sql += " AND c.book_condition = ?";
+                            args.push(filterCondition);
+                        }
+                    }
+                    sql += " GROUP BY b.book_id";
+                    
                     const res = await db.execute({ sql, args });
                     allItems = allItems.concat(res.rows);
                 }
 
                 // 2. Fetch Periodicals
                 if (filterType === 'all' || filterType === 'Periodical') {
-                    let sql = "SELECT *, 'Periodical' as material_type FROM PERIODICAL WHERE ";
-                    sql += isArchivedView ? "status = 'Archived'" : "status NOT IN ('Archived', 'Donated Outbound')";
+                    let sql = `
+                        SELECT 
+                            p.periodical_id as item_id,
+                            'Periodical' as material_type,
+                            p.*,
+                            MAX(c.volume_no) as latest_vol,
+                            MAX(c.issue_no) as latest_issue,
+                            COUNT(c.p_copy_id) as total_copies,
+                            SUM(CASE WHEN c.status = 'Available' THEN 1 ELSE 0 END) as available_copies,
+                            SUM(CASE WHEN c.periodical_condition IN ('Outdated', 'Obsolete') THEN 1 ELSE 0 END) as weeding_copies
+                        FROM PERIODICAL p
+                        JOIN PERIODICAL_COPY c ON p.periodical_id = c.periodical_id
+                        WHERE 
+                    `;
+                    sql += isArchivedView ? "c.status = 'Archived'" : "c.status NOT IN ('Archived', 'Donated Outbound')";
 
                     const args = [];
                     if (currentSearchTerm) {
                         sql += " AND (title LIKE ? OR publisher LIKE ? OR issn LIKE ?)";
                         args.push(term, term, term);
                     }
+
+                    if (filterCondition !== 'all') {
+                        if (filterCondition === 'weeding') {
+                            sql += " AND c.periodical_condition IN ('Outdated', 'Obsolete')";
+                        } else {
+                            sql += " AND c.periodical_condition = ?";
+                            args.push(filterCondition);
+                        }
+                    }
+                    sql += " GROUP BY p.periodical_id";
+
                     const res = await db.execute({ sql, args });
                     allItems = allItems.concat(res.rows);
                 }
 
-                // Filter by Condition
-                if (filterCondition !== 'all') {
-                    if (filterCondition === 'weeding') {
-                        allItems = allItems.filter(item => ['Outdated', 'Obsolete'].includes(item.book_condition || item.periodical_condition));
-                    } else {
-                        allItems = allItems.filter(item => 
-                            (item.book_condition === filterCondition || item.periodical_condition === filterCondition)
-                        );
-                    }
-                }
-
-                // Sort by date_added descending
-                allItems.sort((a, b) => new Date(b.date_added) - new Date(a.date_added));
+                // Sort alphabetically as fallback since date_added is now per copy
+                allItems.sort((a, b) => (a.title || '').localeCompare(b.title || ''));
                 
                 grid.innerHTML = '';
                 
@@ -737,11 +611,7 @@
                     else if (item.available_copies === 0) statusColor = 'bg-red-500';
                     else if (item.available_copies < 3) statusColor = 'bg-amber-500';
                     
-                    // Weeding Status (From DB now)
-                    const condition = item.book_condition || item.periodical_condition;
-                    let weedingStatus = null;
-                    if (condition === 'Obsolete') weedingStatus = 'Obsolete';
-                    else if (condition === 'Outdated') weedingStatus = 'Outdated';
+                    const isWeeding = item.weeding_copies > 0;
 
                     // Handle Image
                     let imageHtml = '';
@@ -769,28 +639,27 @@
                         if (item.volume) extraDetails.push(item.volume.toLowerCase().includes('vol') || item.volume.toLowerCase().includes('book') ? item.volume : `Vol. ${item.volume}`);
                         if (item.edition) extraDetails.push(item.edition);
                     } else {
-                        if (item.volume_no) extraDetails.push(item.volume_no.toLowerCase().includes('vol') ? item.volume_no : `Vol. ${item.volume_no}`);
-                        if (item.issue_no) extraDetails.push(item.issue_no.toLowerCase().includes('issue') || item.issue_no.toLowerCase().includes('no') ? item.issue_no : `No. ${item.issue_no}`);
+                        if (item.latest_vol) extraDetails.push(item.latest_vol.toLowerCase().includes('vol') ? item.latest_vol : `Vol. ${item.latest_vol}`);
+                        if (item.latest_issue) extraDetails.push(item.latest_issue.toLowerCase().includes('issue') || item.latest_issue.toLowerCase().includes('no') ? item.latest_issue : `No. ${item.latest_issue}`);
                     }
                     const extraInfoHtml = extraDetails.length > 0 ? `<p class="text-[11px] font-bold text-[#183B5B]/70 mt-1">${extraDetails.join(' • ')}</p>` : '';
 
                     const card = document.createElement('div');
                     let cardBg = 'bg-white border-slate-200';
-                    if (weedingStatus === 'Obsolete') cardBg = 'bg-red-50 border-red-200';
-                    else if (weedingStatus === 'Outdated') cardBg = 'bg-amber-50 border-amber-200';
+                    if (isWeeding) cardBg = 'bg-amber-50 border-amber-200';
 
                     card.className = `${cardBg} rounded-xl shadow-sm border p-4 flex flex-col gap-4 hover:shadow-md transition-shadow group`;
                     
                     // Escape strings for HTML attributes
                     const safeTitle = (item.title || 'Untitled').replace(/'/g, "\\'");
-                    const itemId = item.book_id || item.periodical_id;
+                    const itemId = item.item_id;
 
                     const isAssistant = localStorage.getItem('adminRole') === 'Assistant Librarian';
 
                     // Determine Action Button (Archive vs Restore)
                     let actionButton = isArchivedView 
                         ? `<button ${isAssistant ? 'disabled title="Restricted"' : ''} onclick="openRestoreModal(${itemId}, '${safeTitle}', '${item.material_type}')" class="text-slate-400 ${isAssistant ? 'opacity-50 cursor-not-allowed' : 'hover:text-green-600 transition-colors'}" title="Restore Material"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg></button>`
-                        : `<button ${isAssistant ? 'disabled title="Restricted"' : ''} onclick="openArchiveModal(${itemId}, '${safeTitle}', '${item.material_type}')" class="${weedingStatus ? 'text-red-500 hover:text-red-700' : 'text-slate-400 hover:text-amber-600'} transition-colors ${isAssistant ? 'opacity-50 cursor-not-allowed' : ''}" title="${weedingStatus ? 'Archive Candidate' : 'Archive Material'}"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"></path></svg></button>`;
+                        : `<button ${isAssistant ? 'disabled title="Restricted"' : ''} onclick="openArchiveModal(${itemId}, '${safeTitle}', '${item.material_type}')" class="${isWeeding ? 'text-amber-500 hover:text-amber-700' : 'text-slate-400 hover:text-amber-600'} transition-colors ${isAssistant ? 'opacity-50 cursor-not-allowed' : ''}" title="${isWeeding ? 'Contains Weeding Candidates' : 'Archive Title'}"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"></path></svg></button>`;
 
                     card.innerHTML = `
                         <div class="flex gap-4">
@@ -815,16 +684,19 @@
                         <div class="pt-3 border-t border-slate-100 flex items-center justify-between">
                             <div class="text-xs text-slate-500 flex items-center gap-2">
                                 <span><span class="font-bold text-slate-700">${item.available_copies}</span> / ${item.total_copies} Copies</span>
-                                ${weedingStatus === 'Obsolete' ? `<span class="px-1.5 py-0.5 rounded bg-red-100 text-red-700 font-bold text-[10px] border border-red-200">🚨 OBSOLETE</span>` : ''}
-                                ${weedingStatus === 'Outdated' ? `<span class="px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 font-bold text-[10px] border border-amber-200">⚠️ OUTDATED</span>` : ''}
+                                ${isWeeding ? `<span class="px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 font-bold text-[10px] border border-amber-200">⚠️ WEEDING</span>` : ''}
                             </div>
                             <div class="flex items-center gap-2">
-                                <button onclick="openBookDetails(${item.material_id})"
-                                    class="text-xs font-bold bg-[#183B5B] text-[#D6A84A] hover:bg-[#2E5F87] px-3 py-1.5 rounded-full transition-colors shadow-sm">
+                                <button onclick="openCopiesModal(${itemId}, '${item.material_type}', '${safeTitle}')"
+                                    class="text-xs font-bold bg-blue-50 text-blue-700 hover:bg-blue-100 px-3 py-1.5 rounded-full transition-colors shadow-sm border border-blue-100">
+                                    Availability
+                                </button>
+                                <button onclick="openBookDetails(${itemId}, '${item.material_type}')"
+                                    class="text-xs font-bold bg-slate-100 text-slate-600 hover:bg-slate-200 px-3 py-1.5 rounded-full transition-colors shadow-sm border border-slate-200">
                                     Details
                                 </button>
                                 <div class="h-4 w-px bg-slate-200 mx-1"></div>
-                                <button ${isAssistant ? 'disabled title="Restricted"' : ''} onclick="openBookEdit(${item.material_id})" class="text-slate-400 ${isAssistant ? 'opacity-50 cursor-not-allowed' : 'hover:text-blue-600 transition-colors'}"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg></button>
+                                <button ${isAssistant ? 'disabled title="Restricted"' : ''} onclick="openBookEdit(${itemId}, '${item.material_type}')" class="text-slate-400 ${isAssistant ? 'opacity-50 cursor-not-allowed' : 'hover:text-blue-600 transition-colors'}"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg></button>
                                 ${actionButton}
                             </div>
                         </div>
@@ -839,8 +711,8 @@
         }
         window.loadBooks = loadBooks;
 
-        function openBookEdit(materialId) {
-            const book = window.currentLoadedBooks?.find(b => b.material_id === materialId);
+        function openBookEdit(itemId, type) {
+            const book = window.currentLoadedBooks?.find(b => b.item_id === itemId && b.material_type === type);
             if (!book) return;
 
             // Helper to ensure dropdowns select the value even if it's not in the default options list
@@ -859,29 +731,20 @@
             };
 
             if (book.material_type === 'Periodical') {
-                document.getElementById('edit-periodical-id').value = book.periodical_id;
+                document.getElementById('edit-periodical-id').value = book.item_id;
                 document.getElementById('edit-p-title').value = book.title ?? '';
                 document.getElementById('edit-p-publisher').value = book.publisher ?? '';
                 document.getElementById('edit-p-issn').value = book.issn ?? '';
-                document.getElementById('edit-p-pub-date').value = book.publication_date ?? '';
-                document.getElementById('edit-p-volume').value = book.volume_no ?? '';
-                document.getElementById('edit-p-issue').value = book.issue_no ?? '';
-                document.getElementById('edit-p-location').value = book.location ?? '';
-                document.getElementById('edit-p-total-copies').value = book.total_copies ?? '';
-                document.getElementById('edit-p-avail-copies').value = book.available_copies ?? '';
                 document.getElementById('edit-p-image').value = (book.image_url && book.image_url !== 'null') ? book.image_url : '';
 
                 setDropdown('edit-p-type', book.type, 'Magazine');
                 setDropdown('edit-p-genre', book.genre, '');
-                setDropdown('edit-p-status', book.status, 'Available');
-                setDropdown('edit-p-source', book.periodical_source, 'Purchased');
-                setDropdown('edit-p-condition', book.periodical_condition, 'New');
 
                 document.getElementById('edit-periodical-modal').classList.remove('hidden');
                 return;
             }
 
-            document.getElementById('edit-book-id').value = book.book_id; // Now safe
+            document.getElementById('edit-book-id').value = book.item_id;
             document.getElementById('edit-title').value = book.title ?? '';
             document.getElementById('edit-author').value = book.author ?? '';
             document.getElementById('edit-isbn').value = book.isbn ?? '';
@@ -890,21 +753,10 @@
             document.getElementById('edit-volume').value = book.volume ?? '';
             document.getElementById('edit-edition').value = book.edition ?? '';
             document.getElementById('edit-dewey').value = book.dewey_decimal ?? '';
-            document.getElementById('edit-location').value = book.location ?? '';
-            document.getElementById('edit-pages').value = book.page_count ?? '';
-            document.getElementById('edit-total-copies').value = book.total_copies ?? '';
-            document.getElementById('edit-avail-copies').value = book.available_copies ?? '';
             document.getElementById('edit-image').value = (book.image_url && book.image_url !== 'null') ? book.image_url : '';
-
-            // Safely parse age strings like "18+" into numbers for the number input
-            let ageVal = parseInt(book.age_restriction);
-            document.getElementById('edit-age').value = (!isNaN(ageVal) && ageVal > 0) ? ageVal : '';
 
             setDropdown('edit-genre', book.genre, '');
             setDropdown('edit-category', book.book_category, 'Fiction');
-            setDropdown('edit-status', book.status, 'Available');
-            setDropdown('edit-source', book.book_source, 'Purchased');
-            setDropdown('edit-condition', book.book_condition, 'New');
 
             document.getElementById('edit-modal').classList.remove('hidden');
         }
@@ -921,32 +773,21 @@
             const edition = document.getElementById('edit-edition').value;
             const genre = document.getElementById('edit-genre').value;
             const dewey = document.getElementById('edit-dewey').value;
-            const location = document.getElementById('edit-location').value;
-            const status = document.getElementById('edit-status').value;
-            const pages = document.getElementById('edit-pages').value;
-            const age = document.getElementById('edit-age').value;
-            const total = document.getElementById('edit-total-copies').value;
-            const avail = document.getElementById('edit-avail-copies').value;
             const image = document.getElementById('edit-image').value;
             const category = document.getElementById('edit-category').value;
-            const source = document.getElementById('edit-source').value;
-            const condition = document.getElementById('edit-condition').value;
             const adminId = localStorage.getItem('adminId');
 
             try {
                 const query = `
                     UPDATE BOOK SET 
                     title = ?, author = ?, isbn = ?, publisher = ?, publication_year = ?, 
-                    volume = ?, edition = ?, genre = ?, dewey_decimal = ?, location = ?, 
-                    status = ?, page_count = ?, age_restriction = ?, total_copies = ?, 
-                    available_copies = ?, image_url = ?, book_category = ?, 
-                    book_source = ?, book_condition = ?
+                    volume = ?, edition = ?, genre = ?, dewey_decimal = ?, image_url = ?, book_category = ?
                     WHERE book_id = ?
                 `;
                 
                 await db.execute({
                     sql: query,
-                    args: [title, author, isbn, publisher, year, volume, edition, genre, dewey, location, status, pages, age, total, avail, image, category, source, condition, id]
+                    args: [title, author, isbn, publisher, year, volume, edition, genre, dewey, image, category, id]
                 });
 
                 if (adminId) {
@@ -967,32 +808,21 @@
             const title = document.getElementById('edit-p-title').value;
             const publisher = document.getElementById('edit-p-publisher').value;
             const issn = document.getElementById('edit-p-issn').value;
-            const pubDate = document.getElementById('edit-p-pub-date').value;
-            const volNo = document.getElementById('edit-p-volume').value;
-            const issueNo = document.getElementById('edit-p-issue').value;
             const type = document.getElementById('edit-p-type').value;
             const genre = document.getElementById('edit-p-genre').value;
-            const location = document.getElementById('edit-p-location').value;
-            const status = document.getElementById('edit-p-status').value;
-            const total = document.getElementById('edit-p-total-copies').value;
-            const avail = document.getElementById('edit-p-avail-copies').value;
-            const source = document.getElementById('edit-p-source').value;
-            const condition = document.getElementById('edit-p-condition').value;
             const image = document.getElementById('edit-p-image').value;
             const adminId = localStorage.getItem('adminId');
 
             try {
                 const query = `
                     UPDATE PERIODICAL SET 
-                    title = ?, publisher = ?, issn = ?, publication_date = ?, volume_no = ?, 
-                    issue_no = ?, type = ?, genre = ?, location = ?, status = ?, 
-                    total_copies = ?, available_copies = ?, periodical_source = ?, periodical_condition = ?, image_url = ?
+                    title = ?, publisher = ?, issn = ?, type = ?, genre = ?, image_url = ?
                     WHERE periodical_id = ?
                 `;
                 
                 await db.execute({
                     sql: query,
-                    args: [title, publisher, issn, pubDate, volNo, issueNo, type, genre, location, status, total, avail, source, condition, image, id]
+                    args: [title, publisher, issn, type, genre, image, id]
                 });
 
                 if (adminId) {
@@ -1009,26 +839,16 @@
         window.savePeriodicalChanges = savePeriodicalChanges;
 
         // Modal Functions
-        function openBookDetails(materialId) {
-            const item = window.currentLoadedBooks?.find(b => b.material_id === materialId);
+        function openBookDetails(itemId, type) {
+            const item = window.currentLoadedBooks?.find(b => b.item_id === itemId && b.material_type === type);
             if (!item) return;
 
             if (item.material_type === 'Periodical') {
                 document.getElementById('detail-p-title').innerText = item.title;
-                document.getElementById('detail-p-id').innerText = item.periodical_id;
-                document.getElementById('detail-p-material-id').innerText = item.material_id;
                 document.getElementById('detail-p-issn').innerText = item.issn || 'N/A';
                 document.getElementById('detail-p-publisher').innerText = item.publisher || 'N/A';
-                document.getElementById('detail-p-pub-date').innerText = item.publication_date || 'N/A';
-                document.getElementById('detail-p-volume').innerText = item.volume_no || 'N/A';
-                document.getElementById('detail-p-issue').innerText = item.issue_no || 'N/A';
                 document.getElementById('detail-p-type').innerText = item.type || 'N/A';
                 document.getElementById('detail-p-genre').innerText = item.genre || 'N/A';
-                document.getElementById('detail-p-status').innerText = item.status;
-                document.getElementById('detail-p-location').innerText = item.location || 'N/A';
-                document.getElementById('detail-p-copies').innerText = `${item.available_copies} / ${item.total_copies}`;
-                document.getElementById('detail-p-source').innerText = item.periodical_source || 'N/A';
-                document.getElementById('detail-p-condition').innerText = item.periodical_condition || 'N/A';
 
                 const imgEl = document.getElementById('detail-p-image');
                 const placeholderEl = document.getElementById('detail-p-image-placeholder');
@@ -1047,8 +867,6 @@
             }
 
             document.getElementById('detail-title').innerText = item.title;
-            document.getElementById('detail-book-id').innerText = item.book_id;
-            document.getElementById('detail-material-id').innerText = item.material_id;
             document.getElementById('detail-isbn').innerText = item.isbn || 'N/A';
             document.getElementById('detail-author').innerText = item.author || 'N/A';
             document.getElementById('detail-publisher').innerText = item.publisher || 'N/A';
@@ -1057,15 +875,7 @@
             document.getElementById('detail-edition').innerText = item.edition || 'N/A';
             document.getElementById('detail-genre').innerText = item.genre || 'N/A';
             document.getElementById('detail-dewey').innerText = item.dewey_decimal || 'N/A';
-            document.getElementById('detail-status').innerText = item.status;
-            document.getElementById('detail-location').innerText = item.location || 'N/A';
-            document.getElementById('detail-pages').innerText = item.page_count || 'N/A';
-            document.getElementById('detail-age').innerText = item.age_restriction ? item.age_restriction + '+' : 'None';
-            document.getElementById('detail-copies').innerText = `${item.available_copies} / ${item.total_copies}`;
-            document.getElementById('detail-date').innerText = item.date_added;
             document.getElementById('detail-category').innerText = item.book_category || 'N/A';
-            document.getElementById('detail-source').innerText = item.book_source || 'N/A';
-            document.getElementById('detail-condition').innerText = item.book_condition || 'N/A';
 
             // Handle Image
             const imgEl = document.getElementById('detail-image');
@@ -1085,6 +895,50 @@
         }
         window.openBookDetails = openBookDetails;
 
+        async function openCopiesModal(itemId, type, title) {
+            document.getElementById('copies-modal-title').innerText = title;
+            const tbody = document.getElementById('copies-table-body');
+            tbody.innerHTML = '<tr><td colspan="6" class="p-4 text-center text-slate-500">Loading copies...</td></tr>';
+            document.getElementById('copies-modal').classList.remove('hidden');
+
+            try {
+                let sql = "";
+                if (type === 'Book') {
+                    sql = "SELECT material_id, status, book_condition as condition, location, book_source as source, date_added FROM BOOK_COPY WHERE book_id = ?";
+                } else {
+                    sql = "SELECT material_id, status, periodical_condition as condition, location, periodical_source as source, date_added as date_added FROM PERIODICAL_COPY WHERE periodical_id = ?";
+                }
+
+                const res = await db.execute({ sql, args: [itemId] });
+                
+                tbody.innerHTML = '';
+                if (res.rows.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6" class="p-4 text-center text-slate-400 italic">No copies found.</td></tr>';
+                    return;
+                }
+
+                res.rows.forEach(copy => {
+                    let statusColor = 'text-green-600 bg-green-50';
+                    if (copy.status === 'Borrowed') statusColor = 'text-amber-600 bg-amber-50';
+                    else if (copy.status !== 'Available') statusColor = 'text-slate-600 bg-slate-100';
+
+                    tbody.innerHTML += `
+                        <tr class="hover:bg-slate-50 transition-colors">
+                            <td class="p-3 font-mono text-slate-600">${copy.material_id}</td>
+                            <td class="p-3"><span class="px-2 py-0.5 rounded text-xs font-bold ${statusColor}">${copy.status}</span></td>
+                            <td class="p-3 text-slate-700 font-medium">${copy.condition}</td>
+                            <td class="p-3 text-slate-700">${copy.location || 'N/A'}</td>
+                            <td class="p-3 text-slate-600">${copy.source}</td>
+                            <td class="p-3 text-slate-500 text-xs">${new Date(copy.date_added).toLocaleDateString()}</td>
+                        </tr>
+                    `;
+                });
+            } catch(e) {
+                tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-red-500">Error: ${e.message}</td></tr>`;
+            }
+        }
+        window.openCopiesModal = openCopiesModal;
+
         function closeModal(modalId) {
             document.getElementById(modalId).classList.add('hidden');
         }
@@ -1103,7 +957,7 @@
             const type = document.getElementById('archive-material-type').value;
             const adminId = localStorage.getItem('adminId');
 
-            const table = type === 'Periodical' ? 'PERIODICAL' : 'BOOK';
+            const table = type === 'Periodical' ? 'PERIODICAL_COPY' : 'BOOK_COPY';
             const idField = type === 'Periodical' ? 'periodical_id' : 'book_id';
 
             try {
@@ -1149,7 +1003,7 @@
             const id = document.getElementById('restore-book-id').value;
             const type = document.getElementById('restore-material-type').value;
 
-            const table = type === 'Periodical' ? 'PERIODICAL' : 'BOOK';
+            const table = type === 'Periodical' ? 'PERIODICAL_COPY' : 'BOOK_COPY';
             const idField = type === 'Periodical' ? 'periodical_id' : 'book_id';
 
             try {
