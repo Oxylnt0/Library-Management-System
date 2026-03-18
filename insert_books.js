@@ -2,101 +2,146 @@ const { db } = require('./db_config.js');
 
 const booksToInsert = [
   // ==========================================
-  // 🟢 NORMAL / TIMELESS BOOKS (Status: Retain)
+  // 📘 TEXTBOOKS (Mapped to Non-Fiction & Front Desk)
   // ==========================================
   {
-    // 1. Fiction is timeless. Even though it's from 1998, it is never weeded.
-    isbn: "9780590353427", title: "Harry Potter and the Sorcerer's Stone", author: "J.K. Rowling",
-    publisher: "Scholastic", publication_year: 1998, dewey_decimal: "823.914", 
-    genre: "Fantasy", book_category: "Fiction", book_source: "Purchased", 
-    book_condition: "New", status: "Available", location: "Fiction Section, Shelf H", 
-    page_count: 309, age_restriction: 9, available_copies: 3, total_copies: 3,
-    image_url: "https://covers.openlibrary.org/b/isbn/9780590353427-L.jpg"
+    isbn: "9781617292231", title: "Grokking Algorithms", author: "Aditya Bhargava",
+    publisher: "Manning Publications", publication_year: 2024, volume: null, edition: "2nd Edition",
+    dewey_decimal: "005.1", genre: "Computer Science", book_category: "Textbook", book_source: "Purchased", 
+    book_condition: "New", status: "Available", location: "Shelf NF-1: Comp Sci & Info (000-099)", 
+    page_count: 256, age_restriction: 0, available_copies: 5, total_copies: 5,
+    image_url: "https://covers.openlibrary.org/b/isbn/9781617292231-L.jpg"
   },
   {
-    // 2. Self-Help takes 15 years to become outdated. This is 8 years old (2018), so it is safe.
+    // 🔴 RESTRICTED: Professor's Request (Matches new HTML data-loc)
+    isbn: "9780323393041", title: "Gray's Anatomy for Students", author: "Richard Drake",
+    publisher: "Elsevier", publication_year: 2023, volume: "Volume 1", edition: "5th Edition",
+    dewey_decimal: "611", genre: "Medicine", book_category: "Textbook", book_source: "Purchased", 
+    book_condition: "New", status: "Available", location: "Front Desk", 
+    page_count: 1152, age_restriction: 0, available_copies: 3, total_copies: 3,
+    image_url: "https://covers.openlibrary.org/b/isbn/9780323393041-L.jpg"
+  },
+  {
+    isbn: "9789712386660", title: "The Revised Penal Code of the Philippines", author: "Luis B. Reyes",
+    publisher: "Rex Book Store", publication_year: 2024, volume: "Book 1", edition: "20th Edition",
+    dewey_decimal: "345.599", genre: "Law", book_category: "Textbook", book_source: "Purchased", 
+    book_condition: "New", status: "Available", location: "Shelf NF-4: Social Sciences (300-399)", 
+    page_count: 1050, age_restriction: 0, available_copies: 4, total_copies: 4,
+    image_url: ""
+  },
+  {
+    isbn: "9781260247930", title: "Financial Accounting and Reporting", author: "David Spiceland",
+    publisher: "McGraw Hill", publication_year: 2023, volume: null, edition: "6th Edition",
+    dewey_decimal: "657.044", genre: "Accounting & Business", book_category: "Textbook", book_source: "Purchased", 
+    book_condition: "New", status: "Available", location: "Shelf NF-7: Technology & Med (600-699)", 
+    page_count: 1200, age_restriction: 0, available_copies: 2, total_copies: 2,
+    image_url: "https://covers.openlibrary.org/b/isbn/9781260247930-L.jpg"
+  },
+
+  // ==========================================
+  // 📗 REFERENCE (Mapped to REF-1 & Front Desk)
+  // ==========================================
+  {
+    isbn: "9781433832161", title: "Publication Manual of the APA", author: "American Psychological Association",
+    publisher: "APA", publication_year: 2020, volume: null, edition: "7th Edition",
+    dewey_decimal: "808.06", genre: "Academic Writing", book_category: "Reference", book_source: "Purchased", 
+    book_condition: "New", status: "Available", location: "REF-1: General Reference", 
+    page_count: 428, age_restriction: 0, available_copies: 6, total_copies: 6,
+    image_url: "https://covers.openlibrary.org/b/isbn/9781433832161-L.jpg"
+  },
+  {
+    // 🔴 RESTRICTED: High-Value Item (Matches new HTML data-loc)
+    isbn: "9780190913038", title: "Oxford Atlas of the World", author: "Oxford University Press",
+    publisher: "Oxford", publication_year: 2021, volume: null, edition: "28th Edition",
+    dewey_decimal: "912", genre: "Geography", book_category: "Reference", book_source: "Purchased", 
+    book_condition: "New", status: "Available", location: "Front Desk", 
+    page_count: 448, age_restriction: 0, available_copies: 1, total_copies: 1,
+    image_url: "https://covers.openlibrary.org/b/isbn/9780190913038-L.jpg"
+  },
+  {
+    isbn: "9780877798095", title: "Merriam-Webster's Collegiate Dictionary", author: "Merriam-Webster",
+    publisher: "Merriam-Webster, Inc.", publication_year: 2020, volume: null, edition: "11th Edition",
+    dewey_decimal: "423", genre: "Dictionary", book_category: "Reference", book_source: "Purchased", 
+    book_condition: "New", status: "Available", location: "REF-1: General Reference", 
+    page_count: 1664, age_restriction: 0, available_copies: 2, total_copies: 2,
+    image_url: "https://covers.openlibrary.org/b/isbn/9780877798095-L.jpg"
+  },
+
+  // ==========================================
+  // 📕 FICTION (Mapped to Author Last Name)
+  // ==========================================
+  {
+    isbn: "9780441172719", title: "Dune", author: "Frank Herbert",
+    publisher: "Ace Books", publication_year: 1965, volume: "Book 1", edition: "50th Anniversary Ed.",
+    dewey_decimal: "813.54", genre: "Science Fiction", book_category: "Fiction", book_source: "Purchased", 
+    book_condition: "New", status: "Available", location: "Shelf FIC-A: Fiction (A-H)", 
+    page_count: 412, age_restriction: 13, available_copies: 4, total_copies: 4,
+    image_url: "https://covers.openlibrary.org/b/isbn/9780441172719-L.jpg"
+  },
+  {
+    isbn: "9780307269751", title: "The Girl with the Dragon Tattoo", author: "Stieg Larsson",
+    publisher: "Knopf", publication_year: 2008, volume: "Book 1", edition: "First US Edition",
+    dewey_decimal: "839.738", genre: "Mystery & Thriller", book_category: "Fiction", book_source: "Purchased", 
+    book_condition: "New", status: "Available", location: "Shelf FIC-B: Fiction (I-P)", 
+    page_count: 465, age_restriction: 18, available_copies: 2, total_copies: 2,
+    image_url: "https://covers.openlibrary.org/b/isbn/9780307269751-L.jpg"
+  },
+  {
+    isbn: "9780756404741", title: "The Name of the Wind", author: "Patrick Rothfuss",
+    publisher: "DAW Books", publication_year: 2007, volume: "Day One", edition: "10th Anniversary Ed.",
+    dewey_decimal: "813.6", genre: "Fantasy", book_category: "Fiction", book_source: "Purchased", 
+    book_condition: "New", status: "Available", location: "Shelf FIC-C: Fiction (Q-Z)", 
+    page_count: 662, age_restriction: 13, available_copies: 5, total_copies: 5,
+    image_url: "https://covers.openlibrary.org/b/isbn/9780756404741-L.jpg"
+  },
+  {
+    isbn: "9780374175282", title: "Ilustrado", author: "Miguel Syjuco",
+    publisher: "Farrar, Straus and Giroux", publication_year: 2010, volume: null, edition: null,
+    dewey_decimal: "899.21", genre: "Filipiniana", book_category: "Fiction", book_source: "Purchased", 
+    book_condition: "New", status: "Available", location: "Shelf FIC-C: Fiction (Q-Z)", 
+    page_count: 320, age_restriction: 15, available_copies: 3, total_copies: 3,
+    image_url: "https://covers.openlibrary.org/b/isbn/9780374175282-L.jpg"
+  },
+
+  // ==========================================
+  // 📙 NON-FICTION (Mapped to Non-Fiction DDC Shelves)
+  // ==========================================
+  {
     isbn: "9780735211292", title: "Atomic Habits", author: "James Clear",
-    publisher: "Avery", publication_year: 2018, dewey_decimal: "158.1", 
-    genre: "Self-Help & Motivation", book_category: "Non-Fiction", book_source: "Purchased", 
-    book_condition: "New", status: "Available", location: "Self-Help Section, Shelf A", 
-    page_count: 320, age_restriction: 13, available_copies: 2, total_copies: 2,
+    publisher: "Avery", publication_year: 2018, volume: null, edition: null,
+    dewey_decimal: "158.1", genre: "Self-Help", book_category: "Non-Fiction", book_source: "Purchased", 
+    book_condition: "New", status: "Available", location: "Shelf NF-2: Philosophy & Psych (100-199)", 
+    page_count: 320, age_restriction: 12, available_copies: 7, total_copies: 7,
     image_url: "https://covers.openlibrary.org/b/isbn/9780735211292-L.jpg"
   },
   {
-    // 3. Filipiniana is a protected cultural genre. Age does not matter.
-    isbn: "9780143039642", title: "Noli Me Tangere", author: "Jose Rizal",
-    publisher: "Penguin Classics", publication_year: 2006, dewey_decimal: "899.2113", 
-    genre: "Filipiniana", book_category: "Fiction", book_source: "Purchased", 
-    book_condition: "New", status: "Available", location: "Filipiniana Section, Shelf 1", 
-    page_count: 444, age_restriction: 12, available_copies: 4, total_copies: 4,
-    image_url: "https://covers.openlibrary.org/b/isbn/9780143039642-L.jpg"
-  },
-
-  // ==========================================
-  // 🟡 OUTDATED BOOKS (Hit the 10-year limit)
-  // ==========================================
-  {
-    // 4. Biology: 12 years old (2014). Science hits the Outdated mark at 10 years.
-    isbn: "9780321775658", title: "Campbell Biology (10th Edition)", author: "Jane B. Reece",
-    publisher: "Pearson", publication_year: 2014, dewey_decimal: "570", 
-    genre: "Biology & Life Sciences", book_category: "Textbook", book_source: "Purchased", 
-    book_condition: "New", status: "Available", location: "Science Section, Shelf B", 
-    page_count: 1488, age_restriction: 15, available_copies: 5, total_copies: 5,
-    image_url: "https://covers.openlibrary.org/b/isbn/9780321775658-L.jpg"
+    isbn: "9781501127625", title: "Steve Jobs", author: "Walter Isaacson",
+    publisher: "Simon & Schuster", publication_year: 2011, volume: null, edition: "Hardcover Ed.",
+    dewey_decimal: "920", genre: "Biography", book_category: "Non-Fiction", book_source: "Purchased", 
+    book_condition: "New", status: "Available", location: "Shelf NF-10: History & Geo (900-999)", 
+    page_count: 630, age_restriction: 12, available_copies: 2, total_copies: 2,
+    image_url: "https://covers.openlibrary.org/b/isbn/9781501127625-L.jpg"
   },
   {
-    // 5. Business: 14 years old (2012). Market data is old. Outdated at 10 years.
-    isbn: "9780538453059", title: "Principles of Economics", author: "N. Gregory Mankiw",
-    publisher: "Cengage", publication_year: 2012, dewey_decimal: "330", 
-    genre: "Business & Economics", book_category: "Textbook", book_source: "Purchased", 
-    book_condition: "New", status: "Available", location: "Business Section, Shelf 2", 
-    page_count: 888, age_restriction: 15, available_copies: 2, total_copies: 2,
-    image_url: "https://covers.openlibrary.org/b/isbn/9780538453059-L.jpg"
+    isbn: "9780812968255", title: "Meditations", author: "Marcus Aurelius",
+    publisher: "Modern Library", publication_year: 2002, volume: null, edition: "Gregory Hays Translation",
+    dewey_decimal: "188", genre: "Philosophy", book_category: "Non-Fiction", book_source: "Purchased", 
+    book_condition: "New", status: "Available", location: "Shelf NF-2: Philosophy & Psych (100-199)", 
+    page_count: 254, age_restriction: 15, available_copies: 3, total_copies: 3,
+    image_url: "https://covers.openlibrary.org/b/isbn/9780812968255-L.jpg"
   },
   {
-    // 6. Encyclopedia: 16 years old (2010). Missing modern history. Outdated at 10 years.
-    isbn: "9781593398378", title: "Encyclopedia Britannica 2010", author: "Britannica",
-    publisher: "Britannica", publication_year: 2010, dewey_decimal: "031", 
-    genre: "Encyclopedia", book_category: "Reference", book_source: "Purchased", 
-    book_condition: "New", status: "Available", location: "Reference Section, Desk", 
-    page_count: 1200, age_restriction: 0, available_copies: 1, total_copies: 1,
-    image_url: "https://covers.openlibrary.org/b/isbn/9781593398378-L.jpg"
-  },
-
-  // ==========================================
-  // 🔴 OBSOLETE BOOKS (Hit the 5-year limit)
-  // ==========================================
-  {
-    // 7. Technology: 8 years old (2018). Tech becomes Obsolete in just 5 years.
-    isbn: "9781119527032", title: "Mastering Windows Server 2019", author: "Jordan Krause",
-    publisher: "Sybex", publication_year: 2018, dewey_decimal: "005.4", 
-    genre: "Computer Science & Technology", book_category: "Textbook", book_source: "Purchased", 
-    book_condition: "New", status: "Available", location: "Tech Section, Shelf 1", 
-    page_count: 800, age_restriction: 0, available_copies: 3, total_copies: 3,
-    image_url: "https://covers.openlibrary.org/b/isbn/9781119527032-L.jpg"
-  },
-  {
-    // 8. Medicine: 11 years old (2015). Medical books become Obsolete in 5 years due to safety.
-    isbn: "9781455704187", title: "Nursing Drug Handbook 2015", author: "Elsevier",
-    publisher: "Mosby", publication_year: 2015, dewey_decimal: "615.1", 
-    genre: "Medicine & Health", book_category: "Reference", book_source: "Purchased", 
-    book_condition: "New", status: "Available", location: "Medical Section, Shelf 3", 
-    page_count: 1400, age_restriction: 16, available_copies: 2, total_copies: 2,
-    image_url: "https://covers.openlibrary.org/b/isbn/9781455704187-L.jpg"
-  },
-  {
-    // 9. Law: 9 years old (2017). Laws change quickly. Obsolete in 5 years.
-    isbn: "9789712368000", title: "The National Internal Revenue Code of 1997 (2017 Ed)", author: "Hector De Leon",
-    publisher: "Rex Book Store", publication_year: 2017, dewey_decimal: "343.599", 
-    genre: "Law & Politics", book_category: "Textbook", book_source: "Purchased", 
-    book_condition: "New", status: "Available", location: "Law Section, Shelf 2", 
-    page_count: 950, age_restriction: 0, available_copies: 4, total_copies: 4,
-    image_url: ""
+    isbn: "9789715501861", title: "The Philippines: A Past Revisited", author: "Renato Constantino",
+    publisher: "Constantino", publication_year: 1975, volume: "Vol 1", edition: null,
+    dewey_decimal: "959.9", genre: "History", book_category: "Non-Fiction", book_source: "Purchased", 
+    book_condition: "New", status: "Available", location: "Shelf NF-10: History & Geo (900-999)", 
+    page_count: 413, age_restriction: 12, available_copies: 4, total_copies: 4,
+    image_url: "https://covers.openlibrary.org/b/isbn/9789715501861-L.jpg"
   }
 ];
 
 async function seedBooks() {
-  console.log("📚 Starting Master Book Insertion...");
+  console.log("📚 Starting Master Book Insertion (Front Desk Edition)...");
 
   try {
     let successCount = 0;
@@ -120,24 +165,24 @@ async function seedBooks() {
       await db.execute({
         sql: `INSERT INTO BOOK (
                 isbn, title, material_id, author, publisher, publication_year, 
-                dewey_decimal, genre, book_category, book_source, book_condition,
+                volume, edition, dewey_decimal, genre, book_category, book_source, book_condition,
                 status, location, page_count, age_restriction, 
                 available_copies, total_copies, image_url
-              ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
+              ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
         args: [
           book.isbn, book.title, newMaterialId, book.author, book.publisher, 
-          book.publication_year, book.dewey_decimal, book.genre, 
-          book.book_category, book.book_source, book.book_condition,
+          book.publication_year, book.volume || null, book.edition || null, 
+          book.dewey_decimal, book.genre, book.book_category, book.book_source, book.book_condition,
           book.status, book.location, book.page_count, book.age_restriction, 
           book.available_copies, book.total_copies, book.image_url
         ]
       });
 
-      console.log(`✅ Inserted: ${book.title} | Genre: ${book.genre} | Year: ${book.publication_year}`);
+      console.log(`✅ Mapped: ${book.title} -> [${book.location}]`);
       successCount++;
     }
 
-    console.log(`\n🎉 Successfully inserted ${successCount} perfectly categorized books!`);
+    console.log(`\n🎉 Successfully synced ${successCount} pristine, new books. Closed Reserve logic is ready!`);
 
   } catch (error) {
     console.error("❌ ERROR inserting books:", error);

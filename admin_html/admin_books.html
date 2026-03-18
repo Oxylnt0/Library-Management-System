@@ -198,6 +198,17 @@
                                     </select>
                                 </div>
                             </div>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Volume</label>
+                                    <input type="text" id="edit-volume" class="w-full p-2 rounded border border-slate-300 focus:ring-2 focus:ring-[#183B5B] outline-none" placeholder="e.g., 1 or IV">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Edition</label>
+                                    <input type="text" id="edit-edition" class="w-full p-2 rounded border border-slate-300 focus:ring-2 focus:ring-[#183B5B] outline-none" placeholder="e.g., 2nd or Revised">
+                                </div>
+                            </div>
 
                             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                                 <div>
@@ -258,7 +269,6 @@
                                     <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Condition</label>
                                     <select id="edit-condition" class="w-full p-2 rounded border border-slate-300 focus:ring-2 focus:ring-[#183B5B] outline-none">
                                         <option value="New">New</option>
-                                        <option value="Minor Damage">Minor Damage</option>
                                         <option value="Moderate Damage">Moderate Damage</option>
                                         <option value="Severe Damage">Severe Damage</option>
                                         <option value="Outdated">Outdated</option>
@@ -275,6 +285,121 @@
                             <div class="flex justify-end gap-3 mt-6">
                                 <button type="button" onclick="closeModal('edit-modal')" class="px-4 py-2 rounded-lg text-slate-600 hover:bg-slate-100 transition">Cancel</button>
                                 <button type="button" onclick="saveBookChanges()" class="px-4 py-2 rounded-lg bg-[#183B5B] text-white hover:bg-[#2E5F87] transition shadow-md">Save Changes</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Edit Periodical Modal -->
+                <div id="edit-periodical-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black/50 backdrop-blur-sm transition-opacity duration-300">
+                    <div class="bg-white rounded-xl shadow-2xl w-full max-w-4xl p-6 transform transition-all scale-100 max-h-[90vh] overflow-y-auto">
+                        <h3 class="text-2xl font-cinzel text-[#183B5B] mb-4">Edit Periodical Details</h3>
+                        <form class="space-y-4">
+                            <input type="hidden" id="edit-periodical-id">
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div class="col-span-2">
+                                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Title</label>
+                                    <input type="text" id="edit-p-title" class="w-full p-2 rounded border border-slate-300 focus:ring-2 focus:ring-[#183B5B] outline-none">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Publisher</label>
+                                    <input type="text" id="edit-p-publisher" class="w-full p-2 rounded border border-slate-300 focus:ring-2 focus:ring-[#183B5B] outline-none">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">ISSN</label>
+                                    <input type="text" id="edit-p-issn" class="w-full p-2 rounded border border-slate-300 focus:ring-2 focus:ring-[#183B5B] outline-none">
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Pub. Date</label>
+                                    <input type="date" id="edit-p-pub-date" class="w-full p-2 rounded border border-slate-300 focus:ring-2 focus:ring-[#183B5B] outline-none">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Volume No.</label>
+                                    <input type="text" id="edit-p-volume" class="w-full p-2 rounded border border-slate-300 focus:ring-2 focus:ring-[#183B5B] outline-none">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Issue No.</label>
+                                    <input type="text" id="edit-p-issue" class="w-full p-2 rounded border border-slate-300 focus:ring-2 focus:ring-[#183B5B] outline-none">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Type</label>
+                                    <select id="edit-p-type" class="w-full p-2 rounded border border-slate-300 focus:ring-2 focus:ring-[#183B5B] outline-none">
+                                        <option value="Magazine">Magazine</option>
+                                        <option value="Journal">Journal</option>
+                                        <option value="Newspaper">Newspaper</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Genre</label>
+                                    <select id="edit-p-genre" class="w-full p-2 rounded border border-slate-300 focus:ring-2 focus:ring-[#183B5B] outline-none">
+                                        <option value="" disabled selected>Select Genre</option>
+                                        <option value="News & Current Events">News & Current Events</option>
+                                        <option value="Science & Technology">Science & Technology</option>
+                                        <option value="Entertainment & Lifestyle">Entertainment & Lifestyle</option>
+                                        <option value="Academic Journal">Academic Journal</option>
+                                        <option value="Business & Finance">Business & Finance</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Location</label>
+                                    <input type="text" id="edit-p-location" class="w-full p-2 rounded border border-slate-300 focus:ring-2 focus:ring-[#183B5B] outline-none">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Status</label>
+                                    <select id="edit-p-status" disabled class="w-full p-2 rounded border border-slate-300 bg-slate-100 cursor-not-allowed outline-none">
+                                        <option value="Available">Available</option>
+                                        <option value="Borrowed">Borrowed</option>
+                                        <option value="Archived">Archived</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Total Copies</label>
+                                    <input type="number" id="edit-p-total-copies" class="w-full p-2 rounded border border-slate-300 focus:ring-2 focus:ring-[#183B5B] outline-none">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Avail. Copies</label>
+                                    <input type="number" id="edit-p-avail-copies" class="w-full p-2 rounded border border-slate-300 focus:ring-2 focus:ring-[#183B5B] outline-none">
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Source</label>
+                                    <select id="edit-p-source" disabled class="w-full p-2 rounded border border-slate-300 bg-slate-100 cursor-not-allowed outline-none">
+                                        <option value="Purchased">Purchased</option>
+                                        <option value="Donated">Donated</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Condition</label>
+                                    <select id="edit-p-condition" class="w-full p-2 rounded border border-slate-300 focus:ring-2 focus:ring-[#183B5B] outline-none">
+                                        <option value="New">New</option>
+                                        <option value="Moderate Damage">Moderate Damage</option>
+                                        <option value="Severe Damage">Severe Damage</option>
+                                        <option value="Outdated">Outdated</option>
+                                        <option value="Obsolete">Obsolete</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Image URL</label>
+                                <input type="text" id="edit-p-image" class="w-full p-2 rounded border border-slate-300 focus:ring-2 focus:ring-[#183B5B] outline-none">
+                            </div>
+
+                            <div class="flex justify-end gap-3 mt-6">
+                                <button type="button" onclick="closeModal('edit-periodical-modal')" class="px-4 py-2 rounded-lg text-slate-600 hover:bg-slate-100 transition">Cancel</button>
+                                <button type="button" onclick="savePeriodicalChanges()" class="px-4 py-2 rounded-lg bg-[#183B5B] text-white hover:bg-[#2E5F87] transition shadow-md">Save Changes</button>
                             </div>
                         </form>
                     </div>
@@ -336,6 +461,14 @@
                                     <p class="text-slate-700" id="detail-year">1887</p>
                                 </div>
                                 <div>
+                                    <p class="text-xs font-bold text-slate-500 uppercase">Volume</p>
+                                    <p class="text-slate-700" id="detail-volume">N/A</p>
+                                </div>
+                                <div>
+                                    <p class="text-xs font-bold text-slate-500 uppercase">Edition</p>
+                                    <p class="text-slate-700" id="detail-edition">N/A</p>
+                                </div>
+                                <div>
                                     <p class="text-xs font-bold text-slate-500 uppercase">Genre</p>
                                     <p class="text-slate-700" id="detail-genre">Fiction</p>
                                 </div>
@@ -384,6 +517,98 @@
                     </div>
                 </div>
 
+                <!-- Periodical Details Modal -->
+                <div id="details-periodical-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black/50 backdrop-blur-sm transition-opacity duration-300">
+                    <div class="bg-white rounded-xl shadow-2xl w-full max-w-2xl p-6 transform transition-all scale-100 max-h-[90vh] overflow-y-auto">
+                        <div class="flex justify-between items-start mb-6">
+                            <h3 class="text-2xl font-cinzel text-[#183B5B]">Periodical Details</h3>
+                            <button onclick="closeModal('details-periodical-modal')" class="text-slate-400 hover:text-slate-600">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                            </button>
+                        </div>
+                        
+                        <div class="flex flex-col md:flex-row gap-6">
+                            <!-- Cover Image -->
+                            <div class="w-full max-w-xs md:w-48 flex-shrink-0 mx-auto">
+                                <div class="aspect-[2/3] bg-slate-100 rounded-lg border border-slate-200 flex items-center justify-center text-slate-400 overflow-hidden relative">
+                                    <img id="detail-p-image" src="" class="w-full h-full object-cover hidden" alt="Periodical Cover">
+                                    <div id="detail-p-image-placeholder" class="flex items-center justify-center w-full h-full">
+                                        <svg class="w-12 h-12 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"></path></svg>
+                                    </div>
+                                </div>
+                                <div class="mt-4 text-center">
+                                    <span class="inline-block px-3 py-1 rounded-full text-sm font-bold bg-green-100 text-green-700">Available</span>
+                                </div>
+                            </div>
+                
+                            <!-- Details Grid -->
+                            <div class="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-4 text-sm">
+                                <div class="col-span-full">
+                                    <p class="text-xs font-bold text-slate-500 uppercase">Title</p>
+                                    <p class="text-lg font-bold text-slate-800" id="detail-p-title">Periodical Title</p>
+                                </div>
+                                
+                                <div>
+                                    <p class="text-xs font-bold text-slate-500 uppercase">Periodical ID</p>
+                                    <p class="font-mono text-slate-600" id="detail-p-id">1</p>
+                                </div>
+                                <div>
+                                    <p class="text-xs font-bold text-slate-500 uppercase">Material ID</p>
+                                    <p class="font-mono text-slate-600" id="detail-p-material-id">101</p>
+                                </div>
+                                <div>
+                                    <p class="text-xs font-bold text-slate-500 uppercase">ISSN</p>
+                                    <p class="font-mono text-slate-600" id="detail-p-issn">1234-5678</p>
+                                </div>
+                                <div>
+                                    <p class="text-xs font-bold text-slate-500 uppercase">Publisher</p>
+                                    <p class="font-medium text-slate-700" id="detail-p-publisher">Publisher Name</p>
+                                </div>
+                                <div>
+                                    <p class="text-xs font-bold text-slate-500 uppercase">Publication Date</p>
+                                    <p class="text-slate-700" id="detail-p-pub-date">2023-01-01</p>
+                                </div>
+                                <div>
+                                    <p class="text-xs font-bold text-slate-500 uppercase">Volume No.</p>
+                                    <p class="text-slate-700" id="detail-p-volume">Vol 1</p>
+                                </div>
+                                <div>
+                                    <p class="text-xs font-bold text-slate-500 uppercase">Issue No.</p>
+                                    <p class="text-slate-700" id="detail-p-issue">Issue 1</p>
+                                </div>
+                                <div>
+                                    <p class="text-xs font-bold text-slate-500 uppercase">Type</p>
+                                    <p class="text-slate-700" id="detail-p-type">Magazine</p>
+                                </div>
+                                <div>
+                                    <p class="text-xs font-bold text-slate-500 uppercase">Genre</p>
+                                    <p class="text-slate-700" id="detail-p-genre">News</p>
+                                </div>
+                                <div>
+                                    <p class="text-xs font-bold text-slate-500 uppercase">Status</p>
+                                    <p class="text-slate-700" id="detail-p-status">Available</p>
+                                </div>
+                                <div>
+                                    <p class="text-xs font-bold text-slate-500 uppercase">Location</p>
+                                    <p class="text-slate-700" id="detail-p-location">Shelf A</p>
+                                </div>
+                                <div>
+                                    <p class="text-xs font-bold text-slate-500 uppercase">Copies (Avail/Total)</p>
+                                    <p class="text-slate-700" id="detail-p-copies">5 / 5</p>
+                                </div>
+                                <div>
+                                    <p class="text-xs font-bold text-slate-500 uppercase">Source</p>
+                                    <p class="text-slate-700" id="detail-p-source">Purchased</p>
+                                </div>
+                                <div>
+                                    <p class="text-xs font-bold text-slate-500 uppercase">Condition</p>
+                                    <p class="text-slate-700" id="detail-p-condition">New</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Restore Modal -->
                 <div id="restore-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black/50 backdrop-blur-sm transition-opacity duration-300">
                     <div class="bg-white rounded-xl shadow-2xl w-full max-w-sm p-6 text-center transform transition-all scale-100">
@@ -393,6 +618,7 @@
                         <h3 class="text-2xl font-cinzel text-slate-800 mb-2">Restore Book?</h3>
                         <p class="text-slate-600 mb-6">Are you sure you want to restore <span class="font-semibold text-[#183B5B]" id="restore-book-title">this book</span>? It will be visible in the public catalog again.</p>
                         <input type="hidden" id="restore-book-id">
+                        <input type="hidden" id="restore-material-type">
                         <div class="flex justify-center gap-3">
                             <button type="button" onclick="closeModal('restore-modal')" class="px-4 py-2 rounded-lg text-slate-600 hover:bg-slate-100 transition">Cancel</button>
                             <button type="button" onclick="restoreBook()" class="px-4 py-2 rounded-lg bg-green-600 text-white hover:bg-green-700 transition shadow-md">Restore</button>
@@ -409,6 +635,7 @@
                         <h3 class="text-2xl font-cinzel text-slate-800 mb-2">Archive Book?</h3>
                         <p class="text-slate-600 mb-6">Are you sure you want to archive <span class="font-semibold text-[#183B5B]" id="archive-book-title">this book</span>? It will be hidden from the public catalog.</p>
                         <input type="hidden" id="archive-book-id">
+                        <input type="hidden" id="archive-material-type">
                         <div class="flex justify-center gap-3">
                             <button type="button" onclick="closeModal('archive-modal')" class="px-4 py-2 rounded-lg text-slate-600 hover:bg-slate-100 transition">Cancel</button>
                             <button type="button" onclick="archiveBook()" class="px-4 py-2 rounded-lg bg-amber-600 text-white hover:bg-amber-700 transition shadow-md">Archive</button>
@@ -498,6 +725,8 @@
                     return;
                 }
                 
+                window.currentLoadedBooks = allItems;
+
                 footerCount.innerText = `Showing ${allItems.length} materials`;
 
                 allItems.forEach(item => {
@@ -535,6 +764,16 @@
                         ? `<span class="bg-purple-50 text-purple-700 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide border border-purple-100">${item.type || 'Periodical'}</span>`
                         : `<span class="bg-blue-50 text-blue-700 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide border border-blue-100">${displayGenre}</span>`;
 
+                    let extraDetails = [];
+                    if (item.material_type === 'Book') {
+                        if (item.volume) extraDetails.push(item.volume.toLowerCase().includes('vol') || item.volume.toLowerCase().includes('book') ? item.volume : `Vol. ${item.volume}`);
+                        if (item.edition) extraDetails.push(item.edition);
+                    } else {
+                        if (item.volume_no) extraDetails.push(item.volume_no.toLowerCase().includes('vol') ? item.volume_no : `Vol. ${item.volume_no}`);
+                        if (item.issue_no) extraDetails.push(item.issue_no.toLowerCase().includes('issue') || item.issue_no.toLowerCase().includes('no') ? item.issue_no : `No. ${item.issue_no}`);
+                    }
+                    const extraInfoHtml = extraDetails.length > 0 ? `<p class="text-[11px] font-bold text-[#183B5B]/70 mt-1">${extraDetails.join(' • ')}</p>` : '';
+
                     const card = document.createElement('div');
                     let cardBg = 'bg-white border-slate-200';
                     if (weedingStatus === 'Obsolete') cardBg = 'bg-red-50 border-red-200';
@@ -543,7 +782,6 @@
                     card.className = `${cardBg} rounded-xl shadow-sm border p-4 flex flex-col gap-4 hover:shadow-md transition-shadow group`;
                     
                     // Escape strings for HTML attributes
-                    const safeItem = JSON.stringify(item).replace(/'/g, "&#39;").replace(/"/g, "&quot;");
                     const safeTitle = (item.title || 'Untitled').replace(/'/g, "\\'");
                     const itemId = item.book_id || item.periodical_id;
 
@@ -551,8 +789,8 @@
 
                     // Determine Action Button (Archive vs Restore)
                     let actionButton = isArchivedView 
-                        ? `<button ${isAssistant ? 'disabled title="Restricted"' : ''} onclick="openRestoreModal(${itemId}, '${safeTitle}')" class="text-slate-400 ${isAssistant ? 'opacity-50 cursor-not-allowed' : 'hover:text-green-600 transition-colors'}" title="Restore Book"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg></button>`
-                        : `<button ${isAssistant ? 'disabled title="Restricted"' : ''} onclick="openArchiveModal(${itemId}, '${safeTitle}')" class="${weedingStatus ? 'text-red-500 hover:text-red-700' : 'text-slate-400 hover:text-amber-600'} transition-colors ${isAssistant ? 'opacity-50 cursor-not-allowed' : ''}" title="${weedingStatus ? 'Archive Candidate' : 'Archive Book'}"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"></path></svg></button>`;
+                        ? `<button ${isAssistant ? 'disabled title="Restricted"' : ''} onclick="openRestoreModal(${itemId}, '${safeTitle}', '${item.material_type}')" class="text-slate-400 ${isAssistant ? 'opacity-50 cursor-not-allowed' : 'hover:text-green-600 transition-colors'}" title="Restore Material"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg></button>`
+                        : `<button ${isAssistant ? 'disabled title="Restricted"' : ''} onclick="openArchiveModal(${itemId}, '${safeTitle}', '${item.material_type}')" class="${weedingStatus ? 'text-red-500 hover:text-red-700' : 'text-slate-400 hover:text-amber-600'} transition-colors ${isAssistant ? 'opacity-50 cursor-not-allowed' : ''}" title="${weedingStatus ? 'Archive Candidate' : 'Archive Material'}"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"></path></svg></button>`;
 
                     card.innerHTML = `
                         <div class="flex gap-4">
@@ -564,6 +802,7 @@
                                     <h3 class="font-bold text-slate-800 text-lg leading-tight line-clamp-2" title="${item.title}">${item.title}</h3>
                                     <span class="w-2.5 h-2.5 rounded-full ${statusColor} shrink-0 mt-1.5 ml-2" title="${item.status}"></span>
                                 </div>
+                                ${extraInfoHtml}
                                 <p class="text-sm text-slate-600 mt-1">${authorOrPub}</p>
                                 <p class="text-xs text-slate-400 font-mono mt-0.5">${idLabel}</p>
                                 
@@ -580,12 +819,12 @@
                                 ${weedingStatus === 'Outdated' ? `<span class="px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 font-bold text-[10px] border border-amber-200">⚠️ OUTDATED</span>` : ''}
                             </div>
                             <div class="flex items-center gap-2">
-                                <button onclick='openBookDetails(${safeItem})'
+                                <button onclick="openBookDetails(${item.material_id})"
                                     class="text-xs font-bold bg-[#183B5B] text-[#D6A84A] hover:bg-[#2E5F87] px-3 py-1.5 rounded-full transition-colors shadow-sm">
                                     Details
                                 </button>
                                 <div class="h-4 w-px bg-slate-200 mx-1"></div>
-                                <button ${isAssistant ? 'disabled title="Restricted"' : ''} onclick='openBookEdit(${safeItem})' class="text-slate-400 ${isAssistant ? 'opacity-50 cursor-not-allowed' : 'hover:text-blue-600 transition-colors'}"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg></button>
+                                <button ${isAssistant ? 'disabled title="Restricted"' : ''} onclick="openBookEdit(${item.material_id})" class="text-slate-400 ${isAssistant ? 'opacity-50 cursor-not-allowed' : 'hover:text-blue-600 transition-colors'}"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg></button>
                                 ${actionButton}
                             </div>
                         </div>
@@ -600,25 +839,72 @@
         }
         window.loadBooks = loadBooks;
 
-        function openBookEdit(book) {
-            document.getElementById('edit-book-id').value = book.book_id;
-            document.getElementById('edit-title').value = book.title;
-            document.getElementById('edit-author').value = book.author;
-            document.getElementById('edit-isbn').value = book.isbn || '';
-            document.getElementById('edit-publisher').value = book.publisher || '';
-            document.getElementById('edit-year').value = book.publication_year || '';
-            document.getElementById('edit-genre').value = book.genre || '';
-            document.getElementById('edit-dewey').value = book.dewey_decimal || '';
-            document.getElementById('edit-location').value = book.location || '';
-            document.getElementById('edit-status').value = book.status;
-            document.getElementById('edit-pages').value = book.page_count || '';
-            document.getElementById('edit-age').value = book.age_restriction || '';
-            document.getElementById('edit-total-copies').value = book.total_copies;
-            document.getElementById('edit-avail-copies').value = book.available_copies;
-            document.getElementById('edit-image').value = book.image_url || '';
-            document.getElementById('edit-category').value = book.book_category || 'Fiction';
-            document.getElementById('edit-source').value = book.book_source || 'Purchased';
-            document.getElementById('edit-condition').value = book.book_condition || 'New';
+        function openBookEdit(materialId) {
+            const book = window.currentLoadedBooks?.find(b => b.material_id === materialId);
+            if (!book) return;
+
+            // Helper to ensure dropdowns select the value even if it's not in the default options list
+            const setDropdown = (id, val, defaultVal) => {
+                const el = document.getElementById(id);
+                if (!el) return;
+                const target = (val === null || val === undefined || val === 'null') ? defaultVal : String(val);
+                
+                if (target !== '' && !Array.from(el.options).some(opt => opt.value === target)) {
+                    const newOpt = document.createElement('option');
+                    newOpt.value = target;
+                    newOpt.text = target;
+                    el.appendChild(newOpt);
+                }
+                el.value = target;
+            };
+
+            if (book.material_type === 'Periodical') {
+                document.getElementById('edit-periodical-id').value = book.periodical_id;
+                document.getElementById('edit-p-title').value = book.title ?? '';
+                document.getElementById('edit-p-publisher').value = book.publisher ?? '';
+                document.getElementById('edit-p-issn').value = book.issn ?? '';
+                document.getElementById('edit-p-pub-date').value = book.publication_date ?? '';
+                document.getElementById('edit-p-volume').value = book.volume_no ?? '';
+                document.getElementById('edit-p-issue').value = book.issue_no ?? '';
+                document.getElementById('edit-p-location').value = book.location ?? '';
+                document.getElementById('edit-p-total-copies').value = book.total_copies ?? '';
+                document.getElementById('edit-p-avail-copies').value = book.available_copies ?? '';
+                document.getElementById('edit-p-image').value = (book.image_url && book.image_url !== 'null') ? book.image_url : '';
+
+                setDropdown('edit-p-type', book.type, 'Magazine');
+                setDropdown('edit-p-genre', book.genre, '');
+                setDropdown('edit-p-status', book.status, 'Available');
+                setDropdown('edit-p-source', book.periodical_source, 'Purchased');
+                setDropdown('edit-p-condition', book.periodical_condition, 'New');
+
+                document.getElementById('edit-periodical-modal').classList.remove('hidden');
+                return;
+            }
+
+            document.getElementById('edit-book-id').value = book.book_id; // Now safe
+            document.getElementById('edit-title').value = book.title ?? '';
+            document.getElementById('edit-author').value = book.author ?? '';
+            document.getElementById('edit-isbn').value = book.isbn ?? '';
+            document.getElementById('edit-publisher').value = book.publisher ?? '';
+            document.getElementById('edit-year').value = book.publication_year ?? '';
+            document.getElementById('edit-volume').value = book.volume ?? '';
+            document.getElementById('edit-edition').value = book.edition ?? '';
+            document.getElementById('edit-dewey').value = book.dewey_decimal ?? '';
+            document.getElementById('edit-location').value = book.location ?? '';
+            document.getElementById('edit-pages').value = book.page_count ?? '';
+            document.getElementById('edit-total-copies').value = book.total_copies ?? '';
+            document.getElementById('edit-avail-copies').value = book.available_copies ?? '';
+            document.getElementById('edit-image').value = (book.image_url && book.image_url !== 'null') ? book.image_url : '';
+
+            // Safely parse age strings like "18+" into numbers for the number input
+            let ageVal = parseInt(book.age_restriction);
+            document.getElementById('edit-age').value = (!isNaN(ageVal) && ageVal > 0) ? ageVal : '';
+
+            setDropdown('edit-genre', book.genre, '');
+            setDropdown('edit-category', book.book_category, 'Fiction');
+            setDropdown('edit-status', book.status, 'Available');
+            setDropdown('edit-source', book.book_source, 'Purchased');
+            setDropdown('edit-condition', book.book_condition, 'New');
 
             document.getElementById('edit-modal').classList.remove('hidden');
         }
@@ -631,6 +917,8 @@
             const isbn = document.getElementById('edit-isbn').value;
             const publisher = document.getElementById('edit-publisher').value;
             const year = document.getElementById('edit-year').value;
+            const volume = document.getElementById('edit-volume').value;
+            const edition = document.getElementById('edit-edition').value;
             const genre = document.getElementById('edit-genre').value;
             const dewey = document.getElementById('edit-dewey').value;
             const location = document.getElementById('edit-location').value;
@@ -649,15 +937,16 @@
                 const query = `
                     UPDATE BOOK SET 
                     title = ?, author = ?, isbn = ?, publisher = ?, publication_year = ?, 
-                    genre = ?, dewey_decimal = ?, location = ?, status = ?, page_count = ?, 
-                    age_restriction = ?, total_copies = ?, available_copies = ?, image_url = ?,
-                    book_category = ?, book_source = ?, book_condition = ?
+                    volume = ?, edition = ?, genre = ?, dewey_decimal = ?, location = ?, 
+                    status = ?, page_count = ?, age_restriction = ?, total_copies = ?, 
+                    available_copies = ?, image_url = ?, book_category = ?, 
+                    book_source = ?, book_condition = ?
                     WHERE book_id = ?
                 `;
                 
                 await db.execute({
                     sql: query,
-                    args: [title, author, isbn, publisher, year, genre, dewey, location, status, pages, age, total, avail, image, category, source, condition, id]
+                    args: [title, author, isbn, publisher, year, volume, edition, genre, dewey, location, status, pages, age, total, avail, image, category, source, condition, id]
                 });
 
                 if (adminId) {
@@ -673,19 +962,99 @@
         }
         window.saveBookChanges = saveBookChanges;
 
+        async function savePeriodicalChanges() {
+            const id = document.getElementById('edit-periodical-id').value;
+            const title = document.getElementById('edit-p-title').value;
+            const publisher = document.getElementById('edit-p-publisher').value;
+            const issn = document.getElementById('edit-p-issn').value;
+            const pubDate = document.getElementById('edit-p-pub-date').value;
+            const volNo = document.getElementById('edit-p-volume').value;
+            const issueNo = document.getElementById('edit-p-issue').value;
+            const type = document.getElementById('edit-p-type').value;
+            const genre = document.getElementById('edit-p-genre').value;
+            const location = document.getElementById('edit-p-location').value;
+            const status = document.getElementById('edit-p-status').value;
+            const total = document.getElementById('edit-p-total-copies').value;
+            const avail = document.getElementById('edit-p-avail-copies').value;
+            const source = document.getElementById('edit-p-source').value;
+            const condition = document.getElementById('edit-p-condition').value;
+            const image = document.getElementById('edit-p-image').value;
+            const adminId = localStorage.getItem('adminId');
+
+            try {
+                const query = `
+                    UPDATE PERIODICAL SET 
+                    title = ?, publisher = ?, issn = ?, publication_date = ?, volume_no = ?, 
+                    issue_no = ?, type = ?, genre = ?, location = ?, status = ?, 
+                    total_copies = ?, available_copies = ?, periodical_source = ?, periodical_condition = ?, image_url = ?
+                    WHERE periodical_id = ?
+                `;
+                
+                await db.execute({
+                    sql: query,
+                    args: [title, publisher, issn, pubDate, volNo, issueNo, type, genre, location, status, total, avail, source, condition, image, id]
+                });
+
+                if (adminId) {
+                    await logAdminAction(adminId, 'EDIT_PERIODICAL', 'PERIODICAL', id, `Edited details for periodical: ${title}`);
+                }
+
+                closeModal('edit-periodical-modal');
+                loadBooks(); // Refresh grid
+            } catch (err) {
+                console.error("Error updating periodical:", err);
+                alert("Failed to update periodical: " + err.message);
+            }
+        }
+        window.savePeriodicalChanges = savePeriodicalChanges;
+
         // Modal Functions
-        function openBookDetails(item) {
-            const isPeriodical = item.material_type === 'Periodical';
-            
+        function openBookDetails(materialId) {
+            const item = window.currentLoadedBooks?.find(b => b.material_id === materialId);
+            if (!item) return;
+
+            if (item.material_type === 'Periodical') {
+                document.getElementById('detail-p-title').innerText = item.title;
+                document.getElementById('detail-p-id').innerText = item.periodical_id;
+                document.getElementById('detail-p-material-id').innerText = item.material_id;
+                document.getElementById('detail-p-issn').innerText = item.issn || 'N/A';
+                document.getElementById('detail-p-publisher').innerText = item.publisher || 'N/A';
+                document.getElementById('detail-p-pub-date').innerText = item.publication_date || 'N/A';
+                document.getElementById('detail-p-volume').innerText = item.volume_no || 'N/A';
+                document.getElementById('detail-p-issue').innerText = item.issue_no || 'N/A';
+                document.getElementById('detail-p-type').innerText = item.type || 'N/A';
+                document.getElementById('detail-p-genre').innerText = item.genre || 'N/A';
+                document.getElementById('detail-p-status').innerText = item.status;
+                document.getElementById('detail-p-location').innerText = item.location || 'N/A';
+                document.getElementById('detail-p-copies').innerText = `${item.available_copies} / ${item.total_copies}`;
+                document.getElementById('detail-p-source').innerText = item.periodical_source || 'N/A';
+                document.getElementById('detail-p-condition').innerText = item.periodical_condition || 'N/A';
+
+                const imgEl = document.getElementById('detail-p-image');
+                const placeholderEl = document.getElementById('detail-p-image-placeholder');
+                if (item.image_url) {
+                    imgEl.src = item.image_url;
+                    imgEl.classList.remove('hidden');
+                    placeholderEl.classList.add('hidden');
+                } else {
+                    imgEl.src = '';
+                    imgEl.classList.add('hidden');
+                    placeholderEl.classList.remove('hidden');
+                }
+                
+                document.getElementById('details-periodical-modal').classList.remove('hidden');
+                return;
+            }
+
             document.getElementById('detail-title').innerText = item.title;
-            document.getElementById('detail-book-id').innerText = item.book_id || item.periodical_id;
+            document.getElementById('detail-book-id').innerText = item.book_id;
             document.getElementById('detail-material-id').innerText = item.material_id;
-            document.getElementById('detail-isbn').innerText = isPeriodical ? (item.issn || 'N/A') : (item.isbn || 'N/A');
-            // Update label for ISBN/ISSN if possible, but for now just reuse the element
-            
-            document.getElementById('detail-author').innerText = isPeriodical ? (item.publisher || 'N/A') : item.author;
+            document.getElementById('detail-isbn').innerText = item.isbn || 'N/A';
+            document.getElementById('detail-author').innerText = item.author || 'N/A';
             document.getElementById('detail-publisher').innerText = item.publisher || 'N/A';
-            document.getElementById('detail-year').innerText = isPeriodical ? (item.publication_date || 'N/A') : (item.publication_year || 'N/A');
+            document.getElementById('detail-year').innerText = item.publication_year || 'N/A';
+            document.getElementById('detail-volume').innerText = item.volume || 'N/A';
+            document.getElementById('detail-edition').innerText = item.edition || 'N/A';
             document.getElementById('detail-genre').innerText = item.genre || 'N/A';
             document.getElementById('detail-dewey').innerText = item.dewey_decimal || 'N/A';
             document.getElementById('detail-status').innerText = item.status;
@@ -694,9 +1063,9 @@
             document.getElementById('detail-age').innerText = item.age_restriction ? item.age_restriction + '+' : 'None';
             document.getElementById('detail-copies').innerText = `${item.available_copies} / ${item.total_copies}`;
             document.getElementById('detail-date').innerText = item.date_added;
-            document.getElementById('detail-category').innerText = isPeriodical ? (item.type || 'Periodical') : (item.book_category || 'N/A');
-            document.getElementById('detail-source').innerText = isPeriodical ? (item.periodical_source || 'N/A') : (item.book_source || 'N/A');
-            document.getElementById('detail-condition').innerText = isPeriodical ? (item.periodical_condition || 'N/A') : (item.book_condition || 'N/A');
+            document.getElementById('detail-category').innerText = item.book_category || 'N/A';
+            document.getElementById('detail-source').innerText = item.book_source || 'N/A';
+            document.getElementById('detail-condition').innerText = item.book_condition || 'N/A';
 
             // Handle Image
             const imgEl = document.getElementById('detail-image');
@@ -714,13 +1083,15 @@
             
             document.getElementById('details-modal').classList.remove('hidden');
         }
+        window.openBookDetails = openBookDetails;
 
         function closeModal(modalId) {
             document.getElementById(modalId).classList.add('hidden');
         }
 
-        function openArchiveModal(id, title) {
+        function openArchiveModal(id, title, type) {
             document.getElementById('archive-book-id').value = id;
+            document.getElementById('archive-material-type').value = type;
             document.getElementById('archive-book-title').innerText = title;
             document.getElementById('archive-modal').classList.remove('hidden');
         }
@@ -729,21 +1100,25 @@
         async function archiveBook() {
             const id = document.getElementById('archive-book-id').value;
             const title = document.getElementById('archive-book-title').innerText;
+            const type = document.getElementById('archive-material-type').value;
             const adminId = localStorage.getItem('adminId');
+
+            const table = type === 'Periodical' ? 'PERIODICAL' : 'BOOK';
+            const idField = type === 'Periodical' ? 'periodical_id' : 'book_id';
 
             try {
                 await db.execute({
-                    sql: "UPDATE BOOK SET status = 'Archived' WHERE book_id = ?",
+                    sql: `UPDATE ${table} SET status = 'Archived' WHERE ${idField} = ?`,
                     args: [id]
                 });
                 if (adminId) {
-                    await logAdminAction(adminId, 'ARCHIVE_BOOK', 'BOOK', id, `Archived book: ${title}`);
+                    await logAdminAction(adminId, 'ARCHIVE_MATERIAL', table, id, `Archived ${type.toLowerCase()}: ${title}`);
                 }
                 closeModal('archive-modal');
                 loadBooks();
             } catch (err) {
-                console.error("Error archiving book:", err);
-                alert("Failed to archive book: " + err.message);
+                console.error("Error archiving material:", err);
+                alert("Failed to archive material: " + err.message);
             }
         }
         window.archiveBook = archiveBook;
@@ -762,8 +1137,9 @@
         }
         window.toggleArchivedView = toggleArchivedView;
 
-        function openRestoreModal(id, title) {
+        function openRestoreModal(id, title, type) {
             document.getElementById('restore-book-id').value = id;
+            document.getElementById('restore-material-type').value = type;
             document.getElementById('restore-book-title').innerText = title;
             document.getElementById('restore-modal').classList.remove('hidden');
         }
@@ -771,16 +1147,21 @@
 
         async function restoreBook() {
             const id = document.getElementById('restore-book-id').value;
+            const type = document.getElementById('restore-material-type').value;
+
+            const table = type === 'Periodical' ? 'PERIODICAL' : 'BOOK';
+            const idField = type === 'Periodical' ? 'periodical_id' : 'book_id';
+
             try {
                 await db.execute({
-                    sql: "UPDATE BOOK SET status = 'Available' WHERE book_id = ?",
+                    sql: `UPDATE ${table} SET status = 'Available' WHERE ${idField} = ?`,
                     args: [id]
                 });
                 closeModal('restore-modal');
                 loadBooks();
             } catch (err) {
-                console.error("Error restoring book:", err);
-                alert("Failed to restore book: " + err.message);
+                console.error("Error restoring material:", err);
+                alert("Failed to restore material: " + err.message);
             }
         }
         window.restoreBook = restoreBook;

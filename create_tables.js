@@ -1,7 +1,7 @@
 const { db } = require('./db_config.js');
 
 async function createAllTables() {
-    console.log("🚀 Starting Database Setup (Preserving Admin Data)...");
+    console.log("🚀 Starting Database Setup (Preserving Admin, User, and Guardian Data)...");
 
     const dropSchema = `
         DROP TABLE IF EXISTS LENDING_POLICIES;
@@ -18,8 +18,6 @@ async function createAllTables() {
         DROP TABLE IF EXISTS PERIODICAL;
         DROP TABLE IF EXISTS BOOK;
         DROP TABLE IF EXISTS USER_AUDIT_LOG;
-        DROP TABLE IF EXISTS USER;
-        DROP TABLE IF EXISTS GUARDIAN_NAME;
         DROP TABLE IF EXISTS MATERIAL;
         DROP TABLE IF EXISTS ADMIN_AUDIT_LOG;
         DROP TABLE IF EXISTS OTP_VERIFICATION;
@@ -55,7 +53,8 @@ async function createAllTables() {
             status VARCHAR(20) DEFAULT 'Available' CHECK (status IN ('Available', 'Borrowed', 'Archived', 'Lost'))
         );
 
-        CREATE TABLE GUARDIAN_NAME (
+        -- ADDED 'IF NOT EXISTS' HERE
+        CREATE TABLE IF NOT EXISTS GUARDIAN_NAME (
             guardian_id INTEGER PRIMARY KEY AUTOINCREMENT,
             first_name VARCHAR(50) NOT NULL,
             last_name VARCHAR(50) NOT NULL,
@@ -83,7 +82,7 @@ async function createAllTables() {
             description VARCHAR(255)
         );
 
-        -- 2. LEVEL 1 DEPENDENCIES (Require Independent Tables)
+        -- 2. LEVEL 1 DEPENDENCIES
         CREATE TABLE ANNOUNCEMENT (
             announcement_id INTEGER PRIMARY KEY AUTOINCREMENT,
             admin_id INT NOT NULL,
@@ -118,7 +117,8 @@ async function createAllTables() {
             FOREIGN KEY (guardian_id) REFERENCES GUARDIAN_NAME(guardian_id)
         );
 
-        CREATE TABLE USER (
+        -- ADDED 'IF NOT EXISTS' HERE
+        CREATE TABLE IF NOT EXISTS USER (
             user_id INTEGER PRIMARY KEY AUTOINCREMENT,
             guardian_id INT,
             first_name VARCHAR(50) NOT NULL,
@@ -182,7 +182,7 @@ async function createAllTables() {
             FOREIGN KEY (material_id) REFERENCES MATERIAL(material_id)
         );
 
-        -- 3. LEVEL 2 DEPENDENCIES (Require Level 1 Tables)
+        -- 3. LEVEL 2 DEPENDENCIES
         CREATE TABLE USER_AUDIT_LOG (
             log_id INTEGER PRIMARY KEY AUTOINCREMENT,
             user_id INT NOT NULL,
@@ -266,7 +266,7 @@ async function createAllTables() {
             FOREIGN KEY (material_id) REFERENCES MATERIAL(material_id)
         );
 
-        -- 4. LEVEL 3 DEPENDENCIES (Require Level 2 Tables)
+        -- 4. LEVEL 3 DEPENDENCIES
         CREATE TABLE FINE (
             fine_id INTEGER PRIMARY KEY AUTOINCREMENT,
             borrow_id INT NOT NULL,
@@ -276,7 +276,7 @@ async function createAllTables() {
             FOREIGN KEY (borrow_id) REFERENCES BORROW_TRANSACTION(borrow_id)
         );
 
-        -- 5. LEVEL 4 DEPENDENCIES (Require Level 3 Tables)
+        -- 5. LEVEL 4 DEPENDENCIES
         CREATE TABLE PAYMENT (
             payment_id INTEGER PRIMARY KEY AUTOINCREMENT,
             borrow_id INT,
@@ -304,7 +304,7 @@ async function createAllTables() {
     `;
 
     try {
-        console.log("🧹 Wiping old tables (Admin data is safe)...");
+        console.log("🧹 Wiping old tables (Admin, User, and Guardian data is safe)...");
         await db.executeMultiple(dropSchema);
 
         console.log("🏗️ Creating fresh tables sequentially...");
@@ -313,7 +313,7 @@ async function createAllTables() {
         console.log("⚙️ Inserting default fine and lending settings...");
         await db.executeMultiple(seedSettings);
 
-        console.log("✅ SUCCESS: Setup complete! Tables are clean and dependencies are correct.");
+        console.log("✅ SUCCESS: Setup complete! Accounts preserved, transactional data wiped.");
 
     } catch (error) {
         console.error("❌ SETUP FAILED:", error);
