@@ -64,7 +64,13 @@ function highlightActiveLink() {
 
     links.forEach(link => {
         const linkPage = link.getAttribute('href');
-        if (currentPage === linkPage) {
+        
+        let isActive = currentPage === linkPage;
+        if (linkPage === 'admin_donations.html' && (currentPage === 'inbound.html' || currentPage === 'outbound.html')) {
+            isActive = true;
+        }
+
+        if (isActive) {
             link.classList.add('active-book');
         } else {
             link.classList.remove('active-book');

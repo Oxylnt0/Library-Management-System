@@ -337,7 +337,7 @@
                         // TWO-TIER SUSPENSION LOGIC
                         const isFinancial = user.ban_reason && user.ban_reason.includes('Unpaid Fines');
                         const badgeColor = isFinancial ? 'bg-yellow-100 text-yellow-700 border-yellow-200' : 'bg-red-100 text-red-700 border-red-200';
-                        const badgeText = isFinancial ? 'Suspended (Fines)' : 'Suspended (Behavioral)';
+                        const badgeText = user.status === 'Banned' ? 'Banned' : (isFinancial ? 'Suspended (Fines)' : 'Suspended (Behavioral)');
                         const tooltip = `Reason: ${user.ban_reason || 'N/A'}\nEnds: ${user.ban_end_date ? new Date(user.ban_end_date).toLocaleDateString() : 'Indefinite'}`;
                         
                         statusHtml = `<span class="${badgeColor} px-2 py-1 rounded-full text-xs font-bold cursor-help border" title="${tooltip}">${badgeText}</span>`;
@@ -355,18 +355,21 @@
                     if (user.status === 'Pending') {
                         actionButtons = `
                             <div class="flex justify-end gap-2">
-                                <button ${isAssistant ? 'disabled' : ''} onclick="updateUserStatus(${user.user_id}, 'Active')" class="p-2 rounded-full bg-green-100 text-green-600 ${isAssistant ? 'opacity-50 cursor-not-allowed' : 'hover:bg-green-200 transition-colors'}" title="${isAssistant ? 'Restricted' : 'Accept'}">
+                                <button ${isAssistant ? 'disabled="true"' : ''} onclick="updateUserStatus(${user.user_id}, 'Active')" class="p-2 rounded-full bg-green-100 text-green-600 ${isAssistant ? 'opacity-50 cursor-not-allowed' : 'hover:bg-green-200 transition-colors'}" title="${isAssistant ? 'Restricted' : 'Accept'}">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
                                 </button>
-                                <button ${isAssistant ? 'disabled' : ''} onclick="updateUserStatus(${user.user_id}, 'Rejected')" class="p-2 rounded-full bg-red-100 text-red-600 ${isAssistant ? 'opacity-50 cursor-not-allowed' : 'hover:bg-red-200 transition-colors'}" title="${isAssistant ? 'Restricted' : 'Reject'}">
+                                <button ${isAssistant ? 'disabled="true"' : ''} onclick="updateUserStatus(${user.user_id}, 'Rejected')" class="p-2 rounded-full bg-red-100 text-red-600 ${isAssistant ? 'opacity-50 cursor-not-allowed' : 'hover:bg-red-200 transition-colors'}" title="${isAssistant ? 'Restricted' : 'Reject'}">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                                 </button>
                             </div>`;
                     } else if (user.status === 'Active') {
                         actionButtons = `
                             <div class="flex justify-end gap-2">
-                                <button ${isAssistant ? 'disabled title="Restricted"' : ''} onclick="openSuspendModal(${user.user_id})" class="text-xs font-bold text-red-600 border border-red-200 px-3 py-1 rounded-full ${isAssistant ? 'opacity-50 cursor-not-allowed' : 'hover:bg-red-50 transition-colors'}">
+                                <button ${isAssistant ? 'disabled="true" title="Restricted"' : ''} onclick="openSuspendModal(${user.user_id})" class="text-xs font-bold text-amber-600 border border-amber-200 px-3 py-1 rounded-full ${isAssistant ? 'opacity-50 cursor-not-allowed' : 'hover:bg-amber-50 transition-colors'}">
                                     Suspend
+                                </button>
+                                <button ${isAssistant ? 'disabled="true" title="Restricted"' : ''} onclick="updateUserStatus(${user.user_id}, 'Banned')" class="text-xs font-bold text-red-600 border border-red-200 px-3 py-1 rounded-full ${isAssistant ? 'opacity-50 cursor-not-allowed' : 'hover:bg-red-50 transition-colors'}">
+                                    Ban
                                 </button>
                             </div>`;
                     } else if (user.status === 'Suspended' || user.status === 'Banned' || user.status === 'Rejected') {
@@ -378,13 +381,15 @@
                                 <a href="admin_fines.html" class="text-xs font-bold text-blue-600 hover:bg-blue-50 border border-blue-200 px-3 py-1 rounded-full transition-colors flex items-center justify-center">
                                     Pay Fines
                                 </a>
+                                ${user.status !== 'Banned' ? `<button ${isAssistant ? 'disabled="true" title="Restricted"' : ''} onclick="updateUserStatus(${user.user_id}, 'Banned')" class="text-xs font-bold text-red-600 border border-red-200 px-3 py-1 rounded-full ${isAssistant ? 'opacity-50 cursor-not-allowed' : 'hover:bg-red-50 transition-colors'}">Ban</button>` : ''}
                             </div>`;
                         } else {
                             actionButtons = `
                             <div class="flex justify-end gap-2">
-                                <button ${isAssistant ? 'disabled title="Restricted"' : ''} onclick="updateUserStatus(${user.user_id}, 'Active')" class="text-xs font-bold text-green-600 border border-green-200 px-3 py-1 rounded-full ${isAssistant ? 'opacity-50 cursor-not-allowed' : 'hover:bg-green-50 transition-colors'}">
+                                <button ${isAssistant ? 'disabled="true" title="Restricted"' : ''} onclick="updateUserStatus(${user.user_id}, 'Active')" class="text-xs font-bold text-green-600 border border-green-200 px-3 py-1 rounded-full ${isAssistant ? 'opacity-50 cursor-not-allowed' : 'hover:bg-green-50 transition-colors'}">
                                     Activate
                                 </button>
+                                ${user.status !== 'Banned' ? `<button ${isAssistant ? 'disabled="true" title="Restricted"' : ''} onclick="updateUserStatus(${user.user_id}, 'Banned')" class="text-xs font-bold text-red-600 border border-red-200 px-3 py-1 rounded-full ${isAssistant ? 'opacity-50 cursor-not-allowed' : 'hover:bg-red-50 transition-colors'}">Ban</button>` : ''}
                             </div>`;
                         }
                     }
@@ -421,10 +426,16 @@
         }
 
         window.updateUserStatus = async function(userId, status) {
+            if (localStorage.getItem('adminRole') === 'Assistant Librarian') {
+                alert("Restricted: You do not have permission to perform this action.");
+                return;
+            }
+
             let actionText = '';
             if (status === 'Active') actionText = 'ACTIVATE/APPROVE';
             else if (status === 'Rejected') actionText = 'REJECT';
             else if (status === 'Suspended') actionText = 'SUSPEND';
+            else if (status === 'Banned') actionText = 'PERMANENTLY BAN';
 
             // If Suspend is clicked here (via Activate button logic), bypass modal
             // But our UI now points Suspend button to openSuspendModal.
@@ -448,6 +459,11 @@
 
         // --- SUSPENSION MODAL LOGIC ---
         window.openSuspendModal = function(userId) {
+            if (localStorage.getItem('adminRole') === 'Assistant Librarian') {
+                alert("Restricted: You do not have permission to suspend users.");
+                return;
+            }
+
             document.getElementById('suspend-user-id').value = userId;
             document.getElementById('suspend-duration').value = ''; 
             document.getElementById('suspend-reason').value = 'Unpaid Fines';
@@ -508,7 +524,7 @@
             } else if (user.status === 'Rejected') {
                 statusContainer.innerHTML = '<span class="bg-gray-100 text-gray-700 px-2 py-1 rounded-full text-xs font-bold">Rejected</span>';
             } else {
-                statusContainer.innerHTML = '<span class="bg-red-100 text-red-700 px-2 py-1 rounded-full text-xs font-bold">Suspended</span>';
+                statusContainer.innerHTML = `<span class="bg-red-100 text-red-700 px-2 py-1 rounded-full text-xs font-bold">${user.status === 'Banned' ? 'Banned' : 'Suspended'}</span>`;
             }
 
             const isBanned = user.status === 'Suspended' || user.status === 'Banned';
