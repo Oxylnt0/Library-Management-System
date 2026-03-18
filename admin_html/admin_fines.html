@@ -325,7 +325,7 @@
 
                 const result = await db.execute(`
                     SELECT 
-                        f.fine_id, f.amount, f.fine_type, f.status as fine_status,
+                        f.fine_id, f.fine_amount as amount, f.fine_type, f.status as fine_status,
                         b.borrow_id, b.due_date, b.return_date, b.status as borrow_status,
                         u.first_name, u.last_name, u.email,
                         bk.title as book_title,
@@ -333,7 +333,8 @@
                     FROM FINE f
                     JOIN BORROW_TRANSACTION b ON f.borrow_id = b.borrow_id
                     JOIN USER u ON b.user_id = u.user_id
-                    LEFT JOIN BOOK bk ON b.book_id = bk.book_id
+                    LEFT JOIN BOOK_COPY bc ON b.material_id = bc.material_id
+                    LEFT JOIN BOOK bk ON bc.book_id = bk.book_id
                     LEFT JOIN PAYMENT p ON f.fine_id = p.fine_id
                     ORDER BY f.status DESC, b.due_date ASC
                 `);
@@ -765,7 +766,7 @@
 
         async function loadStats() {
             try {
-                const unpaidRes = await db.execute("SELECT SUM(amount) as total FROM FINE WHERE status = 'Unpaid'");
+                const unpaidRes = await db.execute("SELECT SUM(fine_amount) as total FROM FINE WHERE status = 'Unpaid'");
                 const usersRes = await db.execute("SELECT COUNT(DISTINCT b.user_id) as count FROM FINE f JOIN BORROW_TRANSACTION b ON f.borrow_id = b.borrow_id WHERE f.status = 'Unpaid'");
                 const collectedRes = await db.execute("SELECT SUM(fine_amount) as total, COUNT(*) as count FROM PAYMENT WHERE payment_date = DATE('now', '+8 hours')");
                 const recentRes = await db.execute(`
