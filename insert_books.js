@@ -131,18 +131,19 @@ async function seedBooks() {
     let copyCount = 0;
 
     for (const book of booksToInsert) {
-      // Step 1: Insert into BOOK (The Parent)
-      const bookResult = await db.execute({
+    // Step 1: Insert the Parent (Example snippet for insert_books.js)
+    const bookResult = await db.execute({
         sql: `INSERT INTO BOOK (
                 isbn, title, author, publisher, publication_year, 
-                volume, edition, dewey_decimal, genre, book_category, image_url
-              ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING book_id;`,
+                volume, edition, dewey_decimal, genre, book_category, 
+                page_count, age_restriction, image_url
+              ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING book_id;`,
         args: [
-          book.isbn, book.title, book.author, book.publisher, 
-          book.publication_year, book.volume, book.edition, 
-          book.dewey_decimal, book.genre, book.book_category, book.image_url
+            book.isbn, book.title, book.author, book.publisher, book.publication_year,
+            book.volume, book.edition, book.dewey_decimal, book.genre, book.book_category,
+            book.page_count || 0, book.age_restriction || 0, book.image_url
         ]
-      });
+    });
 
       const newBookId = bookResult.rows[0].book_id;
       titleCount++;

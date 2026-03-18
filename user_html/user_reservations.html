@@ -206,11 +206,19 @@
                     SELECT
                         r.reservation_id, b.title, b.author, r.reservation_date, r.status, r.priority_no
                     FROM RESERVATION r
-                    JOIN BOOK b ON r.book_id = b.book_id
+                    JOIN BOOK_COPY bc ON r.material_id = bc.material_id
+                    JOIN BOOK b ON bc.book_id = b.book_id
                     WHERE r.user_id = ? AND r.status = 'Pending'
-                    ORDER BY r.reservation_date DESC
+                    UNION ALL
+                    SELECT
+                        r.reservation_id, p.title, p.publisher as author, r.reservation_date, r.status, r.priority_no
+                    FROM RESERVATION r
+                    JOIN PERIODICAL_COPY pc ON r.material_id = pc.material_id
+                    JOIN PERIODICAL p ON pc.periodical_id = p.periodical_id
+                    WHERE r.user_id = ? AND r.status = 'Pending'
+                    ORDER BY reservation_date DESC
                 `;
-                const result = await db.execute({ sql: query, args: [userId] });
+                const result = await db.execute({ sql: query, args: [userId, userId] });
                 const reservations = result.rows;
                 
                 tbody.innerHTML = '';

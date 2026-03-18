@@ -271,7 +271,7 @@
                     const resPending = await db.execute("SELECT COUNT(*) as count FROM RESERVATION WHERE status = 'Pending'");
                     const resOverdue = await db.execute("SELECT COUNT(*) as count FROM BORROW_TRANSACTION WHERE status = 'Overdue' OR (status = 'Borrowed' AND due_date < DATE('now', '+8 hours'))");
                     const resBorrowed = await db.execute("SELECT COUNT(*) as count FROM BORROW_TRANSACTION WHERE status = 'Borrowed' AND borrow_date = DATE('now', '+8 hours')");
-                    const resFines = await db.execute("SELECT SUM(payment_amount) as total FROM PAYMENT WHERE payment_date = DATE('now', '+8 hours')");
+                    const resFines = await db.execute("SELECT SUM(fine_amount) as total FROM PAYMENT WHERE payment_date = DATE('now', '+8 hours')");
 
                     // Update KPIs
                     document.getElementById('kpi-pending').innerText = resPending.rows[0].count;

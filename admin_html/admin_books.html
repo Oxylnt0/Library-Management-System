@@ -54,13 +54,6 @@
                             <option value="Periodical">Periodicals</option>
                         </select>
 
-                        <select id="filter-condition" onchange="loadBooks()" class="bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 px-4 py-2 rounded-full font-medium shadow-sm outline-none focus:ring-2 focus:ring-[#183B5B] transition-colors cursor-pointer text-sm">
-                            <option value="all">All Conditions</option>
-                            <option value="weeding">⚠️ Weeding Candidates</option>
-                            <option value="New">New</option>
-                            <option value="Good">Good</option>
-                        </select>
-
                         <button onclick="archiveAllOutdated()" class="bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 p-2.5 rounded-full font-medium shadow-sm transition-colors flex items-center gap-2" title="Archive all Outdated/Obsolete items">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"></path></svg>
                         </button>
@@ -203,6 +196,17 @@
                                 </div>
                             </div>
 
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Page Count</label>
+                                    <input type="number" id="edit-pages" class="w-full p-2 rounded border border-slate-300 focus:ring-2 focus:ring-[#183B5B] outline-none">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Age Restriction</label>
+                                    <input type="number" id="edit-age" class="w-full p-2 rounded border border-slate-300 focus:ring-2 focus:ring-[#183B5B] outline-none">
+                                </div>
+                            </div>
+
                             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                                 <div>
                                     <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Category</label>
@@ -255,6 +259,17 @@
                                 <div>
                                     <label class="block text-xs font-bold text-slate-500 uppercase mb-1">ISSN</label>
                                     <input type="text" id="edit-p-issn" class="w-full p-2 rounded border border-slate-300 focus:ring-2 focus:ring-[#183B5B] outline-none">
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Page Count</label>
+                                    <input type="number" id="edit-p-pages" class="w-full p-2 rounded border border-slate-300 focus:ring-2 focus:ring-[#183B5B] outline-none">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Age Restriction</label>
+                                    <input type="number" id="edit-p-age" class="w-full p-2 rounded border border-slate-300 focus:ring-2 focus:ring-[#183B5B] outline-none">
                                 </div>
                             </div>
 
@@ -357,6 +372,14 @@
                                     <p class="text-xs font-bold text-slate-500 uppercase">Category</p>
                                     <p class="text-slate-700" id="detail-category">Fiction</p>
                                 </div>
+                                <div>
+                                    <p class="text-xs font-bold text-slate-500 uppercase">Page Count</p>
+                                    <p class="text-slate-700" id="detail-pages">N/A</p>
+                                </div>
+                                <div>
+                                    <p class="text-xs font-bold text-slate-500 uppercase">Age Restriction</p>
+                                    <p class="text-slate-700" id="detail-age">None</p>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -405,6 +428,14 @@
                                 <div>
                                     <p class="text-xs font-bold text-slate-500 uppercase">Genre</p>
                                     <p class="text-slate-700" id="detail-p-genre">News</p>
+                                </div>
+                                <div>
+                                    <p class="text-xs font-bold text-slate-500 uppercase">Page Count</p>
+                                    <p class="text-slate-700" id="detail-p-pages">N/A</p>
+                                </div>
+                                <div>
+                                    <p class="text-xs font-bold text-slate-500 uppercase">Age Restriction</p>
+                                    <p class="text-slate-700" id="detail-p-age">None</p>
                                 </div>
                             </div>
                         </div>
@@ -501,7 +532,6 @@
             const grid = document.getElementById('books-grid');
             const footerCount = document.getElementById('books-count');
             const filterType = document.getElementById('filter-material-type') ? document.getElementById('filter-material-type').value : 'all';
-            const filterCondition = document.getElementById('filter-condition') ? document.getElementById('filter-condition').value : 'all';
             
             grid.innerHTML = '<p class="text-slate-500 col-span-full text-center py-10">Loading books...</p>';
             
@@ -535,15 +565,6 @@
                         args.push(term, term, term);
                     }
                     
-                    // Condition applies to copy condition
-                    if (filterCondition !== 'all') {
-                        if (filterCondition === 'weeding') {
-                            sql += " AND c.book_condition IN ('Outdated', 'Obsolete')";
-                        } else {
-                            sql += " AND c.book_condition = ?";
-                            args.push(filterCondition);
-                        }
-                    }
                     sql += " GROUP BY b.book_id";
                     
                     const res = await db.execute({ sql, args });
@@ -574,14 +595,6 @@
                         args.push(term, term, term);
                     }
 
-                    if (filterCondition !== 'all') {
-                        if (filterCondition === 'weeding') {
-                            sql += " AND c.periodical_condition IN ('Outdated', 'Obsolete')";
-                        } else {
-                            sql += " AND c.periodical_condition = ?";
-                            args.push(filterCondition);
-                        }
-                    }
                     sql += " GROUP BY p.periodical_id";
 
                     const res = await db.execute({ sql, args });
@@ -645,8 +658,13 @@
                     const extraInfoHtml = extraDetails.length > 0 ? `<p class="text-[11px] font-bold text-[#183B5B]/70 mt-1">${extraDetails.join(' • ')}</p>` : '';
 
                     const card = document.createElement('div');
-                    let cardBg = 'bg-white border-slate-200';
-                    if (isWeeding) cardBg = 'bg-amber-50 border-amber-200';
+                    let cardBg = 'bg-white border-slate-200'; // Default for books
+                    if (item.material_type === 'Periodical') {
+                        cardBg = 'bg-purple-50 border-purple-200';
+                    }
+                    if (isWeeding) {
+                        cardBg = 'bg-amber-50 border-amber-200'; // Weeding color takes precedence
+                    }
 
                     card.className = `${cardBg} rounded-xl shadow-sm border p-4 flex flex-col gap-4 hover:shadow-md transition-shadow group`;
                     
@@ -736,6 +754,8 @@
                 document.getElementById('edit-p-publisher').value = book.publisher ?? '';
                 document.getElementById('edit-p-issn').value = book.issn ?? '';
                 document.getElementById('edit-p-image').value = (book.image_url && book.image_url !== 'null') ? book.image_url : '';
+                document.getElementById('edit-p-pages').value = book.page_count ?? 0;
+                document.getElementById('edit-p-age').value = book.age_restriction ?? 0;
 
                 setDropdown('edit-p-type', book.type, 'Magazine');
                 setDropdown('edit-p-genre', book.genre, '');
@@ -754,6 +774,8 @@
             document.getElementById('edit-edition').value = book.edition ?? '';
             document.getElementById('edit-dewey').value = book.dewey_decimal ?? '';
             document.getElementById('edit-image').value = (book.image_url && book.image_url !== 'null') ? book.image_url : '';
+            document.getElementById('edit-pages').value = book.page_count ?? 0;
+            document.getElementById('edit-age').value = book.age_restriction ?? 0;
 
             setDropdown('edit-genre', book.genre, '');
             setDropdown('edit-category', book.book_category, 'Fiction');
@@ -775,19 +797,21 @@
             const dewey = document.getElementById('edit-dewey').value;
             const image = document.getElementById('edit-image').value;
             const category = document.getElementById('edit-category').value;
+            const pages = document.getElementById('edit-pages').value;
+            const age = document.getElementById('edit-age').value;
             const adminId = localStorage.getItem('adminId');
 
             try {
                 const query = `
                     UPDATE BOOK SET 
                     title = ?, author = ?, isbn = ?, publisher = ?, publication_year = ?, 
-                    volume = ?, edition = ?, genre = ?, dewey_decimal = ?, image_url = ?, book_category = ?
+                    volume = ?, edition = ?, genre = ?, dewey_decimal = ?, image_url = ?, book_category = ?, page_count = ?, age_restriction = ?
                     WHERE book_id = ?
                 `;
                 
                 await db.execute({
                     sql: query,
-                    args: [title, author, isbn, publisher, year, volume, edition, genre, dewey, image, category, id]
+                    args: [title, author, isbn, publisher, year, volume, edition, genre, dewey, image, category, pages, age, id]
                 });
 
                 if (adminId) {
@@ -811,18 +835,20 @@
             const type = document.getElementById('edit-p-type').value;
             const genre = document.getElementById('edit-p-genre').value;
             const image = document.getElementById('edit-p-image').value;
+            const pages = document.getElementById('edit-p-pages').value;
+            const age = document.getElementById('edit-p-age').value;
             const adminId = localStorage.getItem('adminId');
 
             try {
                 const query = `
                     UPDATE PERIODICAL SET 
-                    title = ?, publisher = ?, issn = ?, type = ?, genre = ?, image_url = ?
+                    title = ?, publisher = ?, issn = ?, type = ?, genre = ?, image_url = ?, page_count = ?, age_restriction = ?
                     WHERE periodical_id = ?
                 `;
                 
                 await db.execute({
                     sql: query,
-                    args: [title, publisher, issn, type, genre, image, id]
+                    args: [title, publisher, issn, type, genre, image, pages, age, id]
                 });
 
                 if (adminId) {
@@ -849,6 +875,8 @@
                 document.getElementById('detail-p-publisher').innerText = item.publisher || 'N/A';
                 document.getElementById('detail-p-type').innerText = item.type || 'N/A';
                 document.getElementById('detail-p-genre').innerText = item.genre || 'N/A';
+                document.getElementById('detail-p-pages').innerText = item.page_count || 'N/A';
+                document.getElementById('detail-p-age').innerText = item.age_restriction ? item.age_restriction + '+' : 'None';
 
                 const imgEl = document.getElementById('detail-p-image');
                 const placeholderEl = document.getElementById('detail-p-image-placeholder');
@@ -876,6 +904,8 @@
             document.getElementById('detail-genre').innerText = item.genre || 'N/A';
             document.getElementById('detail-dewey').innerText = item.dewey_decimal || 'N/A';
             document.getElementById('detail-category').innerText = item.book_category || 'N/A';
+            document.getElementById('detail-pages').innerText = item.page_count || 'N/A';
+            document.getElementById('detail-age').innerText = item.age_restriction ? item.age_restriction + '+' : 'None';
 
             // Handle Image
             const imgEl = document.getElementById('detail-image');

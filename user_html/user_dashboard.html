@@ -247,7 +247,25 @@
 
         async function loadNewArrivals() {
             try {
-                const res = await db.execute("SELECT * FROM BOOK WHERE book_condition NOT IN ('Outdated', 'Obsolete') AND status NOT IN ('Archived', 'Donated Outbound', 'Lost') ORDER BY date_added DESC LIMIT 6");
+                const query = `
+                    SELECT b.book_id as item_id, 'Book' as material_type, b.title, b.author, b.image_url, MIN(m.date_added) as date_added 
+                    FROM BOOK b
+                    JOIN BOOK_COPY c ON b.book_id = c.book_id
+                    JOIN MATERIAL m ON c.material_id = m.material_id
+                    WHERE c.book_condition NOT IN ('Outdated', 'Obsolete') 
+                    AND c.status NOT IN ('Archived', 'Donated Outbound', 'Lost')
+                    GROUP BY b.book_id
+                    UNION ALL
+                    SELECT p.periodical_id as item_id, 'Periodical' as material_type, p.title, p.publisher as author, p.image_url, MIN(m.date_added) as date_added 
+                    FROM PERIODICAL p
+                    JOIN PERIODICAL_COPY c ON p.periodical_id = c.periodical_id
+                    JOIN MATERIAL m ON c.material_id = m.material_id
+                    WHERE c.periodical_condition NOT IN ('Outdated', 'Obsolete') 
+                    AND c.status NOT IN ('Archived', 'Donated Outbound', 'Lost')
+                    GROUP BY p.periodical_id
+                    ORDER BY date_added DESC, item_id DESC LIMIT 6
+                `;
+                const res = await db.execute(query);
                 const container = document.getElementById('new-arrivals-container');
                 container.innerHTML = '';
                 
@@ -275,11 +293,18 @@
                 const query = `
                     SELECT bt.*, b.title, b.author, b.image_url 
                     FROM BORROW_TRANSACTION bt
-                    JOIN BOOK b ON bt.book_id = b.book_id
+                    JOIN BOOK_COPY bc ON bt.material_id = bc.material_id
+                    JOIN BOOK b ON bc.book_id = b.book_id
                     WHERE bt.user_id = ? AND bt.status IN ('Borrowed', 'Overdue')
-                    ORDER BY bt.borrow_date DESC
+                    UNION ALL
+                    SELECT bt.*, p.title, p.publisher as author, p.image_url 
+                    FROM BORROW_TRANSACTION bt
+                    JOIN PERIODICAL_COPY pc ON bt.material_id = pc.material_id
+                    JOIN PERIODICAL p ON pc.periodical_id = p.periodical_id
+                    WHERE bt.user_id = ? AND bt.status IN ('Borrowed', 'Overdue')
+                    ORDER BY borrow_date DESC
                 `;
-                const res = await db.execute({ sql: query, args: [userId] });
+                const res = await db.execute({ sql: query, args: [userId, userId] });
                 const container = document.getElementById('recently-borrowed-container');
                 container.innerHTML = '';
 
@@ -293,6 +318,11 @@
                     const today = new Date();
                     const borrowDate = new Date(loan.borrow_date);
                     
+                    // Normalize times to midnight to avoid timezone rounding errors causing +1 day
+                    dueDate.setHours(0,0,0,0);
+                    today.setHours(0,0,0,0);
+                    borrowDate.setHours(0,0,0,0);
+
                     // Calculate progress
                     const totalDuration = dueDate - borrowDate;
                     const elapsed = today - borrowDate;
@@ -303,7 +333,7 @@
                     
                     // Days remaining
                     const diffTime = dueDate - today;
-                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                    const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
                     
                     let statusText = '';
                     let statusColor = '';
@@ -364,13 +394,9 @@
             try {
                 // 0. Announcements (Public)
                 const annQuery = `
-                    SELECT title, content, date_posted, priority 
+                    SELECT title, content, date_posted 
                     FROM ANNOUNCEMENT 
-                    WHERE status = 'Published' 
-                    AND (valid_until IS NULL OR valid_until > DATETIME('now', '+8 hours'))
-                    ORDER BY 
-                        CASE priority WHEN 'Urgent' THEN 1 WHEN 'High' THEN 2 ELSE 3 END, 
-                        date_posted DESC
+                    ORDER BY date_posted DESC
                     LIMIT 3
                 `;
                 const annRes = await db.execute(annQuery);
@@ -378,21 +404,13 @@
                 annRes.rows.forEach(ann => {
                     hasNotifs = true;
                     const datePosted = new Date(ann.date_posted).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-                    let priorityColor = 'border-blue-200 bg-[#e3f2fd]/90';
-                    let titleColor = 'text-[#2E5F87]';
-                    
-                    if (ann.priority === 'Urgent') {
-                        priorityColor = 'border-red-200 bg-[#fee2e2]/90';
-                        titleColor = 'text-[#C05640]';
-                    } else if (ann.priority === 'High') {
-                        priorityColor = 'border-amber-200 bg-[#fff8e1]/90';
-                        titleColor = 'text-[#d97706]';
-                    }
+                    const priorityColor = 'border-blue-200 bg-[#e3f2fd]/90';
+                    const titleColor = 'text-[#2E5F87]';
 
                     const html = `
                         <div class="${priorityColor} backdrop-blur-sm border p-3 rounded-lg shadow-sm">
                             <div class="flex justify-between items-start mb-1">
-                                <p class="text-xs font-bold ${titleColor} uppercase">${ann.priority === 'Normal' ? 'Announcement' : ann.priority}</p>
+                                <p class="text-xs font-bold ${titleColor} uppercase">Announcement</p>
                                 <span class="text-[10px] text-slate-500">${datePosted}</span>
                             </div>
                             <h4 class="text-sm font-bold text-[#1A202C] mb-1">${ann.title}</h4>
@@ -406,12 +424,17 @@
                 const dueQuery = `
                     SELECT b.title, bt.due_date 
                     FROM BORROW_TRANSACTION bt 
-                    JOIN BOOK b ON bt.book_id = b.book_id 
-                    WHERE bt.user_id = ? 
-                    AND bt.status = 'Borrowed' 
-                    AND bt.due_date <= date('now', '+3 days')
+                    JOIN BOOK_COPY bc ON bt.material_id = bc.material_id
+                    JOIN BOOK b ON bc.book_id = b.book_id 
+                    WHERE bt.user_id = ? AND bt.status = 'Borrowed' AND bt.due_date <= date('now', '+3 days')
+                    UNION ALL
+                    SELECT p.title, bt.due_date 
+                    FROM BORROW_TRANSACTION bt 
+                    JOIN PERIODICAL_COPY pc ON bt.material_id = pc.material_id
+                    JOIN PERIODICAL p ON pc.periodical_id = p.periodical_id 
+                    WHERE bt.user_id = ? AND bt.status = 'Borrowed' AND bt.due_date <= date('now', '+3 days')
                 `;
-                const dueRes = await db.execute({ sql: dueQuery, args: [userId] });
+                const dueRes = await db.execute({ sql: dueQuery, args: [userId, userId] });
                 
                 dueRes.rows.forEach(row => {
                     hasNotifs = true;
@@ -429,11 +452,17 @@
                 const resQuery = `
                     SELECT b.title 
                     FROM RESERVATION r 
-                    JOIN BOOK b ON r.book_id = b.book_id 
-                    WHERE r.user_id = ? 
-                    AND r.status = 'Approved'
+                    JOIN BOOK_COPY bc ON r.material_id = bc.material_id
+                    JOIN BOOK b ON bc.book_id = b.book_id 
+                    WHERE r.user_id = ? AND r.status = 'Approved'
+                    UNION ALL
+                    SELECT p.title 
+                    FROM RESERVATION r 
+                    JOIN PERIODICAL_COPY pc ON r.material_id = pc.material_id
+                    JOIN PERIODICAL p ON pc.periodical_id = p.periodical_id 
+                    WHERE r.user_id = ? AND r.status = 'Approved'
                 `;
-                const resResult = await db.execute({ sql: resQuery, args: [userId] });
+                const resResult = await db.execute({ sql: resQuery, args: [userId, userId] });
 
                 resResult.rows.forEach(row => {
                     hasNotifs = true;
@@ -459,7 +488,7 @@
             try {
                 // 1. Get Unpaid Fines Total
                 const finesQuery = `
-                    SELECT SUM(f.amount) as total 
+                    SELECT SUM(f.fine_amount) as total 
                     FROM FINE f 
                     JOIN BORROW_TRANSACTION bt ON f.borrow_id = bt.borrow_id 
                     WHERE bt.user_id = ? AND f.status = 'Unpaid'

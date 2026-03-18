@@ -379,7 +379,7 @@
                             </div>
                         </div>
                         <!-- Grid -->
-                        <div id="catalog-grid" class="flex-1 overflow-y-auto p-6 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 content-start">
+                        <div id="catalog-grid" class="flex-1 overflow-y-auto p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6 content-start">
                             <!-- Books -->
                         </div>
                     </main>
@@ -730,11 +730,12 @@
 
             function createBookCard(book) {
                 return `
-                    <div class="group cursor-pointer" onclick="openBookDetails(${book.book_id})">
+                    <div class="group cursor-pointer" onclick="openBookDetails(${book.item_id}, '${book.material_type}')">
                         <div class="rounded-xl aspect-[2/3] overflow-hidden shadow-md group-hover:shadow-xl group-hover:-translate-y-1 transition-all bg-gray-200 relative">
                             <img src="${book.image_url || '../assets/book_placeholder.png'}" 
                                 onerror="this.src='https://placehold.co/200x300?text=No+Cover'"
                                 class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                            ${book.age_restriction ? `<div class="absolute top-2 left-2 bg-red-600 text-white text-[10px] font-bold px-2 py-1 rounded shadow-sm">${book.age_restriction}+</div>` : ''}
                             ${book.borrow_count ? `<div class="absolute top-2 right-2 bg-[#D6A84A] text-black text-xs font-bold px-2 py-1 rounded-full shadow-sm flex items-center gap-1"><svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M12.395 2.553a1 1 0 00-1.45-.385c-.345.23-.614.558-.822.88-.214.33-.403.713-.57 1.116-.334.804-.614 1.768-.84 2.734a31.365 31.365 0 00-.613 3.58 2.64 2.64 0 01-.945-1.067c-.328-.68-.398-1.45-.412-1.725a1 1 0 00-1.846-.408c-.658 1.27-1.77 2.401-1.77 3.82 0 .848.714 1.535 1.566 1.535.852 0 1.566-.687 1.566-1.535 0-.445-.18-.849-.462-1.136.113.113.232.22.357.32a5.004 5.004 0 006.617-.734c.032-.038.063-.078.093-.119.106-.147.207-.302.304-.463.287-.48.543-1.006.757-1.572.426-1.145.67-2.39.67-3.69 0-1.3-.244-2.545-.67-3.69-.214-.566-.47-1.092-.757-1.572z" clip-rule="evenodd"></path></svg> ${book.borrow_count} Borrows</div>` : ''}
                         </div>
                         <p class="font-bold text-sm mt-2 text-[#1A202C] group-hover:text-[#D6A84A] transition-colors line-clamp-2">${book.title}</p>
@@ -772,7 +773,7 @@
                 } else if (sortValue === 'author') {
                     allCatalogBooks.sort((a, b) => (a.author || '').localeCompare(b.author || ''));
                 } else if (sortValue === 'year') {
-                    allCatalogBooks.sort((a, b) => (b.publication_year || 0) - (a.publication_year || 0));
+                    allCatalogBooks.sort((a, b) => (b.year || 0) - (a.year || 0));
                 }
                 
                 filterCatalogBooks();
@@ -802,7 +803,9 @@
                     const matchesGenre = checkedGenres.length === 0 || checkedGenres.includes(book.genre);
 
                     // Status
-                    const matchesStatus = statusFilter === 'All' || book.status === statusFilter;
+                    const matchesStatus = statusFilter === 'All' || 
+                        (statusFilter === 'Available' && book.available_copies > 0) || 
+                        (statusFilter === 'Borrowed' && book.available_copies === 0);
 
                     return matchesSearch && matchesGenre && matchesStatus;
                 });
@@ -818,26 +821,64 @@
             }
 
             function createCatalogCard(book) {
-                let statusColor = 'bg-emerald-100 text-emerald-700';
-                if (book.status === 'Borrowed') statusColor = 'bg-amber-100 text-amber-700';
+                const displayStatus = book.available_copies > 0 ? 'Available' : 'Borrowed';
+                let statusDotColor = 'bg-green-500';
+                if (book.available_copies === 0) statusDotColor = 'bg-red-500';
+                else if (book.available_copies < 3) statusDotColor = 'bg-amber-500';
+                
+                let cardBg = 'bg-white border-slate-200';
+                if (book.material_type === 'Periodical') {
+                    cardBg = 'bg-purple-50 border-purple-200';
+                }
+
+                const authorOrPub = book.material_type === 'Book' ? (book.author || 'Unknown Author') : (book.publisher || 'Unknown Publisher');
+                const idLabel = book.isbn || 'No ID';
+                const displayGenre = book.genre || 'General';
+                const typeBadge = book.material_type === 'Periodical' 
+                    ? `<span class="bg-purple-50 text-purple-700 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide border border-purple-100">${book.category || 'Periodical'}</span>`
+                    : `<span class="bg-blue-50 text-blue-700 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide border border-blue-100">${displayGenre}</span>`;
+
+                let extraDetails = [];
+                if (book.material_type === 'Book') {
+                    if (book.volume) extraDetails.push(book.volume.toLowerCase().includes('vol') || book.volume.toLowerCase().includes('book') ? book.volume : `Vol. ${book.volume}`);
+                    if (book.edition) extraDetails.push(book.edition);
+                } else {
+                    if (book.volume) extraDetails.push(book.volume.toLowerCase().includes('vol') ? book.volume : `Vol. ${book.volume}`);
+                    if (book.edition) extraDetails.push(book.edition.toLowerCase().includes('issue') || book.edition.toLowerCase().includes('no') ? book.edition : `No. ${book.edition}`);
+                }
+                const extraInfoHtml = extraDetails.length > 0 ? `<p class="text-[11px] font-bold text-[#183B5B]/70 mt-1">${extraDetails.join(' • ')}</p>` : '';
                 
                 return `
-                    <div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden hover:shadow-md transition-all group flex flex-col h-full">
-                        <div class="relative aspect-[2/3] overflow-hidden bg-slate-100">
-                            <img src="${book.image_url || '../assets/default_book.png'}" 
-                                class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                                onerror="this.src='https://placehold.co/200x300?text=No+Cover'">
-                            <div class="absolute top-2 right-2">
-                                <span class="px-2 py-1 text-[10px] font-bold rounded-full ${statusColor} shadow-sm">
-                                    ${book.status}
-                                </span>
+                    <div class="${cardBg} rounded-xl shadow-sm border p-4 flex flex-col gap-4 hover:shadow-md transition-shadow group h-full">
+                        <div class="flex gap-4 flex-1">
+                            <div class="w-24 h-36 bg-slate-200 rounded-lg border flex-shrink-0 flex items-center justify-center text-xs text-slate-400 overflow-hidden relative">
+                                <img src="${book.image_url || '../assets/default_book.png'}" 
+                                    class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                    onerror="this.src='https://placehold.co/200x300?text=No+Cover'">
+                                ${book.age_restriction ? `<div class="absolute top-1 left-1 bg-red-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded shadow-sm">${book.age_restriction}+</div>` : ''}
+                            </div>
+                            <div class="flex-1 min-w-0 flex flex-col">
+                                <div class="flex justify-between items-start">
+                                    <h3 class="font-bold text-slate-800 text-lg leading-tight line-clamp-2" title="${book.title}">${book.title}</h3>
+                                    <span class="w-2.5 h-2.5 rounded-full ${statusDotColor} shrink-0 mt-1.5 ml-2" title="${displayStatus}"></span>
+                                </div>
+                                ${extraInfoHtml}
+                                <p class="text-sm text-slate-600 mt-1 truncate">${authorOrPub}</p>
+                                <p class="text-xs text-slate-400 font-mono mt-0.5 truncate">${idLabel}</p>
+                                
+                                <div class="mt-auto pt-2 flex flex-wrap gap-2">
+                                    ${typeBadge}
+                                </div>
                             </div>
                         </div>
-                        <div class="p-4 flex flex-col flex-1">
-                            <h3 class="font-bold text-slate-800 text-sm leading-tight mb-1 line-clamp-2">${book.title}</h3>
-                            <p class="text-xs text-[#2E5F87] mb-2">${book.author}</p>
-                            <div class="mt-auto pt-2 border-t border-slate-50">
-                                <button onclick="openBookDetails(${book.book_id})" class="w-full py-2 text-xs font-bold text-[#183B5B] bg-slate-50 hover:bg-[#183B5B] hover:text-white rounded transition-colors">
+                        
+                        <div class="pt-3 border-t border-slate-100 flex items-center justify-between mt-auto">
+                            <div class="text-xs text-slate-500 flex items-center gap-2">
+                                <span><span class="font-bold text-slate-700">${book.available_copies}</span> / ${book.total_copies} Copies</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <button onclick="openBookDetails(${book.item_id}, '${book.material_type}')"
+                                    class="text-xs font-bold bg-slate-100 text-slate-600 hover:bg-slate-200 px-4 py-2 rounded-full transition-colors shadow-sm border border-slate-200">
                                     View Details
                                 </button>
                             </div>
@@ -909,7 +950,7 @@
             }
 
             // --- 3. Features ---
-            async function openBookDetails(bookId) {
+            async function openBookDetails(itemId, type) {
                 // Ensure catalog data is loaded
                 if (allCatalogBooks.length === 0) {
                     try {
@@ -925,28 +966,52 @@
                 }
 
                 // Find book in cached catalog or fetch
-                const book = allCatalogBooks.find(b => b.book_id == bookId);
+                const book = allCatalogBooks.find(b => b.item_id == itemId && b.material_type == type);
                 if (!book) return;
+                
+                let detailsGridHtml = '';
+                if (type === 'Periodical') {
+                    detailsGridHtml = `
+                        <div><span class="font-bold block text-xs uppercase text-slate-400">ISSN</span>${book.isbn || 'N/A'}</div>
+                        <div><span class="font-bold block text-xs uppercase text-slate-400">Publisher</span>${book.publisher || 'N/A'}</div>
+                        <div><span class="font-bold block text-xs uppercase text-slate-400">Type</span>${book.category || 'N/A'}</div>
+                        <div><span class="font-bold block text-xs uppercase text-slate-400">Genre</span>${book.genre || 'N/A'}</div>
+                        <div><span class="font-bold block text-xs uppercase text-slate-400">Latest Vol.</span>${book.volume || 'N/A'}</div>
+                        <div><span class="font-bold block text-xs uppercase text-slate-400">Latest Issue</span>${book.edition || 'N/A'}</div>
+                        <div><span class="font-bold block text-xs uppercase text-slate-400">Pages</span>${book.page_count || 'N/A'}</div>
+                        <div><span class="font-bold block text-xs uppercase text-slate-400">Age Restriction</span>${book.age_restriction ? book.age_restriction + '+' : 'None'}</div>
+                        <div class="col-span-2"><span class="font-bold block text-xs uppercase text-slate-400">Availability</span><span class="font-bold text-slate-800">${book.available_copies} / ${book.total_copies}</span> Copies Available</div>
+                    `;
+                } else {
+                    detailsGridHtml = `
+                        <div><span class="font-bold block text-xs uppercase text-slate-400">ISBN</span>${book.isbn || 'N/A'}</div>
+                        <div><span class="font-bold block text-xs uppercase text-slate-400">Publisher</span>${book.publisher || 'N/A'}</div>
+                        <div><span class="font-bold block text-xs uppercase text-slate-400">Year</span>${book.year || 'N/A'}</div>
+                        <div><span class="font-bold block text-xs uppercase text-slate-400">Genre</span>${book.genre || 'N/A'}</div>
+                        <div><span class="font-bold block text-xs uppercase text-slate-400">Dewey</span>${book.dewey_decimal || 'N/A'}</div>
+                        <div><span class="font-bold block text-xs uppercase text-slate-400">Pages</span>${book.page_count || 'N/A'}</div>
+                        <div><span class="font-bold block text-xs uppercase text-slate-400">Age Restriction</span>${book.age_restriction ? book.age_restriction + '+' : 'None'}</div>
+                        <div class="col-span-2"><span class="font-bold block text-xs uppercase text-slate-400">Availability</span><span class="font-bold text-slate-800">${book.available_copies} / ${book.total_copies}</span> Copies Available</div>
+                    `;
+                }
 
                 const content = `
                     <div class="flex flex-col md:flex-row gap-8">
                         <div class="w-full md:w-1/3 flex-shrink-0">
                             <img src="${book.image_url || '../assets/book_placeholder.png'}" class="w-full rounded-lg shadow-lg object-cover aspect-[2/3]" onerror="this.src='https://placehold.co/200x300?text=No+Cover'">
                             <div class="mt-4 text-center">
-                                <span class="px-3 py-1 rounded-full text-sm font-bold ${book.status === 'Available' ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-600'}">${book.status}</span>
+                                <span class="px-3 py-1 rounded-full text-sm font-bold ${book.available_copies > 0 ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}">${book.available_copies > 0 ? 'Available' : 'Borrowed'}</span>
                             </div>
                         </div>
                         <div class="flex-1">
-                            <h3 class="text-2xl font-bold text-[#183B5B] font-cinzel mb-2">${book.title}</h3>
-                            <p class="text-lg text-[#D6A84A] mb-6">${book.author}</p>
+                            <div class="flex items-start gap-3 mb-2">
+                                <h3 class="text-2xl font-bold text-[#183B5B] font-cinzel">${book.title}</h3>
+                                <span class="px-2 py-0.5 mt-1 bg-blue-50 text-blue-700 text-[10px] font-bold uppercase rounded border border-blue-100 shrink-0">${type}</span>
+                            </div>
+                            <p class="text-lg text-[#D6A84A] mb-6">${book.author || 'Unknown'}</p>
                             
                             <div class="grid grid-cols-2 gap-4 text-sm text-slate-600 mb-6">
-                                <div><span class="font-bold block text-xs uppercase text-slate-400">ISBN</span>${book.isbn || 'N/A'}</div>
-                                <div><span class="font-bold block text-xs uppercase text-slate-400">Publisher</span>${book.publisher || 'N/A'}</div>
-                                <div><span class="font-bold block text-xs uppercase text-slate-400">Year</span>${book.publication_year || 'N/A'}</div>
-                                <div><span class="font-bold block text-xs uppercase text-slate-400">Genre</span>${book.genre || 'N/A'}</div>
-                                <div><span class="font-bold block text-xs uppercase text-slate-400">Location</span>${book.location || 'N/A'}</div>
-                                <div><span class="font-bold block text-xs uppercase text-slate-400">Pages</span>${book.page_count || 'N/A'}</div>
+                                ${detailsGridHtml}
                             </div>
 
                             <div class="p-4 bg-blue-50 rounded-lg border border-blue-100 text-sm text-blue-800">

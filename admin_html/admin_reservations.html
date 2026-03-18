@@ -278,14 +278,10 @@
             if(!confirm("Confirm book claim? This will start the loan period.")) return;
             const adminId = localStorage.getItem('adminId');
             try {
-                // Fetch material_id and available_copies
-                const bookRes = await db.execute({ sql: "SELECT material_id, available_copies FROM BOOK WHERE book_id = ?", args: [bookId] });
-                if (bookRes.rows.length === 0) throw new Error("Book not found.");
+                const copyRes = await db.execute({ sql: "SELECT material_id FROM BOOK_COPY WHERE book_id = ? AND status = 'Available' LIMIT 1", args: [bookId] });
+                if (copyRes.rows.length === 0) throw new Error("No copies available to claim.");
                 
-                const materialId = bookRes.rows[0].material_id;
-                const currentCopies = bookRes.rows[0].available_copies;
-
-                if (currentCopies <= 0) throw new Error("No copies available to claim.");
+                const materialId = copyRes.rows[0].material_id;
 
                 await db.execute({ sql: "UPDATE RESERVATION SET status = 'Fulfilled' WHERE reservation_id = ?", args: [reservationId] });
                 await db.execute({ 
@@ -293,8 +289,7 @@
                     args: [userId, bookId, materialId] 
                 });
                 
-                const newStatus = (currentCopies - 1 === 0) ? 'Borrowed' : 'Available';
-                await db.execute({ sql: "UPDATE BOOK SET available_copies = available_copies - 1, status = ? WHERE book_id = ?", args: [newStatus, bookId] });
+                await db.execute({ sql: "UPDATE BOOK_COPY SET status = 'Borrowed' WHERE material_id = ?", args: [materialId] });
                 
                 if (adminId) {
                     await logAdminAction(adminId, 'CLAIM_BOOK', 'RESERVATION', reservationId, `Processed claim for reservation #${reservationId} (User: ${userId}, Book: ${bookId})`);

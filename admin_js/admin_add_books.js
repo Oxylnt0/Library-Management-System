@@ -33,10 +33,8 @@ const fieldGroupAuthor = document.getElementById('field-group-author');
 const fieldGroupIsbn = document.getElementById('field-group-isbn');
 const fieldGroupDewey = document.getElementById('field-group-dewey');
 const fieldGroupYear = document.getElementById('field-group-year');
-const fieldGroupPages = document.getElementById('field-group-pages');
 const fieldGroupVolume = document.getElementById('field-group-volume');
 const fieldGroupEdition = document.getElementById('field-group-edition');
-const fieldGroupAge = document.getElementById('field-group-age');
 const fieldGroupCategory = document.getElementById('field-group-category');
 const fieldGroupIssn = document.getElementById('field-group-issn');
 const fieldGroupPubDate = document.getElementById('field-group-pub-date');
@@ -204,10 +202,8 @@ function updateFormVisibility() {
     toggle(fieldGroupIsbn, isBook);
     toggle(fieldGroupDewey, isBook);
     toggle(fieldGroupYear, isBook);
-    toggle(fieldGroupPages, isBook);
     toggle(fieldGroupVolume, isBook);
     toggle(fieldGroupEdition, isBook);
-    toggle(fieldGroupAge, isBook);
     toggle(fieldGroupCategory, isBook);
 
     // Toggle Periodical fields
@@ -320,7 +316,9 @@ if (btnSave) {
                 genre: inpGenre.value,
                 image_url: inpImage.value,
                 material_type: materialType,
-                copiesData: copiesData
+                copiesData: copiesData,
+                page_count: inpPages.value ? parseInt(inpPages.value) : 0,
+                age_restriction: inpAge.value ? parseInt(inpAge.value) : 0
             };
 
             // Add type-specific fields
@@ -329,10 +327,8 @@ if (btnSave) {
                 data.isbn = inpIsbn.value;
                 data.dewey_decimal = inpDewey.value;
                 data.publication_year = inpYear.value ? parseInt(inpYear.value) : null;
-                data.page_count = inpPages.value ? parseInt(inpPages.value) : null;
                 data.volume = inpVolume.value;
                 data.edition = inpEdition.value;
-                data.age_restriction = inpAge.value ? parseInt(inpAge.value) : 0;
                 data.book_category = inpCategory.value;
             } else if (materialType === 'Periodical') {
                 data.issn = inpIssn.value;

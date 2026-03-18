@@ -34,19 +34,25 @@
                 if (scanType === 'borrow') {
                     // A. Fetch Pending Holds (Kiosk Requests)
                     const holdsRes = await db.execute({
-                        sql: `SELECT bt.borrow_id, bc.book_id, bt.expires_at, b.title 
+                        sql: `SELECT bt.borrow_id, bc.book_id, DATETIME(bt.borrow_date || ' ' || bt.borrow_time, '+30 minutes') as expires_at, b.title 
                               FROM BORROW_TRANSACTION bt
                               JOIN BOOK_COPY bc ON bt.material_id = bc.material_id
                               JOIN BOOK b ON bc.book_id = b.book_id
+                              WHERE bt.user_id = ? AND bt.status = 'Pending'
+                              UNION ALL
+                              SELECT bt.borrow_id, pc.periodical_id as book_id, DATETIME(bt.borrow_date || ' ' || bt.borrow_time, '+30 minutes') as expires_at, p.title
+                              FROM BORROW_TRANSACTION bt
+                              JOIN PERIODICAL_COPY pc ON bt.material_id = pc.material_id
+                              JOIN PERIODICAL p ON pc.periodical_id = p.periodical_id
                               WHERE bt.user_id = ? AND bt.status = 'Pending'`,
-                        args: [scannedUserId]
+                        args: [scannedUserId, scannedUserId]
                     });
 
                     renderBorrowModal(user, scannedUserId, holdsRes.rows);
                 } else if (scanType === 'return') {
                     // Fetch Active Loans
                     const loanResult = await db.execute({
-                        sql: `SELECT bt.borrow_id, bc.book_id, bt.borrow_date, bt.due_date, b.title, b.author, b.image_url 
+                        sql: `SELECT bt.borrow_id, bt.material_id, bc.book_id, bt.borrow_date, bt.due_date, b.title, b.author, b.image_url 
                               FROM BORROW_TRANSACTION bt 
                               JOIN BOOK_COPY bc ON bt.material_id = bc.material_id
                               JOIN BOOK b ON bc.book_id = b.book_id 
@@ -209,7 +215,7 @@
                                         <p class="text-xl font-bold text-red-600" id="total-fine-${borrow.borrow_id}">₱${overdueFee.toFixed(2)}</p>
                                         <input type="hidden" id="base-overdue-${borrow.borrow_id}" value="${overdueFee}">
                                     </div>
-                                    <button onclick="processReturn(${borrow.borrow_id}, ${borrow.book_id}, ${userId})" 
+                                    <button onclick="processReturn(${borrow.borrow_id}, ${borrow.material_id}, ${userId})" 
                                         class="bg-[#183B5B] hover:bg-[#2E5F87] text-white px-6 py-2 rounded-lg font-bold shadow-md transition-colors">
                                         Confirm Return
                                     </button>
@@ -240,17 +246,13 @@
         // Function to approve a checkout from a reservation
         async function approveCheckout(reservationId, userId, bookId) {
             try {
-                // Fetch material_id
-                const bookRes = await db.execute({
-                    sql: "SELECT material_id, available_copies FROM BOOK WHERE book_id = ?",
+                const copyRes = await db.execute({
+                    sql: "SELECT material_id FROM BOOK_COPY WHERE book_id = ? AND status = 'Available' LIMIT 1",
                     args: [bookId]
                 });
-                if (bookRes.rows.length === 0) throw new Error("Book not found.");
+                if (copyRes.rows.length === 0) throw new Error("No copies available.");
 
-                const materialId = bookRes.rows[0].material_id;
-                const currentCopies = bookRes.rows[0].available_copies;
-
-                if (currentCopies <= 0) throw new Error("No copies available.");
+                const materialId = copyRes.rows[0].material_id;
 
                 // Step 1: Mark Reservation as Fulfilled
                 await db.execute({
@@ -267,10 +269,9 @@
                 });
 
                 // Step 3: Update Book Status
-                const newStatus = (currentCopies - 1 === 0) ? 'Borrowed' : 'Available';
                 await db.execute({
-                    sql: "UPDATE BOOK SET available_copies = available_copies - 1, status = ? WHERE book_id = ?",
-                    args: [newStatus, bookId]
+                    sql: "UPDATE BOOK_COPY SET status = 'Borrowed' WHERE material_id = ?",
+                    args: [materialId]
                 });
 
                 alert("Checkout Approved! Book is now borrowed.");
@@ -328,7 +329,7 @@
             }
         }
 
-        async function processReturn(borrowId, bookId, userId) {
+        async function processReturn(borrowId, materialId, userId) {
             if (!confirm("Are you sure you want to return this book?")) return;
             try {
                 // Check for damage selection
@@ -358,8 +359,8 @@
 
                 // Update Book Status
                 await db.execute({
-                    sql: "UPDATE BOOK SET status = 'Available', available_copies = available_copies + 1 WHERE book_id = ?",
-                    args: [bookId]
+                    sql: "UPDATE BOOK_COPY SET status = 'Available' WHERE material_id = ?",
+                    args: [materialId]
                 });
 
                 // Insert Fines
@@ -481,7 +482,7 @@
             try {
                 // 1. Borrowed Today
                 const borrowedRes = await db.execute({
-                    sql: "SELECT COUNT(*) as count FROM BORROW_TRANSACTION WHERE borrow_date = DATE('now', '+8 hours')"
+                    sql: "SELECT COUNT(*) as count FROM BORROW_TRANSACTION WHERE borrow_date = DATE('now', '+8 hours') AND status = 'Borrowed'"
                 });
                 const borrowedCount = borrowedRes.rows[0]?.count || 0;
                 document.getElementById('stat-borrowed-today').innerText = borrowedCount;

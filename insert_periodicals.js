@@ -67,18 +67,25 @@ async function seedPeriodicals() {
     let copyCount = 0;
 
     for (const item of periodicalsToInsert) {
-      // Step 1: Insert into PERIODICAL (The Parent - Bibliographic Info)
-      // We use INSERT OR IGNORE so if the ISSN already exists, it won't duplicate the title info
-      const periodicalResult = await db.execute({
-        sql: `INSERT INTO PERIODICAL (issn, title, publisher, type, genre, image_url) 
-              VALUES (?, ?, ?, ?, ?, ?) 
-              ON CONFLICT(issn) DO UPDATE SET title=title 
-              RETURNING periodical_id;`,
-        args: [
-          item.issn, item.title, item.publisher, 
-          item.type, item.genre, item.image_url
-        ]
-      });
+    // Step 1: Insert or Find the Parent Title
+    const periodicalResult = await db.execute({
+      sql: `INSERT INTO PERIODICAL (
+              issn, title, publisher, type, genre, 
+              page_count, age_restriction, image_url
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?) 
+            ON CONFLICT(issn) DO UPDATE SET title=title 
+            RETURNING periodical_id;`,
+      args: [
+        item.issn, 
+        item.title, 
+        item.publisher, 
+        item.type, 
+        item.genre, 
+        item.page_count || 0,        // New field
+        item.age_restriction || 0,   // New field
+        item.image_url
+      ]
+    });
 
       const newPeriodicalId = periodicalResult.rows[0].periodical_id;
       titleCount++;

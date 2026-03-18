@@ -24,13 +24,8 @@ async function createAllTables() {
         DROP TABLE IF EXISTS ANNOUNCEMENT;
 
         -- 3. DROP CHILD TABLES (Physical Assets - Level 2)
-        DROP TABLE IF EXISTS PERIODICAL_COPY;
-        DROP TABLE IF EXISTS BOOK_COPY;
 
         -- 4. DROP PARENT TABLES (Level 1)
-        DROP TABLE IF EXISTS PERIODICAL;
-        DROP TABLE IF EXISTS BOOK;
-        DROP TABLE IF EXISTS MATERIAL;
         DROP TABLE IF EXISTS LENDING_POLICIES;
         DROP TABLE IF EXISTS FINE_SETTINGS;
 
@@ -75,7 +70,7 @@ async function createAllTables() {
             FOREIGN KEY (guardian_id) REFERENCES GUARDIAN_NAME(guardian_id)
         );
 
-        CREATE TABLE MATERIAL (
+        CREATE TABLE IF NOT EXISTS MATERIAL (
             material_id INTEGER PRIMARY KEY AUTOINCREMENT,
             material_type VARCHAR(30) CHECK (material_type IN ('Book', 'Periodical')),
             date_added DATETIME DEFAULT CURRENT_TIMESTAMP
@@ -98,7 +93,7 @@ async function createAllTables() {
         -- ==========================================
         -- 2. PARENT TABLES (Bibliographic Info)
         -- ==========================================
-        CREATE TABLE BOOK (
+        CREATE TABLE IF NOT EXISTS BOOK (
             book_id INTEGER PRIMARY KEY AUTOINCREMENT,
             isbn VARCHAR(20) UNIQUE,
             title VARCHAR(255) NOT NULL,
@@ -110,23 +105,27 @@ async function createAllTables() {
             dewey_decimal VARCHAR(20),
             genre VARCHAR(100),
             book_category VARCHAR(50) CHECK (book_category IN ('Fiction', 'Non-Fiction', 'Reference', 'Textbook')),
+            page_count INT DEFAULT 0,
+            age_restriction INT DEFAULT 0,
             image_url TEXT
         );
 
-        CREATE TABLE PERIODICAL (
+        CREATE TABLE IF NOT EXISTS PERIODICAL (
             periodical_id INTEGER PRIMARY KEY AUTOINCREMENT,
             issn VARCHAR(20) UNIQUE,
             title VARCHAR(255) NOT NULL,
             publisher VARCHAR(150),
             type VARCHAR(30) CHECK (type IN ('Magazine', 'Journal', 'Newspaper')),
             genre VARCHAR(100),
+            page_count INT DEFAULT 0,
+            age_restriction INT DEFAULT 0,
             image_url TEXT
         );
 
         -- ==========================================
         -- 3. CHILD TABLES (Physical Assets)
         -- ==========================================
-        CREATE TABLE BOOK_COPY (
+        CREATE TABLE IF NOT EXISTS BOOK_COPY (
             copy_id INTEGER PRIMARY KEY AUTOINCREMENT,
             book_id INT NOT NULL,
             material_id INT NOT NULL,
@@ -139,7 +138,7 @@ async function createAllTables() {
             FOREIGN KEY (material_id) REFERENCES MATERIAL(material_id) ON DELETE CASCADE
         );
 
-        CREATE TABLE PERIODICAL_COPY (
+        CREATE TABLE IF NOT EXISTS PERIODICAL_COPY (
             p_copy_id INTEGER PRIMARY KEY AUTOINCREMENT,
             periodical_id INT NOT NULL,
             material_id INT NOT NULL,
@@ -213,7 +212,11 @@ async function createAllTables() {
             question_3 VARCHAR(255) NOT NULL,
             answer_3 VARCHAR(255) NOT NULL,
             FOREIGN KEY (user_id) REFERENCES USER(user_id) ON DELETE CASCADE,
-            FOREIGN KEY (guardian_id) REFERENCES GUARDIAN_NAME(guardian_id) ON DELETE CASCADE
+            FOREIGN KEY (guardian_id) REFERENCES GUARDIAN_NAME(guardian_id) ON DELETE CASCADE,
+            CHECK (
+                (user_id IS NOT NULL AND guardian_id IS NULL) OR 
+                (user_id IS NULL AND guardian_id IS NOT NULL)
+            )
         );
 
         -- ==========================================
@@ -222,15 +225,18 @@ async function createAllTables() {
         CREATE TABLE BORROW_TRANSACTION (
             borrow_id INTEGER PRIMARY KEY AUTOINCREMENT,
             user_id INT NOT NULL,
-            material_id INT NOT NULL,
-            borrow_date DATE DEFAULT CURRENT_DATE,
+            book_id INT,
+            material_id INT,
+            borrow_date DATE,
             borrow_time TIME,
             due_date DATE,
             return_date DATE,
+            expires_at DATETIME,
             borrow_type VARCHAR(20) CHECK (borrow_type IN ('Inside Library', 'Outside Library')),
-            status VARCHAR(20) DEFAULT 'Pending',
+            status VARCHAR(20) DEFAULT 'Pending' CHECK (status IN ('Pending', 'Borrowed', 'Returned', 'Overdue', 'Lost', 'Cancelled')),
             extension_count INT DEFAULT 0,
             FOREIGN KEY (user_id) REFERENCES USER(user_id),
+            FOREIGN KEY (book_id) REFERENCES BOOK(book_id),
             FOREIGN KEY (material_id) REFERENCES MATERIAL(material_id)
         );
 
@@ -239,7 +245,9 @@ async function createAllTables() {
             user_id INT NOT NULL,
             material_id INT NOT NULL,
             reservation_date DATETIME DEFAULT CURRENT_TIMESTAMP,
-            status VARCHAR(20) DEFAULT 'Pending',
+            expiration_date DATETIME,
+            status VARCHAR(20) DEFAULT 'Pending' CHECK (status IN ('Pending', 'Approved', 'Fulfilled', 'Cancelled', 'Expired')),
+            priority_no INT DEFAULT 1,
             FOREIGN KEY (user_id) REFERENCES USER(user_id) ON DELETE CASCADE,
             FOREIGN KEY (material_id) REFERENCES MATERIAL(material_id) ON DELETE CASCADE
         );
@@ -255,12 +263,15 @@ async function createAllTables() {
 
         CREATE TABLE PAYMENT (
             payment_id INTEGER PRIMARY KEY AUTOINCREMENT,
-            fine_id INT NOT NULL,
-            payment_amount DECIMAL(10,2),
+            borrow_id INT,
+            fine_id INT,
+            fine_amount DECIMAL(10,2),
+            payment_status VARCHAR(20) CHECK (payment_status IN ('Paid', 'Unpaid')),
             payment_date DATE DEFAULT CURRENT_DATE,
             payment_method VARCHAR(30),
-            or_number VARCHAR(50),
-            remarks TEXT,
+            or_number VARCHAR(50),      
+            remarks VARCHAR(255),       
+            FOREIGN KEY (borrow_id) REFERENCES BORROW_TRANSACTION(borrow_id),
             FOREIGN KEY (fine_id) REFERENCES FINE(fine_id)
         );
 
@@ -275,9 +286,17 @@ async function createAllTables() {
 
         CREATE TABLE DONATION (
             donation_id INTEGER PRIMARY KEY AUTOINCREMENT,
+            donation_type VARCHAR(20) NOT NULL CHECK (donation_type IN ('Inbound', 'Outbound')),
+            user_id INT,
             donor_name VARCHAR(150),
+            recipient_organization VARCHAR(200),
+            book_id INT,
             book_title VARCHAR(255),
-            donation_date DATE DEFAULT CURRENT_DATE
+            category VARCHAR(50),
+            quantity INT DEFAULT 1,
+            donation_date DATE DEFAULT CURRENT_DATE,
+            FOREIGN KEY (user_id) REFERENCES USER(user_id) ON DELETE SET NULL,
+            FOREIGN KEY (book_id) REFERENCES BOOK(book_id) ON DELETE SET NULL
         );
     `;
 

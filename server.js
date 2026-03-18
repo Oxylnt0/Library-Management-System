@@ -85,12 +85,19 @@ app.get('/api/reservations/:userId', async (req, res) => {
     try {
         const result = await db.execute({
             sql: `
-                SELECT r.reservation_id, r.book_id, b.title 
+                SELECT r.reservation_id, bc.book_id as item_id, 'Book' as material_type, b.title 
                 FROM RESERVATION r 
-                JOIN BOOK b ON r.book_id = b.book_id 
+                JOIN BOOK_COPY bc ON r.material_id = bc.material_id
+                JOIN BOOK b ON bc.book_id = b.book_id 
+                WHERE r.user_id = ? AND r.status = 'Pending'
+                UNION ALL
+                SELECT r.reservation_id, pc.periodical_id as item_id, 'Periodical' as material_type, p.title 
+                FROM RESERVATION r 
+                JOIN PERIODICAL_COPY pc ON r.material_id = pc.material_id
+                JOIN PERIODICAL p ON pc.periodical_id = p.periodical_id 
                 WHERE r.user_id = ? AND r.status = 'Pending'
             `,
-            args: [userId]
+            args: [userId, userId]
         });
 
         res.json({ success: true, data: result.rows });
@@ -103,43 +110,30 @@ app.get('/api/reservations/:userId', async (req, res) => {
 // 2.5 GET /api/admin/reservations (Two-Table Approach)
 app.get('/api/admin/reservations', async (req, res) => {
     try {
-        // Array 1: Ready to Process (Pending OR Approved Reservation + Available Book)
+        // Array 1: Ready to Process
         const readyRes = await db.execute({
-            sql: `SELECT r.reservation_id, r.user_id, r.book_id, r.reservation_date, r.status, r.priority_no,
-                         u.first_name, u.last_name, b.title 
+            sql: `SELECT r.reservation_id, r.user_id, bc.book_id, r.reservation_date, r.status,
+                         u.first_name, u.last_name, b.title, bc.status as material_status
                   FROM RESERVATION r
-                  JOIN BOOK b ON r.book_id = b.book_id
+                  JOIN BOOK_COPY bc ON r.material_id = bc.material_id
+                  JOIN BOOK b ON bc.book_id = b.book_id
                   JOIN USER u ON r.user_id = u.user_id
                   WHERE r.status IN ('Pending', 'Approved') 
-                  AND b.status = 'Available'
-                  AND r.priority_no = (
-                      SELECT MIN(priority_no) 
-                      FROM RESERVATION r2 
-                      WHERE r2.book_id = r.book_id 
-                      AND r2.status IN ('Pending', 'Approved')
-                  )
-                  ORDER BY r.status ASC, r.reservation_date ASC`
+                  AND bc.status = 'Available'
+                  ORDER BY r.reservation_date ASC`
         });
 
-        // Array 2: Waitlist (Pending Reservation + Book NOT Available)
+        // Array 2: Waitlist
         const waitlistRes = await db.execute({
-            sql: `SELECT r.reservation_id, r.user_id, r.book_id, r.reservation_date, r.priority_no,
-                         u.first_name, u.last_name, b.title, b.status as book_status
+            sql: `SELECT r.reservation_id, r.user_id, bc.book_id, r.reservation_date,
+                         u.first_name, u.last_name, b.title, bc.status as book_status
                   FROM RESERVATION r
-                  JOIN BOOK b ON r.book_id = b.book_id
+                  JOIN BOOK_COPY bc ON r.material_id = bc.material_id
+                  JOIN BOOK b ON bc.book_id = b.book_id
                   JOIN USER u ON r.user_id = u.user_id
                   WHERE r.status = 'Pending' 
-                  AND (
-                      b.status != 'Available' 
-                      OR 
-                      r.priority_no > (
-                          SELECT MIN(priority_no) 
-                          FROM RESERVATION r2 
-                          WHERE r2.book_id = r.book_id 
-                          AND r2.status IN ('Pending', 'Approved')
-                      )
-                  )
-                  ORDER BY r.priority_no ASC, r.reservation_date ASC`
+                  AND bc.status != 'Available' 
+                  ORDER BY r.reservation_date ASC`
         });
 
         res.json({ success: true, readyToProcess: readyRes.rows, waitlist: waitlistRes.rows });
@@ -200,34 +194,22 @@ app.post('/api/reservations/cancel', async (req, res) => {
     const { reservation_id } = req.body;
     
     try {
-        // 1. Get reservation details for logging and re-ordering
         const resResult = await db.execute({
-            sql: `SELECT r.book_id, r.priority_no, r.user_id, b.title 
-                  FROM RESERVATION r 
-                  JOIN BOOK b ON r.book_id = b.book_id
-                  WHERE r.reservation_id = ?`,
+            sql: `SELECT r.material_id, r.user_id FROM RESERVATION r WHERE r.reservation_id = ?`,
             args: [reservation_id]
         });
 
         if (resResult.rows.length === 0) {
             return res.status(404).json({ success: false, message: "Reservation not found." });
         }
-        const { book_id, priority_no, user_id, title } = resResult.rows[0];
+        const { material_id, user_id } = resResult.rows[0];
 
-        // 2. Delete the reservation
         await db.execute({
             sql: "DELETE FROM RESERVATION WHERE reservation_id = ?",
             args: [reservation_id]
         });
 
-        // 3. Update priorities for the rest of the waitlist for that book
-        await db.execute({
-            sql: "UPDATE RESERVATION SET priority_no = priority_no - 1 WHERE book_id = ? AND priority_no > ?",
-            args: [book_id, priority_no]
-        });
-
-        // 4. Log the action
-        await logUserAction(user_id, 'CANCEL_RESERVATION', 'RESERVATION', reservation_id, `User cancelled reservation for '${title}'`);
+        await logUserAction(user_id, 'CANCEL_RESERVATION', 'RESERVATION', reservation_id, `User cancelled reservation`);
 
         res.json({ success: true, message: "Reservation cancelled." });
     } catch (error) {
@@ -398,8 +380,8 @@ app.post('/api/books/add', async (req, res) => {
             const bookResult = await db.execute({
                 sql: `INSERT INTO BOOK (
                     isbn, title, author, publisher, publication_year, 
-                    volume, edition, dewey_decimal, genre, book_category, image_url
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING book_id`,
+                    volume, edition, dewey_decimal, genre, book_category, image_url, page_count, age_restriction
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING book_id`,
                 args: [
                     data.isbn || null, 
                     data.title, 
@@ -411,7 +393,9 @@ app.post('/api/books/add', async (req, res) => {
                     data.dewey_decimal || data.dewey || null, 
                     data.genre || null, 
                     data.book_category || data.category, 
-                    data.image_url || data.image || null
+                    data.image_url || data.image || null,
+                    data.page_count || 0,
+                    data.age_restriction || 0
                 ]
             });
             newBookId = bookResult.rows[0].book_id;
@@ -442,15 +426,17 @@ app.post('/api/books/add', async (req, res) => {
             // 1. Insert into PERIODICAL (Parent Table)
             const periodicalResult = await db.execute({
                 sql: `INSERT INTO PERIODICAL (
-                    issn, title, publisher, type, genre, image_url
-                ) VALUES (?, ?, ?, ?, ?, ?) RETURNING periodical_id`,
+                    issn, title, publisher, type, genre, image_url, page_count, age_restriction
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?) RETURNING periodical_id`,
                 args: [
                     data.issn || null,
                     data.title,
                     data.publisher || null,
                     data.type, 
                     data.genre || null,
-                    data.image_url || data.image || null
+                    data.image_url || data.image || null,
+                    data.page_count || 0,
+                    data.age_restriction || 0
                 ]
             });
             const newPeriodicalId = periodicalResult.rows[0].periodical_id;
@@ -527,39 +513,48 @@ app.get('/api/donations/stats', async (req, res) => {
     }
 });
 
+// 9.5 GET /api/books/:id/copies (Fetch Available Physical Copies for User Modal)
+app.get('/api/books/:id/copies', async (req, res) => {
+    const { id } = req.params;
+    try {
+        const result = await db.execute({
+            sql: "SELECT material_id, book_condition as condition, location FROM BOOK_COPY WHERE book_id = ? AND status = 'Available' AND book_condition NOT IN ('Outdated', 'Obsolete')",
+            args: [id]
+        });
+        res.json({ success: true, data: result.rows });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
 // 10. POST /api/borrow/kiosk
 app.post('/api/borrow/kiosk', async (req, res) => {
-    const { book_id, user_id } = req.body;
+    const { material_id, user_id } = req.body;
     
     try {
-        // 1. Check availability
-        const bookRes = await db.execute({
-            sql: "SELECT available_copies, status, material_id, title FROM BOOK WHERE book_id = ?",
-            args: [book_id]
+        const copyRes = await db.execute({
+            sql: "SELECT bc.material_id, b.title, b.book_id FROM BOOK_COPY bc JOIN BOOK b ON bc.book_id = b.book_id WHERE bc.material_id = ? AND bc.status = 'Available'",
+            args: [material_id]
         });
 
-        if (bookRes.rows.length === 0) return res.status(404).json({ success: false, message: "Book not found." });
+        if (copyRes.rows.length === 0) return res.status(400).json({ success: false, message: "This specific copy is no longer available." });
         
-        const book = bookRes.rows[0];
-        if (book.available_copies <= 0) return res.status(400).json({ success: false, message: "Book is currently unavailable." });
+        const bookTitle = copyRes.rows[0].title;
+        const bookId = copyRes.rows[0].book_id;
 
-        // 2. Create Pending Transaction (Hold expires in 30 mins)
+        // 2. Create Pending Transaction
         const transRes = await db.execute({
-            sql: `INSERT INTO BORROW_TRANSACTION (user_id, book_id, material_id, borrow_date, status, expires_at, borrow_type) 
-                  VALUES (?, ?, ?, DATE('now', '+8 hours'), 'Pending', DATETIME('now', '+8 hours', '+30 minutes'), 'Outside Library') RETURNING borrow_id`,
-            args: [user_id, book_id, book.material_id]
+            sql: `INSERT INTO BORROW_TRANSACTION (user_id, book_id, material_id, borrow_date, borrow_time, status, borrow_type) 
+                  VALUES (?, ?, ?, DATE('now', '+8 hours'), TIME('now', '+8 hours'), 'Pending', 'Outside Library') RETURNING borrow_id`,
+            args: [user_id, bookId, material_id]
         });
 
         const borrowId = transRes.rows[0].borrow_id;
 
         // 3. Update Book Inventory
-        const newStatus = (book.available_copies - 1 === 0) ? 'Borrowed' : 'Available';
-        await db.execute({
-            sql: "UPDATE BOOK SET available_copies = available_copies - 1, status = ? WHERE book_id = ?",
-            args: [newStatus, book_id]
-        });
+        await db.execute({ sql: "UPDATE BOOK_COPY SET status = 'Borrowed' WHERE material_id = ?", args: [material_id] });
 
-        await logUserAction(user_id, 'BORROW_HOLD', 'BORROW_TRANSACTION', borrowId, `User placed 30-min hold on '${book.title}'`);
+        await logUserAction(user_id, 'BORROW_HOLD', 'BORROW_TRANSACTION', borrowId, `User placed 30-min hold on '${bookTitle}' (Material ID: ${material_id})`);
 
         res.json({ success: true, message: "Hold placed successfully." });
     } catch (error) {
@@ -572,20 +567,15 @@ app.post('/api/borrow/kiosk', async (req, res) => {
 app.post('/api/borrow/cancel', async (req, res) => {
     const { borrow_id } = req.body;
     try {
-        // Get book_id and user_id from transaction to update inventory and log
         const transRes = await db.execute({
-            sql: `SELECT bc.book_id, bt.user_id, b.title 
-                  FROM BORROW_TRANSACTION bt
-                  JOIN BOOK_COPY bc ON bt.material_id = bc.material_id
-                  JOIN BOOK b ON bc.book_id = b.book_id
-                  WHERE bt.borrow_id = ? AND bt.status = 'Pending'`,
+            sql: `SELECT bt.user_id, bt.material_id, m.material_type FROM BORROW_TRANSACTION bt JOIN MATERIAL m ON bt.material_id = m.material_id WHERE bt.borrow_id = ? AND bt.status = 'Pending'`,
             args: [borrow_id]
         });
         
         if (transRes.rows.length === 0) {
             return res.status(400).json({ success: false, message: "Transaction not found or not pending." });
         }
-        const { book_id, user_id, title } = transRes.rows[0];
+        const { user_id, material_id, material_type } = transRes.rows[0];
 
         // Update Transaction to Cancelled
         await db.execute({
@@ -594,10 +584,16 @@ app.post('/api/borrow/cancel', async (req, res) => {
         });
 
         // Update Book Inventory (Make available again)
-        await db.execute({
-            sql: "UPDATE BOOK SET status = 'Available', available_copies = available_copies + 1 WHERE book_id = ?",
-            args: [book_id]
-        });
+        let title = "Material";
+        if (material_type === 'Book') {
+            await db.execute({ sql: "UPDATE BOOK_COPY SET status = 'Available' WHERE material_id = ?", args: [material_id] });
+            const titleRes = await db.execute({ sql: "SELECT b.title FROM BOOK b JOIN BOOK_COPY c ON b.book_id = c.book_id WHERE c.material_id = ?", args: [material_id] });
+            title = titleRes.rows[0]?.title || title;
+        } else {
+            await db.execute({ sql: "UPDATE PERIODICAL_COPY SET status = 'Available' WHERE material_id = ?", args: [material_id] });
+            const titleRes = await db.execute({ sql: "SELECT p.title FROM PERIODICAL p JOIN PERIODICAL_COPY c ON p.periodical_id = c.periodical_id WHERE c.material_id = ?", args: [material_id] });
+            title = titleRes.rows[0]?.title || title;
+        }
 
         await logUserAction(user_id, 'CANCEL_HOLD', 'BORROW_TRANSACTION', borrow_id, `User cancelled hold for '${title}'`);
 
@@ -640,27 +636,31 @@ app.post('/api/borrow/extend', async (req, res) => {
 
 // 11. POST /api/waitlist
 app.post('/api/waitlist', async (req, res) => {
-    const { book_id, user_id } = req.body;
+    const { book_id, material_type, user_id } = req.body;
 
     try {
-        // 1. Calculate Priority
-        const prioRes = await db.execute({
-            sql: "SELECT MAX(priority_no) as max_p FROM RESERVATION WHERE book_id = ?",
-            args: [book_id]
-        });
-        const nextPriority = (prioRes.rows[0]?.max_p || 0) + 1;
+        let matRes;
+        let bookTitle;
+        if (material_type === 'Book') {
+            matRes = await db.execute({ sql: "SELECT material_id FROM BOOK_COPY WHERE book_id = ? LIMIT 1", args: [book_id] });
+            const titleRes = await db.execute({ sql: "SELECT title FROM BOOK WHERE book_id = ?", args: [book_id] });
+            bookTitle = titleRes.rows[0]?.title || 'Book';
+        } else {
+            matRes = await db.execute({ sql: "SELECT material_id FROM PERIODICAL_COPY WHERE periodical_id = ? LIMIT 1", args: [book_id] });
+            const titleRes = await db.execute({ sql: "SELECT title FROM PERIODICAL WHERE periodical_id = ?", args: [book_id] });
+            bookTitle = titleRes.rows[0]?.title || 'Periodical';
+        }
 
-        // Fetch title for log
-        const bookRes = await db.execute({ sql: "SELECT title FROM BOOK WHERE book_id = ?", args: [book_id] });
-        const bookTitle = bookRes.rows[0]?.title || 'Unknown Book';
+        if (matRes.rows.length === 0) return res.status(404).json({ success: false, message: "Material not found." });
+        const targetMaterialId = matRes.rows[0].material_id;
 
         // 2. Insert Reservation
         const resResult = await db.execute({
-            sql: "INSERT INTO RESERVATION (user_id, book_id, status, priority_no) VALUES (?, ?, 'Pending', ?) RETURNING reservation_id",
-            args: [user_id, book_id, nextPriority]
+            sql: "INSERT INTO RESERVATION (user_id, material_id, status) VALUES (?, ?, 'Pending') RETURNING reservation_id",
+            args: [user_id, targetMaterialId]
         });
 
-        await logUserAction(user_id, 'JOIN_WAITLIST', 'RESERVATION', resResult.rows[0].reservation_id, `User joined waitlist for '${bookTitle}' (Priority: ${nextPriority})`);
+        await logUserAction(user_id, 'JOIN_WAITLIST', 'RESERVATION', resResult.rows[0].reservation_id, `User joined waitlist for '${bookTitle}'`);
 
         res.json({ success: true, message: "Added to waitlist." });
     } catch (error) {
@@ -675,20 +675,31 @@ app.get('/api/books', async (req, res) => {
 
     try {
         let sql = `
-            SELECT b.*,
+            SELECT b.book_id as item_id, 'Book' as material_type, b.title, b.author, b.isbn, b.publisher, b.publication_year as year, b.volume, b.edition, b.genre, b.dewey_decimal, b.book_category as category, b.image_url, b.page_count, b.age_restriction, MIN(m.date_added) as date_added,
                    SUM(CASE WHEN c.status = 'Available' THEN 1 ELSE 0 END) as available_copies,
                    COUNT(c.copy_id) as total_copies
             FROM BOOK b
             JOIN BOOK_COPY c ON b.book_id = c.book_id
+            JOIN MATERIAL m ON c.material_id = m.material_id
             WHERE c.book_condition NOT IN ('Outdated', 'Obsolete') 
             AND c.status NOT IN ('Archived', 'Donated Outbound', 'Lost')
             GROUP BY b.book_id
+            UNION ALL
+            SELECT p.periodical_id as item_id, 'Periodical' as material_type, p.title, p.publisher as author, p.issn as isbn, p.publisher, NULL as year, MAX(c.volume_no) as volume, MAX(c.issue_no) as edition, p.genre, NULL as dewey_decimal, p.type as category, p.image_url, p.page_count, p.age_restriction, MIN(m.date_added) as date_added,
+                   SUM(CASE WHEN c.status = 'Available' THEN 1 ELSE 0 END) as available_copies,
+                   COUNT(c.p_copy_id) as total_copies
+            FROM PERIODICAL p
+            JOIN PERIODICAL_COPY c ON p.periodical_id = c.periodical_id
+            JOIN MATERIAL m ON c.material_id = m.material_id
+            WHERE c.periodical_condition NOT IN ('Outdated', 'Obsolete') 
+            AND c.status NOT IN ('Archived', 'Donated Outbound', 'Lost')
+            GROUP BY p.periodical_id
         `;
         let args = [];
 
         if (userId) {
             sql = `
-                SELECT b.*,
+                SELECT b.book_id as item_id, 'Book' as material_type, b.title, b.author, b.isbn, b.publisher, b.publication_year as year, b.volume, b.edition, b.genre, b.dewey_decimal, b.book_category as category, b.image_url, b.page_count, b.age_restriction, MIN(m.date_added) as date_added,
                 SUM(CASE WHEN c.status = 'Available' THEN 1 ELSE 0 END) as available_copies,
                 COUNT(c.copy_id) as total_copies,
                 (SELECT COUNT(*) FROM BORROW_TRANSACTION bt 
@@ -696,22 +707,49 @@ app.get('/api/books', async (req, res) => {
                  WHERE bc_bt.book_id = b.book_id 
                  AND bt.user_id = ? 
                  AND bt.status IN ('Pending', 'Borrowed')) as user_already_has_it,
-                (SELECT status FROM BORROW_TRANSACTION bt 
+                (SELECT bt.status FROM BORROW_TRANSACTION bt 
                  JOIN BOOK_COPY bc_bt ON bt.material_id = bc_bt.material_id
                  WHERE bc_bt.book_id = b.book_id 
                  AND bt.user_id = ? 
                  AND bt.status IN ('Pending', 'Borrowed') LIMIT 1) as user_transaction_status,
                 (SELECT COUNT(*) FROM RESERVATION r 
-                 WHERE r.book_id = b.book_id 
+                 JOIN BOOK_COPY bc_r ON r.material_id = bc_r.material_id
+                 WHERE bc_r.book_id = b.book_id 
                  AND r.user_id = ? 
                  AND r.status = 'Pending') as user_is_waitlisted
                 FROM BOOK b
                 JOIN BOOK_COPY c ON b.book_id = c.book_id
+                JOIN MATERIAL m ON c.material_id = m.material_id
                 WHERE c.book_condition NOT IN ('Outdated', 'Obsolete') 
                 AND c.status NOT IN ('Archived', 'Donated Outbound', 'Lost')
                 GROUP BY b.book_id
+                UNION ALL
+                SELECT p.periodical_id as item_id, 'Periodical' as material_type, p.title, p.publisher as author, p.issn as isbn, p.publisher, NULL as year, MAX(c.volume_no) as volume, MAX(c.issue_no) as edition, p.genre, NULL as dewey_decimal, p.type as category, p.image_url, p.page_count, p.age_restriction, MIN(m.date_added) as date_added,
+                SUM(CASE WHEN c.status = 'Available' THEN 1 ELSE 0 END) as available_copies,
+                COUNT(c.p_copy_id) as total_copies,
+                (SELECT COUNT(*) FROM BORROW_TRANSACTION bt 
+                 JOIN PERIODICAL_COPY pc_bt ON bt.material_id = pc_bt.material_id
+                 WHERE pc_bt.periodical_id = p.periodical_id 
+                 AND bt.user_id = ? 
+                 AND bt.status IN ('Pending', 'Borrowed')) as user_already_has_it,
+                (SELECT bt.status FROM BORROW_TRANSACTION bt 
+                 JOIN PERIODICAL_COPY pc_bt ON bt.material_id = pc_bt.material_id
+                 WHERE pc_bt.periodical_id = p.periodical_id 
+                 AND bt.user_id = ? 
+                 AND bt.status IN ('Pending', 'Borrowed') LIMIT 1) as user_transaction_status,
+                (SELECT COUNT(*) FROM RESERVATION r 
+                 JOIN PERIODICAL_COPY pc_r ON r.material_id = pc_r.material_id
+                 WHERE pc_r.periodical_id = p.periodical_id 
+                 AND r.user_id = ? 
+                 AND r.status = 'Pending') as user_is_waitlisted
+                FROM PERIODICAL p
+                JOIN PERIODICAL_COPY c ON p.periodical_id = c.periodical_id
+                JOIN MATERIAL m ON c.material_id = m.material_id
+                WHERE c.periodical_condition NOT IN ('Outdated', 'Obsolete') 
+                AND c.status NOT IN ('Archived', 'Donated Outbound', 'Lost')
+                GROUP BY p.periodical_id
             `;
-            args = [userId, userId, userId];
+            args = [userId, userId, userId, userId, userId, userId];
         }
 
         const result = await db.execute({ sql, args });
@@ -882,7 +920,7 @@ app.post('/api/fines/pay', async (req, res) => {
         // 3. Insert into PAYMENT table for audit/daily stats
         if (borrowId) {
             await db.execute({
-                sql: `INSERT INTO PAYMENT (fine_id, payment_amount, payment_date, payment_method, or_number, remarks) 
+                sql: `INSERT INTO PAYMENT (fine_id, fine_amount, payment_date, payment_method, or_number, remarks) 
                       VALUES (?, ?, DATE('now', '+8 hours'), ?, ?, ?)`,
                 args: [fine_id, amount, payment_method || 'Cash', reference_number || null, remarks || null]
             });
@@ -938,11 +976,11 @@ app.get('/api/fines/stats', async (req, res) => {
         const usersRes = await db.execute("SELECT COUNT(DISTINCT b.user_id) as count FROM FINE f JOIN BORROW_TRANSACTION b ON f.borrow_id = b.borrow_id WHERE f.status = 'Unpaid'");
         
         // Collected Today
-        const collectedRes = await db.execute("SELECT SUM(payment_amount) as total, COUNT(*) as count FROM PAYMENT WHERE payment_date = DATE('now', '+8 hours')");
+        const collectedRes = await db.execute("SELECT SUM(fine_amount) as total, COUNT(*) as count FROM PAYMENT WHERE payment_date = DATE('now', '+8 hours')");
         
         // Recent Payments
         const recentRes = await db.execute(`
-            SELECT p.payment_amount as fine_amount, u.first_name, u.last_name 
+            SELECT p.fine_amount, u.first_name, u.last_name 
             FROM PAYMENT p 
             JOIN FINE f ON p.fine_id = f.fine_id
             JOIN BORROW_TRANSACTION b ON f.borrow_id = b.borrow_id 
@@ -1070,25 +1108,42 @@ app.get('/api/books/public', async (req, res) => {
         
         if (sort === 'popular') {
             sql = `
-                SELECT b.book_id, b.title, b.image_url, COUNT(bt.borrow_id) as borrow_count
+                SELECT b.book_id as item_id, 'Book' as material_type, b.title, b.author, b.image_url, b.age_restriction, COUNT(bt.borrow_id) as borrow_count
                 FROM BOOK b
                 JOIN BOOK_COPY c ON b.book_id = c.book_id
                 LEFT JOIN BORROW_TRANSACTION bt ON c.material_id = bt.material_id
                 WHERE c.book_condition NOT IN ('Outdated', 'Obsolete') 
                 AND c.status NOT IN ('Archived', 'Donated Outbound', 'Lost')
                 GROUP BY b.book_id
-                ORDER BY borrow_count DESC, b.title ASC
+                UNION ALL
+                SELECT p.periodical_id as item_id, 'Periodical' as material_type, p.title, p.publisher as author, p.image_url, p.age_restriction, COUNT(bt.borrow_id) as borrow_count
+                FROM PERIODICAL p
+                JOIN PERIODICAL_COPY c ON p.periodical_id = c.periodical_id
+                LEFT JOIN BORROW_TRANSACTION bt ON c.material_id = bt.material_id
+                WHERE c.periodical_condition NOT IN ('Outdated', 'Obsolete') 
+                AND c.status NOT IN ('Archived', 'Donated Outbound', 'Lost')
+                GROUP BY p.periodical_id
+                ORDER BY borrow_count DESC, title ASC
                 LIMIT 4
             `;
         } else {
             // Default to latest
-            sql = `SELECT b.book_id, b.title, b.image_url, MIN(c.date_added) as date_added 
+            sql = `SELECT b.book_id as item_id, 'Book' as material_type, b.title, b.author, b.image_url, b.age_restriction, MIN(m.date_added) as date_added 
                    FROM BOOK b
                    JOIN BOOK_COPY c ON b.book_id = c.book_id
+                   JOIN MATERIAL m ON c.material_id = m.material_id
                    WHERE c.book_condition NOT IN ('Outdated', 'Obsolete') 
                    AND c.status NOT IN ('Archived', 'Donated Outbound', 'Lost')
                    GROUP BY b.book_id
-                   ORDER BY date_added DESC, b.book_id DESC LIMIT 4`;
+                   UNION ALL
+                   SELECT p.periodical_id as item_id, 'Periodical' as material_type, p.title, p.publisher as author, p.image_url, p.age_restriction, MIN(m.date_added) as date_added 
+                   FROM PERIODICAL p
+                   JOIN PERIODICAL_COPY c ON p.periodical_id = c.periodical_id
+                   JOIN MATERIAL m ON c.material_id = m.material_id
+                   WHERE c.periodical_condition NOT IN ('Outdated', 'Obsolete') 
+                   AND c.status NOT IN ('Archived', 'Donated Outbound', 'Lost')
+                   GROUP BY p.periodical_id
+                   ORDER BY date_added DESC, item_id DESC LIMIT 4`;
         }
 
         const result = await db.execute(sql);
@@ -1664,7 +1719,7 @@ app.get('/api/reports/dashboard', async (req, res) => {
         const usersRes = await db.execute("SELECT COUNT(*) as count FROM USER WHERE strftime('%Y-%m', date_created) = strftime('%Y-%m', 'now', '+8 hours')");
         
         // 3. Fines Collected (Current Month)
-        const finesRes = await db.execute("SELECT SUM(payment_amount) as total FROM PAYMENT WHERE strftime('%Y-%m', payment_date) = strftime('%Y-%m', 'now', '+8 hours')");
+        const finesRes = await db.execute("SELECT SUM(fine_amount) as total FROM PAYMENT WHERE strftime('%Y-%m', payment_date) = strftime('%Y-%m', 'now', '+8 hours')");
         
         // 4. Lost Books (Total Active Lost)
         const lostRes = await db.execute("SELECT COUNT(*) as count FROM BOOK_COPY WHERE status = 'Lost'");
@@ -1721,7 +1776,7 @@ app.post('/api/reports/generate', async (req, res) => {
             results.purchased_vs_donated = res.rows;
         }
         if (reportTypes.includes('fines')) {
-            const res = await db.execute("SELECT payment_method, SUM(payment_amount) as total, COUNT(*) as count FROM PAYMENT GROUP BY payment_method");
+            const res = await db.execute("SELECT payment_method, SUM(fine_amount) as total, COUNT(*) as count FROM PAYMENT GROUP BY payment_method");
             results.fines = res.rows;
         }
         if (reportTypes.includes('unreturned')) {
@@ -1831,12 +1886,12 @@ app.get('/api/reports/view', async (req, res) => {
             // 3. Financials
             case 'revenue_collection':
                 // Detailed list for table
-                sql = `SELECT payment_id, payment_date, or_number, payment_amount as fine_amount, payment_method, remarks 
+                sql = `SELECT payment_id, payment_date, or_number, fine_amount, payment_method, remarks 
                        FROM PAYMENT WHERE 1=1 ${dateFilter('payment_date')} ORDER BY payment_date DESC`;
                 break;
             case 'revenue_daily':
                 // Grouped by date for analytics (Requested Output)
-                sql = `SELECT payment_date, SUM(payment_amount) as total_revenue 
+                sql = `SELECT payment_date, SUM(fine_amount) as total_revenue 
                        FROM PAYMENT WHERE 1=1 ${dateFilter('payment_date')} GROUP BY payment_date ORDER BY payment_date DESC`;
                 break;
             case 'outstanding':
@@ -1902,7 +1957,7 @@ app.get('/api/reports/stats', async (req, res) => {
                 { label: 'Archived', value: archived.rows[0].c, color: 'amber' }
             ];
         } else if (domain === 'financials') {
-            const revenue = await db.execute("SELECT SUM(payment_amount) as s FROM PAYMENT");
+            const revenue = await db.execute("SELECT SUM(fine_amount) as s FROM PAYMENT");
             const unpaid = await db.execute("SELECT SUM(fine_amount) as s FROM FINE WHERE status = 'Unpaid'");
             stats = [
                 { label: 'Total Revenue', value: `₱${(revenue.rows[0].s || 0).toFixed(2)}`, color: 'emerald' },
@@ -1926,16 +1981,13 @@ app.get('/api/reports/stats', async (req, res) => {
 app.get('/api/announcements/public', async (req, res) => {
     try {
         const result = await db.execute(`
-            SELECT title, content, date_posted, priority 
+            SELECT title, content, date_posted 
             FROM ANNOUNCEMENT 
-            WHERE status = 'Published' 
-            AND (valid_until IS NULL OR valid_until > DATETIME('now', '+8 hours'))
-            ORDER BY 
-                CASE priority WHEN 'Urgent' THEN 1 WHEN 'High' THEN 2 ELSE 3 END, 
-                date_posted DESC
+            ORDER BY date_posted DESC
             LIMIT 5
         `);
-        res.json({ success: true, data: result.rows });
+        const mapped = result.rows.map(r => ({...r, priority: 'Normal'}));
+        res.json({ success: true, data: mapped });
     } catch (e) { res.status(500).json({ success: false, message: e.message }); }
 });
 
@@ -1954,11 +2006,11 @@ app.get('/api/announcements', async (req, res) => {
 
 // POST /api/announcements (Create)
 app.post('/api/announcements', async (req, res) => {
-    const { admin_id, title, content, priority, status, valid_until } = req.body;
+    const { admin_id, title, content } = req.body;
     try {
         await db.execute({
-            sql: "INSERT INTO ANNOUNCEMENT (admin_id, title, content, priority, status, valid_until) VALUES (?, ?, ?, ?, ?, ?)",
-            args: [admin_id, title, content, priority, status, valid_until || null]
+            sql: "INSERT INTO ANNOUNCEMENT (admin_id, title, content) VALUES (?, ?, ?)",
+            args: [admin_id, title, content]
         });
         res.json({ success: true, message: "Announcement created successfully." });
     } catch (e) { res.status(500).json({ success: false, message: e.message }); }
@@ -1967,11 +2019,11 @@ app.post('/api/announcements', async (req, res) => {
 // PUT /api/announcements/:id (Update)
 app.put('/api/announcements/:id', async (req, res) => {
     const { id } = req.params;
-    const { title, content, priority, status, valid_until } = req.body;
+    const { title, content } = req.body;
     try {
         await db.execute({
-            sql: "UPDATE ANNOUNCEMENT SET title = ?, content = ?, priority = ?, status = ?, valid_until = ? WHERE announcement_id = ?",
-            args: [title, content, priority, status, valid_until || null, id]
+            sql: "UPDATE ANNOUNCEMENT SET title = ?, content = ? WHERE announcement_id = ?",
+            args: [title, content, id]
         });
         res.json({ success: true, message: "Announcement updated successfully." });
     } catch (e) { res.status(500).json({ success: false, message: e.message }); }
@@ -1981,7 +2033,7 @@ app.put('/api/announcements/:id', async (req, res) => {
 app.delete('/api/announcements/:id', async (req, res) => {
     const { id } = req.params;
     try {
-        await db.execute({ sql: "UPDATE ANNOUNCEMENT SET status = 'Archived' WHERE announcement_id = ?", args: [id] });
+        await db.execute({ sql: "DELETE FROM ANNOUNCEMENT WHERE announcement_id = ?", args: [id] });
         res.json({ success: true, message: "Announcement archived." });
     } catch (e) { res.status(500).json({ success: false, message: e.message }); }
 });

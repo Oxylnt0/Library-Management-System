@@ -192,7 +192,7 @@
 
             <!-- Book Grid -->
             <div class="flex-1 overflow-y-auto p-8 scroll-smooth">
-                <div id="book-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-8 pb-10">
+                <div id="book-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6 pb-10 content-start">
                     <!-- Books will be loaded here dynamically -->
                 </div>
             </div>
@@ -255,6 +255,40 @@
                         </div>
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Copies Selection Modal -->
+    <div id="user-copies-modal" class="fixed inset-0 z-[60] hidden flex items-center justify-center bg-black/50 backdrop-blur-sm transition-opacity duration-300 p-4">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-3xl p-6 transform transition-all scale-100 max-h-[90vh] flex flex-col">
+            <div class="flex justify-between items-start mb-4 shrink-0">
+                <div>
+                    <h3 class="text-2xl font-cinzel text-[#183B5B]">Select a Copy</h3>
+                    <p class="text-sm text-slate-500 font-bold" id="user-copies-modal-title">Book Title</p>
+                </div>
+                <button onclick="closeUserCopiesModal()" class="text-slate-400 hover:text-slate-600 transition-colors">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            
+            <div class="flex-1 overflow-y-auto min-h-0 border rounded-lg border-slate-200">
+                <table class="w-full text-left border-collapse">
+                    <thead class="bg-slate-50 sticky top-0 border-b border-slate-200 z-10 shadow-sm">
+                        <tr>
+                            <th class="p-3 text-xs font-bold text-slate-500 uppercase">Material ID</th>
+                            <th class="p-3 text-xs font-bold text-slate-500 uppercase">Condition</th>
+                            <th class="p-3 text-xs font-bold text-slate-500 uppercase">Location</th>
+                            <th class="p-3 text-xs font-bold text-slate-500 uppercase text-right">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="user-copies-table-body" class="divide-y divide-slate-100 text-sm">
+                        <!-- Rows injected by JS -->
+                    </tbody>
+                </table>
+            </div>
+            <div class="mt-4 flex justify-end shrink-0">
+                <button type="button" onclick="closeUserCopiesModal()" class="px-4 py-2 rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200 transition font-bold text-sm shadow-sm">Cancel</button>
             </div>
         </div>
     </div>
