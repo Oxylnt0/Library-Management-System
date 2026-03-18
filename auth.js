@@ -1,6 +1,6 @@
 const path = require('path');
 const { db } = require(path.join(process.cwd(), 'db_config.js'));
-const { sendLibraryCard } = require(path.join(process.cwd(), 'email_service.js'));
+const { sendAccountStatusEmail } = require(path.join(process.cwd(), 'email_service.js'));
 const { logUserAction, logGuardianAction } = require(path.join(process.cwd(), 'audit_service.js'));
 
 async function registerUser(userData) {
@@ -39,7 +39,7 @@ async function registerUser(userData) {
             });
         }
 
-        await sendLibraryCard(userData.email, userId, userData.firstName);
+        await sendAccountStatusEmail(userData.email, userData.firstName, 'Pending');
         await logUserAction(userId, 'REGISTRATION', 'USER', userId, 'New user registration completed');
 
         return { success: true, message: "Registration successful! Please wait for admin approval." };
@@ -101,7 +101,7 @@ async function registerGuardian(guardianData, childData) {
         });
 
         const childId = childResult.rows[0].user_id;
-        await sendLibraryCard(guardianData.email, childId, childData.firstName);
+        await sendAccountStatusEmail(guardianData.email, guardianData.firstName, 'Pending');
         await logGuardianAction(guardianId, 'REGISTRATION', 'GUARDIAN_NAME', guardianId, 'New guardian registration completed');
         await logUserAction(childId, 'REGISTRATION', 'USER', childId, 'Child account registered via Guardian');
 

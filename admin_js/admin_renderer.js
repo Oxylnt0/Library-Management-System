@@ -5,9 +5,16 @@ let inactivityTimer;
 const INACTIVITY_LIMIT = 15 * 60 * 1000; // 15 minutes in milliseconds
 
 function logoutDueToInactivity() {
-    alert("Your session has expired due to 15 minutes of inactivity. Please log in again.");
-    localStorage.clear(); // Clear admin session data (adminId, etc.)
-    window.location.href = 'admin_login.html';
+    if (window.showCustomAlert) {
+        window.showCustomAlert("Your session has expired due to 15 minutes of inactivity. Please log in again.", () => {
+            localStorage.clear(); // Clear admin session data
+            window.location.href = 'admin_login.html';
+        });
+    } else {
+        alert("Your session has expired due to 15 minutes of inactivity. Please log in again.");
+        localStorage.clear();
+        window.location.href = 'admin_login.html';
+    }
 }
 
 function resetInactivityTimer() {

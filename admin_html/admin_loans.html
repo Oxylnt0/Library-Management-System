@@ -236,14 +236,14 @@
                         window.onUserQrScanned(data.id, currentScanType);
                     } else {
                         console.error("onUserQrScanned is not defined");
-                        alert("Error: Loan system not ready. Please refresh the page.");
+                        window.showCustomAlert("Error: Loan system not ready. Please refresh the page.");
                     }
                 } else {
-                    alert(`Scanned ID: ${data.id}`);
+                    window.showCustomAlert(`Scanned ID: ${data.id}`);
                 }
             } catch (e) {
                 console.error("QR Parse Error", e);
-                alert("Invalid QR Code format. Please scan a valid Library Card.");
+                window.showCustomAlert("Invalid QR Code format. Please scan a valid Library Card.");
             }
             closeScanner();
         }

@@ -176,6 +176,43 @@ document.addEventListener("DOMContentLoaded", () => {
     resetIdleTimeout();
 });
 
+window.showCustomAlert = function(message, callback) {
+    let alertBox = document.getElementById('custom-alert');
+    if (!alertBox) {
+        const alertHtml = `
+            <div id="custom-alert" class="fixed inset-0 z-[100] hidden flex items-center justify-center bg-black/50 backdrop-blur-sm transition-opacity duration-300">
+                <div class="bg-[#fdfbf7] border-2 border-[#D6A84A] rounded-lg p-8 max-w-sm w-full shadow-2xl transform scale-100 transition-transform duration-300 relative overflow-hidden">
+                    <div class="absolute top-0 left-0 w-16 h-16 border-t-4 border-l-4 border-[#183B5B]/20 rounded-tl-lg"></div>
+                    <div class="absolute bottom-0 right-0 w-16 h-16 border-b-4 border-r-4 border-[#183B5B]/20 rounded-br-lg"></div>
+                    <h3 class="text-xl font-bold text-[#183B5B] font-cinzel mb-4 text-center">Notification</h3>
+                    <p id="custom-alert-msg" class="text-slate-700 text-center mb-6 font-inter"></p>
+                    <div class="flex justify-center">
+                        <button id="custom-alert-btn" class="px-6 py-2 bg-[#183B5B] text-[#D6A84A] font-bold font-cinzel rounded hover:bg-[#244D75] transition-colors">
+                            Acknowledge
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+        document.body.insertAdjacentHTML('beforeend', alertHtml);
+        alertBox = document.getElementById('custom-alert');
+    }
+
+    const alertMsg = document.getElementById('custom-alert-msg');
+    const alertBtn = document.getElementById('custom-alert-btn');
+    
+    alertMsg.textContent = message;
+    alertBox.classList.remove('hidden');
+    
+    const newBtn = alertBtn.cloneNode(true);
+    alertBtn.parentNode.replaceChild(newBtn, alertBtn);
+    
+    newBtn.onclick = function() {
+        alertBox.classList.add('hidden');
+        if (callback) callback();
+    }
+};
+
 // --- Session Idle Timeout (3 Minutes) ---
 let idleTimeout;
 function resetIdleTimeout() {
@@ -184,10 +221,18 @@ function resetIdleTimeout() {
     
     clearTimeout(idleTimeout);
     idleTimeout = setTimeout(() => {
-        alert("Your session has expired due to inactivity. Please log in again.");
-        localStorage.clear();
-        sessionStorage.clear();
-        window.location.href = '../public_view/login.html';
+        if (window.showCustomAlert) {
+            window.showCustomAlert("Your session has expired due to inactivity. Please log in again.", () => {
+                localStorage.clear();
+                sessionStorage.clear();
+                window.location.href = '../public_view/login.html';
+            });
+        } else {
+            alert("Your session has expired due to inactivity. Please log in again.");
+            localStorage.clear();
+            sessionStorage.clear();
+            window.location.href = '../public_view/login.html';
+        }
     }, 3 * 60 * 1000); // 3 minutes in milliseconds
 }
 

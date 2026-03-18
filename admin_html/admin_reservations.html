@@ -202,7 +202,7 @@
                         </button>`;
                 } else if (row.status === 'Approved') {
                     actionBtn = `
-                        <button onclick="claimBook(${row.reservation_id}, ${row.user_id}, ${row.book_id})" 
+                        <button onclick="claimBook(${row.reservation_id}, ${row.user_id}, ${row.item_id}, '${row.material_type}')" 
                             class="bg-[#183B5B] hover:bg-[#2E5F87] text-[#D6A84A] px-3 py-1.5 rounded-full text-xs font-bold transition-colors shadow-sm flex items-center gap-1">
                             <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
                             Claim Book
@@ -211,9 +211,12 @@
 
                 tr.innerHTML = `
                     <td class="p-4 font-mono text-xs text-slate-500">#${row.reservation_id}</td>
-                    <td class="p-4 font-bold text-slate-700">${row.title}</td>
+                    <td class="p-4 font-bold text-slate-700">
+                        ${row.title}
+                        <div class="text-[10px] text-slate-400 font-normal uppercase mt-0.5">${row.material_type}</div>
+                    </td>
                     <td class="p-4">${row.first_name} ${row.last_name}</td>
-                    <td class="p-4 font-mono font-bold text-slate-600">${row.priority_no}</td>
+                    <td class="p-4 font-mono font-bold text-slate-600">${row.priority_no || 1}</td>
                     <td class="p-4 text-slate-500 text-xs">${new Date(row.reservation_date).toLocaleDateString()}</td>
                     <td class="p-4 text-right flex justify-end gap-2">
                         ${actionBtn}
@@ -239,10 +242,13 @@
                 tr.className = 'hover:bg-slate-50 transition-colors border-b border-slate-100';
                 tr.innerHTML = `
                     <td class="p-4 font-mono text-xs text-slate-500">#${row.reservation_id}</td>
-                    <td class="p-4 font-medium text-slate-700">${row.title}</td>
+                    <td class="p-4 font-medium text-slate-700">
+                        ${row.title}
+                        <div class="text-[10px] text-slate-400 font-normal uppercase mt-0.5">${row.material_type}</div>
+                    </td>
                     <td class="p-4">${row.first_name} ${row.last_name}</td>
                     <td class="p-4"><span class="px-2 py-1 bg-slate-100 text-slate-600 rounded text-xs">${row.book_status}</span></td>
-                    <td class="p-4 text-center font-mono font-bold text-slate-600">${row.priority_no}</td>
+                    <td class="p-4 text-center font-mono font-bold text-slate-600">${row.priority_no || 1}</td>
                     <td class="p-4 text-slate-500 text-xs">${new Date(row.reservation_date).toLocaleDateString()}</td>
                 `;
                 tbody.appendChild(tr);
@@ -268,43 +274,62 @@
             try {
                 await db.execute({ sql: "UPDATE RESERVATION SET status = 'Approved' WHERE reservation_id = ?", args: [reservationId] });
                 if (adminId) {
-                    await logAdminAction(adminId, 'APPROVE_RESERVATION', 'RESERVATION', reservationId, `Approved reservation #${reservationId}`);
+                    await logAdminAction(adminId, 'APPROVE_RESERVATION', `Approved reservation #${reservationId}`);
                 }
                 fetchReservations();
-            } catch(e) { alert("Error: " + e.message); }
+            } catch(e) { window.showCustomAlert("Error: " + e.message); }
         }
 
-        window.claimBook = async function(reservationId, userId, bookId) {
-            if(!confirm("Confirm book claim? This will start the loan period.")) return;
-            const adminId = localStorage.getItem('adminId');
-            try {
-                const copyRes = await db.execute({ sql: "SELECT material_id FROM BOOK_COPY WHERE book_id = ? AND status = 'Available' LIMIT 1", args: [bookId] });
-                if (copyRes.rows.length === 0) throw new Error("No copies available to claim.");
-                
-                const materialId = copyRes.rows[0].material_id;
+        window.claimBook = async function(reservationId, userId, itemId, materialType) {
+            window.showCustomConfirm("Confirm book claim? This will start the loan period.", async () => {
+                const adminId = localStorage.getItem('adminId');
+                try {
+                    let materialId;
+                    if (materialType === 'Book') {
+                        const copyRes = await db.execute({ sql: "SELECT material_id FROM BOOK_COPY WHERE book_id = ? AND status = 'Available' LIMIT 1", args: [itemId] });
+                        if (copyRes.rows.length === 0) throw new Error("No copies available to claim.");
+                        materialId = copyRes.rows[0].material_id;
+                        await db.execute({ sql: "UPDATE BOOK_COPY SET status = 'Borrowed' WHERE material_id = ?", args: [materialId] });
+                    } else {
+                        const copyRes = await db.execute({ sql: "SELECT material_id FROM PERIODICAL_COPY WHERE periodical_id = ? AND status = 'Available' LIMIT 1", args: [itemId] });
+                        if (copyRes.rows.length === 0) throw new Error("No copies available to claim.");
+                        materialId = copyRes.rows[0].material_id;
+                        await db.execute({ sql: "UPDATE PERIODICAL_COPY SET status = 'Borrowed' WHERE material_id = ?", args: [materialId] });
+                    }
 
-                await db.execute({ sql: "UPDATE RESERVATION SET status = 'Fulfilled' WHERE reservation_id = ?", args: [reservationId] });
-                await db.execute({ 
-                    sql: "INSERT INTO BORROW_TRANSACTION (user_id, book_id, material_id, borrow_date, borrow_time, due_date, status, borrow_type) VALUES (?, ?, ?, DATE('now', '+8 hours'), TIME('now', '+8 hours'), DATE('now', '+8 hours', '+7 days'), 'Borrowed', 'Outside Library')", 
-                    args: [userId, bookId, materialId] 
-                });
-                
-                await db.execute({ sql: "UPDATE BOOK_COPY SET status = 'Borrowed' WHERE material_id = ?", args: [materialId] });
-                
-                if (adminId) {
-                    await logAdminAction(adminId, 'CLAIM_BOOK', 'RESERVATION', reservationId, `Processed claim for reservation #${reservationId} (User: ${userId}, Book: ${bookId})`);
-                }
+                    await db.execute({ sql: "UPDATE RESERVATION SET status = 'Fulfilled' WHERE reservation_id = ?", args: [reservationId] });
+                    await db.execute({ 
+                        sql: "INSERT INTO BORROW_TRANSACTION (user_id, book_id, material_id, borrow_date, borrow_time, due_date, status, borrow_type) VALUES (?, ?, ?, DATE('now', '+8 hours'), TIME('now', '+8 hours'), DATE('now', '+8 hours', '+7 days'), 'Borrowed', 'Outside Library')", 
+                        args: [userId, itemId, materialId] 
+                    });
+                    
+                    if (adminId) {
+                        await logAdminAction(adminId, 'CLAIM_BOOK', `Processed claim for reservation #${reservationId} (User: ${userId}, Material ID: ${materialId})`);
+                    }
 
-                fetchReservations(); fetchStats();
-            } catch(e) { alert("Error: " + e.message); }
+                    window.showCustomAlert("Book claimed successfully!", () => {
+                        fetchReservations(); fetchStats();
+                    });
+                } catch(e) { window.showCustomAlert("Error: " + e.message); }
+            });
         }
 
         window.declineReservation = async function(reservationId) {
-            if(!confirm("Decline this reservation?")) return;
-            try {
-                await db.execute({ sql: "UPDATE RESERVATION SET status = 'Cancelled' WHERE reservation_id = ?", args: [reservationId] });
-                fetchReservations(); fetchStats();
-            } catch(e) { alert("Error: " + e.message); }
+            window.showCustomConfirm("Decline this reservation?", async () => {
+                try {
+                    const resData = await db.execute({ sql: "SELECT material_id, priority_no FROM RESERVATION WHERE reservation_id = ?", args: [reservationId] });
+                    await db.execute({ sql: "UPDATE RESERVATION SET status = 'Cancelled' WHERE reservation_id = ?", args: [reservationId] });
+                    
+                    if (resData.rows.length > 0) {
+                        const { material_id, priority_no } = resData.rows[0];
+                        if (priority_no) {
+                            await db.execute({ sql: "UPDATE RESERVATION SET priority_no = priority_no - 1 WHERE material_id = ? AND priority_no > ?", args: [material_id, priority_no] });
+                        }
+                    }
+                    
+                    fetchReservations(); fetchStats();
+                } catch(e) { window.showCustomAlert("Error: " + e.message); }
+            });
         }
 
         fetchReservations();

@@ -4,10 +4,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <meta http-equiv="Content-Security-Policy"
-            content="default-src 'self' 'unsafe-inline' https:; connect-src 'self' http://localhost:3000; font-src 'self' https://fonts.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https:;">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' https: data:; connect-src 'self' http://localhost:3000;">
     <title>Puerto Palabra - Borrowed Books</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="../output.css" rel="stylesheet">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -326,7 +325,8 @@
                     dueDate.setHours(0,0,0,0);
                     
                     const isOverdue = loan.status === 'Overdue' || (loan.status !== 'Returned' && loan.status !== 'Pending' && today > dueDate);
-                    const isDueSoon = !isOverdue && loan.status !== 'Returned' && ((dueDate - today) / (1000 * 60 * 60 * 24) <= 3);
+                    const diffDays = Math.round((dueDate - today) / (1000 * 60 * 60 * 24));
+                    const isDueSoon = !isOverdue && loan.status !== 'Returned' && diffDays <= 3;
                     
                     let statusLabel = 'On Time';
                     let statusClasses = 'bg-[#5B8C5A]/10 text-[#5B8C5A] border-[#5B8C5A]/20';

@@ -26,7 +26,7 @@
                 });
 
                 if (userRes.rows.length === 0) {
-                    alert("User not found!");
+                    window.showCustomAlert("User not found!");
                     return;
                 }
                 const user = userRes.rows[0];
@@ -63,7 +63,7 @@
                 }
             } catch (error) {
                 console.error("Error:", error);
-                alert("Failed to fetch user data: " + error.message);
+                window.showCustomAlert("Failed to fetch user data: " + error.message);
             }
         }
 
@@ -153,7 +153,7 @@
                     today.setHours(0,0,0,0);
                     
                     const diffTime = today - dueDate;
-                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
+                    const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24)); 
                     const isOverdue = diffDays > 0;
                     const overdueFee = isOverdue ? (diffDays * overdueSetting.fine_amount) : 0;
 
@@ -274,14 +274,15 @@
                     args: [materialId]
                 });
 
-                alert("Checkout Approved! Book is now borrowed.");
-                onUserQrScanned(userId); // Refresh the modal
-                fetchRecentActivity(); // Refresh sidebar
-                fetchLoanStats(); // Refresh stats
+                window.showCustomAlert("Checkout Approved! Book is now borrowed.", () => {
+                    onUserQrScanned(userId); // Refresh the modal
+                    fetchRecentActivity(); // Refresh sidebar
+                    fetchLoanStats(); // Refresh stats
+                });
 
             } catch (error) {
                 console.error("Checkout error:", error);
-                alert("Failed to process checkout: " + error.message);
+                window.showCustomAlert("Failed to process checkout: " + error.message);
             }
         }
 
@@ -300,91 +301,93 @@
                     await logAdminAction(adminId, 'CONFIRM_BORROW', 'BORROW_TRANSACTION', borrowId, `Admin confirmed borrow for user ${userId}`);
                 }
 
-                alert("Book successfully borrowed!");
-                onUserQrScanned(userId, 'borrow'); // Refresh modal
-                fetchRecentActivity();
-                fetchLoanStats();
+                window.showCustomAlert("Book successfully borrowed!", () => {
+                    onUserQrScanned(userId, 'borrow'); // Refresh modal
+                    fetchRecentActivity();
+                    fetchLoanStats();
+                });
             } catch (error) {
                 console.error("Confirm Borrow Error:", error);
-                alert("Failed to confirm borrow: " + error.message);
+                window.showCustomAlert("Failed to confirm borrow: " + error.message);
             }
         }
 
         // Function to decline a reservation
         async function declineBorrow(reservationId, userId) {
-            if(!confirm("Are you sure you want to decline this reservation?")) return;
-
-            try {
-                await db.execute({
-                    sql: "UPDATE RESERVATION SET status = 'Cancelled' WHERE reservation_id = ?",
-                    args: [reservationId]
-                });
-                
-                // Refresh list
-                onUserQrScanned(userId, 'borrow');
-                
-            } catch (error) {
-                console.error("Decline error:", error);
-                alert("Failed to decline: " + error.message);
-            }
+            window.showCustomConfirm("Are you sure you want to decline this reservation?", async () => {
+                try {
+                    await db.execute({
+                        sql: "UPDATE RESERVATION SET status = 'Cancelled' WHERE reservation_id = ?",
+                        args: [reservationId]
+                    });
+                    
+                    // Refresh list
+                    onUserQrScanned(userId, 'borrow');
+                    
+                } catch (error) {
+                    console.error("Decline error:", error);
+                    window.showCustomAlert("Failed to decline: " + error.message);
+                }
+            });
         }
 
         async function processReturn(borrowId, materialId, userId) {
-            if (!confirm("Are you sure you want to return this book?")) return;
-            try {
-                // Check for damage selection
-                const radios = document.getElementsByName(`damage_${borrowId}`);
-                let damageAmount = 0;
-                let damageType = null;
+            window.showCustomConfirm("Are you sure you want to return this book?", async () => {
+                try {
+                    // Check for damage selection
+                    const radios = document.getElementsByName(`damage_${borrowId}`);
+                    let damageAmount = 0;
+                    let damageType = null;
 
-                if (radios.length > 0) {
-                    for (const r of radios) {
-                        if (r.checked) {
-                            const parts = r.value.split('|');
-                            damageAmount = parseFloat(parts[0]);
-                            damageType = parts[1];
-                            break;
+                    if (radios.length > 0) {
+                        for (const r of radios) {
+                            if (r.checked) {
+                                const parts = r.value.split('|');
+                                damageAmount = parseFloat(parts[0]);
+                                damageType = parts[1];
+                                break;
+                            }
                         }
                     }
+                    
+                    const baseOverdueEl = document.getElementById(`base-overdue-${borrowId}`);
+                    const overdueAmount = baseOverdueEl ? parseFloat(baseOverdueEl.value) : 0;
+
+                    // Update Borrow Transaction
+                    await db.execute({
+                        sql: "UPDATE BORROW_TRANSACTION SET status = 'Returned', return_date = DATE('now', '+8 hours') WHERE borrow_id = ?",
+                        args: [borrowId]
+                    });
+
+                    // Update Book Status
+                    await db.execute({
+                        sql: "UPDATE BOOK_COPY SET status = 'Available' WHERE material_id = ?",
+                        args: [materialId]
+                    });
+
+                    // Insert Fines
+                    if (overdueAmount > 0) {
+                        await db.execute({ sql: "INSERT INTO FINE (borrow_id, fine_amount, fine_type, status) VALUES (?, ?, 'Overdue', 'Unpaid')", args: [borrowId, overdueAmount] });
+                    }
+                    if (damageAmount > 0) {
+                        await db.execute({ sql: "INSERT INTO FINE (borrow_id, fine_amount, fine_type, status) VALUES (?, ?, ?, 'Unpaid')", args: [borrowId, damageAmount, damageType] });
+                    }
+
+                    const adminId = localStorage.getItem('adminId');
+                    if (adminId) {
+                        await logAdminAction(adminId, 'RETURN_BOOK', 'BORROW_TRANSACTION', borrowId, `Admin processed return for user ${userId}`);
+                    }
+
+                    window.showCustomAlert("Book returned successfully.", () => {
+                        onUserQrScanned(userId, 'return'); 
+                        fetchRecentActivity(); // Refresh sidebar
+                        fetchLoanStats(); // Refresh stats
+                    });
+                } catch (error) {
+                    console.error("Return error:", error);
+                    window.showCustomAlert("Failed to process return: " + error.message);
                 }
-                
-                const baseOverdueEl = document.getElementById(`base-overdue-${borrowId}`);
-                const overdueAmount = baseOverdueEl ? parseFloat(baseOverdueEl.value) : 0;
-
-                // Update Borrow Transaction
-                await db.execute({
-                    sql: "UPDATE BORROW_TRANSACTION SET status = 'Returned', return_date = DATE('now', '+8 hours') WHERE borrow_id = ?",
-                    args: [borrowId]
-                });
-
-                // Update Book Status
-                await db.execute({
-                    sql: "UPDATE BOOK_COPY SET status = 'Available' WHERE material_id = ?",
-                    args: [materialId]
-                });
-
-                // Insert Fines
-                if (overdueAmount > 0) {
-                    await db.execute({ sql: "INSERT INTO FINE (borrow_id, fine_amount, fine_type, status) VALUES (?, ?, 'Overdue', 'Unpaid')", args: [borrowId, overdueAmount] });
-                }
-                if (damageAmount > 0) {
-                    await db.execute({ sql: "INSERT INTO FINE (borrow_id, fine_amount, fine_type, status) VALUES (?, ?, ?, 'Unpaid')", args: [borrowId, damageAmount, damageType] });
-                }
-
-                const adminId = localStorage.getItem('adminId');
-                if (adminId) {
-                    await logAdminAction(adminId, 'RETURN_BOOK', 'BORROW_TRANSACTION', borrowId, `Admin processed return for user ${userId}`);
-                }
-
-                alert("Book returned successfully.");
-                onUserQrScanned(userId, 'return'); 
-                fetchRecentActivity(); // Refresh sidebar
-                fetchLoanStats(); // Refresh stats
-
-            } catch (error) {
-                console.error("Return error:", error);
-                alert("Failed to process return: " + error.message);
-            }
+            });
         }
 
         async function fetchOverdueBooks() {
@@ -517,6 +520,6 @@
         window.updateTotal = updateTotal;
     } catch (error) {
         console.error("Failed to initialize admin_loans.js:", error);
-        alert("System Error: Failed to load loans module. " + error.message);
+        window.showCustomAlert("System Error: Failed to load loans module. " + error.message);
     }
 })();

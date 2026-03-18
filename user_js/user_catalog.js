@@ -146,26 +146,26 @@
 
             if (userStatus === 'Borrowed') {
                 // STATE 1: User has actively borrowed the book
-                btnHtml = `<button class="w-full py-2.5 rounded-full bg-amber-100 text-amber-800 border border-amber-200 text-sm font-semibold cursor-not-allowed shadow-sm" disabled><svg class="w-4 h-4 mr-2 inline-block" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg> Currently Borrowed</button>`;
+                btnHtml = `<button class="text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 px-3 py-1.5 rounded-full shadow-sm cursor-not-allowed" disabled>Borrowed</button>`;
             } else if (userStatus === 'Pending') {
                 // STATE 2: User has a pending hold (Go to Desk)
-                btnHtml = `<button class="w-full py-2.5 rounded-full bg-blue-50 text-blue-600 border border-blue-100 text-sm font-semibold cursor-not-allowed shadow-sm" disabled><svg class="w-4 h-4 mr-2 inline-block" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> Go to Desk</button>`;
+                btnHtml = `<button class="text-xs font-bold bg-indigo-50 text-indigo-700 border border-indigo-200 px-3 py-1.5 rounded-full shadow-sm cursor-not-allowed" disabled>Go to Desk</button>`;
             } else if (userWaitlisted) {
                 // STATE 1.5: User is on waitlist
-                btnHtml = `<button class="w-full py-2.5 rounded-full bg-slate-200 text-slate-500 text-sm font-semibold cursor-not-allowed shadow-sm" disabled><svg class="w-4 h-4 mr-2 inline-block" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> Waitlisted</button>`;
+                btnHtml = `<button class="text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200 px-3 py-1.5 rounded-full shadow-sm cursor-not-allowed" disabled>Waitlisted</button>`;
             } else if (book.material_type === 'Periodical') {
                 // STATE FOR PERIODICALS: No request needed, physical access only
                 if (available > 0) {
-                    btnHtml = `<button class="w-full py-2 rounded-lg bg-slate-50 text-slate-500 border border-slate-200 text-[10px] font-bold cursor-default shadow-sm uppercase tracking-wide leading-tight"><span class="text-[#183B5B]">Available on Shelf</span><br><span class="opacity-70 font-normal">No request needed</span></button>`;
+                    btnHtml = `<span class="text-xs font-bold bg-slate-50 text-slate-500 border border-slate-200 px-3 py-1.5 rounded-full shadow-sm cursor-default">On Shelf</span>`;
                 } else {
-                    btnHtml = `<button class="w-full py-2.5 rounded-full bg-slate-200 text-slate-500 text-sm font-semibold cursor-not-allowed shadow-sm" disabled>Currently Unavailable</button>`;
+                    btnHtml = `<button class="text-xs font-bold bg-slate-100 text-slate-400 border border-slate-200 px-3 py-1.5 rounded-full shadow-sm cursor-not-allowed" disabled>Unavailable</button>`;
                 }
             } else if (available > 0) {
                 // STATE 2: Available to borrow (Book)
-                btnHtml = `<button onclick="openUserCopiesModal(${book.item_id}, '${book.title.replace(/'/g, "\\'")}')" class="w-full py-2.5 rounded-full bg-[#183B5B] text-[#D6A84A] text-sm font-bold hover:bg-[#2E5F87] transition-colors shadow-sm">See Available Copies</button>`;
+                btnHtml = `<button onclick="openUserCopiesModal(${book.item_id}, '${book.title.replace(/'/g, "\\'")}')" class="text-xs font-bold bg-blue-50 text-blue-700 hover:bg-blue-100 px-3 py-1.5 rounded-full transition-colors shadow-sm border border-blue-100">See Copies</button>`;
             } else {
                 // STATE 3: Unavailable, join waitlist
-                btnHtml = `<button class="dynamic-action-btn w-full py-2.5 rounded-full bg-[#183B5B] text-[#D6A84A] text-sm font-bold hover:bg-[#2E5F87] transition-colors shadow-sm" data-action="waitlist" data-id="${book.item_id}" data-type="${book.material_type}">Join Waitlist</button>`;
+                btnHtml = `<button class="dynamic-action-btn text-xs font-bold bg-amber-50 text-amber-700 hover:bg-amber-100 px-3 py-1.5 rounded-full transition-colors shadow-sm border border-amber-200" data-action="waitlist" data-id="${book.item_id}" data-type="${book.material_type}">Waitlist</button>`;
             }
 
             const authorOrPub = book.material_type === 'Book' ? (book.author || 'Unknown Author') : (book.publisher || 'Unknown Publisher');
@@ -208,15 +208,17 @@
                     </div>
                 </div>
                 
-                <div class="pt-3 border-t border-slate-100 flex flex-col gap-3 mt-auto">
-                    <div class="text-xs text-slate-500 flex items-center justify-between">
-                        <span><span class="font-bold text-slate-700">${available}</span> / ${total} Copies Available</span>
+                <div class="pt-3 border-t border-slate-100 flex items-center justify-between mt-auto">
+                    <div class="text-xs text-slate-500 flex items-center gap-2">
+                        <span><span class="font-bold text-slate-700">${available}</span> / ${total} Copies</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        ${btnHtml}
                         <button onclick="openBookDetails(${book.item_id}, '${book.material_type}')"
-                            class="text-xs font-bold text-[#183B5B] hover:underline">
-                            View Details
+                            class="text-xs font-bold bg-slate-100 text-slate-600 hover:bg-slate-200 px-3 py-1.5 rounded-full transition-colors shadow-sm border border-slate-200">
+                            Details
                         </button>
                     </div>
-                    ${btnHtml}
                 </div>
             `;
             grid.appendChild(card);
@@ -379,7 +381,7 @@
     window.borrowSpecificCopy = async function(materialId, btnElement) {
         const userId = sessionStorage.getItem('userId') || localStorage.getItem('userId');
         if (!userId) {
-            alert("Please log in to perform this action.");
+            window.showCustomAlert("Please log in to perform this action.");
             return;
         }
 
@@ -398,14 +400,15 @@
             const result = await response.json();
             
             if (result.success) {
-                alert("Hold placed! Please proceed to the front desk within 30 minutes to claim your specific copy.");
-                closeUserCopiesModal();
-                loadBooks(); // Refresh UI to update counts
+                window.showCustomAlert("Hold placed! Please proceed to the front desk within 30 minutes to claim your specific copy.", () => {
+                    closeUserCopiesModal();
+                    loadBooks(); // Refresh UI to update counts
+                });
             } else {
                 throw new Error(result.message);
             }
         } catch (error) {
-            alert("Failed to hold copy: " + error.message);
+            window.showCustomAlert("Failed to hold copy: " + error.message);
             btnElement.innerText = originalText;
             btnElement.disabled = false;
             btnElement.classList.remove('opacity-75', 'cursor-wait');
@@ -423,7 +426,7 @@
         const userId = sessionStorage.getItem('userId') || localStorage.getItem('userId');
 
         if (!userId) {
-            alert("Please log in to perform this action.");
+            window.showCustomAlert("Please log in to perform this action.");
             return;
         }
 
@@ -444,17 +447,17 @@
 
             if (result.success) {
                 btn.innerText = "Waitlisted";
-                btn.classList.remove('bg-[#183B5B]', 'hover:bg-[#2E5F87]', 'text-[#D6A84A]');
-                btn.classList.add('bg-slate-200', 'text-slate-500', 'cursor-not-allowed');
+                btn.className = "text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200 px-3 py-1.5 rounded-full shadow-sm cursor-not-allowed";
 
-                alert("You have been added to the waitlist.");
-                loadBooks(); // Refresh UI
+                window.showCustomAlert("You have been added to the waitlist.", () => {
+                    loadBooks(); // Refresh UI
+                });
             } else {
                 throw new Error(result.message);
             }
         } catch (error) {
             console.error("Action error:", error);
-            alert("Action failed: " + error.message);
+            window.showCustomAlert("Action failed: " + error.message);
             btn.innerText = originalText;
             btn.disabled = false;
             btn.classList.remove('opacity-75', 'cursor-wait');

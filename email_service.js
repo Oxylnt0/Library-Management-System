@@ -168,19 +168,37 @@ async function sendOtpEmail(email, otp) {
 async function sendAccountStatusEmail(email, name, status) {
   try {
     console.log(`⏳ Sending Status Email to: ${email}...`);
-    const isApproved = status === 'Active';
-    const subject = isApproved ? "Account Approved - Puerto Palabra" : "Account Status Update - Puerto Palabra";
-    const color = isApproved ? "#2E5F87" : "#C05640";
-    const message = isApproved 
-        ? "Your account has been approved. You may now log in to the library system."
-        : "We regret to inform you that your account registration has been rejected.";
+    
+    let subject = "Account Status Update - Puerto Palabra";
+    let color = "#183B5B";
+    let message = "";
+    let headerText = "Registration Update";
+
+    if (status === 'Active') {
+        subject = "Account Approved - Puerto Palabra";
+        color = "#2E5F87";
+        headerText = "Welcome Aboard!";
+        message = "Your account has been approved. You may now log in to the library system.";
+    } else if (status === 'Rejected') {
+        subject = "Account Registration Update - Puerto Palabra";
+        color = "#C05640";
+        headerText = "Registration Update";
+        message = "We regret to inform you that your account registration has been rejected.";
+    } else if (status === 'Pending') {
+        subject = "Registration Received - Puerto Palabra";
+        color = "#D6A84A";
+        headerText = "Registration Received";
+        message = "We have received your registration request. Please wait while our administrators review your account. You will receive an email with your Digital Library Card once approved.";
+    } else {
+        message = `Your account status has been updated to: ${status}.`;
+    }
 
     const mailOptions = {
       from: `"Puerto Palabra Library System" <${process.env.EMAIL_USER}>`,
       to: email,
       subject: subject,
       html: `<div style="font-family: Arial, sans-serif; padding: 20px; border: 1px solid #ddd; border-radius: 8px;">
-               <h2 style="color: ${color};">${isApproved ? 'Welcome Aboard!' : 'Registration Update'}</h2>
+               <h2 style="color: ${color};">${headerText}</h2>
                <p>Dear ${name},</p>
                <p>${message}</p>
                <p>Regards,<br>Puerto Palabra Admin</p>

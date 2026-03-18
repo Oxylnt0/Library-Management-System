@@ -4,8 +4,9 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' https: data:; connect-src 'self' http://localhost:3000;">
     <title>Reserve a Book</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="../output.css" rel="stylesheet">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -204,14 +205,14 @@
             try {
                 const query = `
                     SELECT
-                        r.reservation_id, b.title, b.author, r.reservation_date, r.status, r.priority_no
+                        r.reservation_id, b.title, b.author, DATETIME(r.reservation_date, '+8 hours') as reservation_date, r.status, r.priority_no
                     FROM RESERVATION r
                     JOIN BOOK_COPY bc ON r.material_id = bc.material_id
                     JOIN BOOK b ON bc.book_id = b.book_id
                     WHERE r.user_id = ? AND r.status = 'Pending'
                     UNION ALL
                     SELECT
-                        r.reservation_id, p.title, p.publisher as author, r.reservation_date, r.status, r.priority_no
+                        r.reservation_id, p.title, p.publisher as author, DATETIME(r.reservation_date, '+8 hours') as reservation_date, r.status, r.priority_no
                     FROM RESERVATION r
                     JOIN PERIODICAL_COPY pc ON r.material_id = pc.material_id
                     JOIN PERIODICAL p ON pc.periodical_id = p.periodical_id

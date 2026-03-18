@@ -85,13 +85,13 @@ app.get('/api/reservations/:userId', async (req, res) => {
     try {
         const result = await db.execute({
             sql: `
-                SELECT r.reservation_id, bc.book_id as item_id, 'Book' as material_type, b.title 
+                SELECT r.reservation_id, bc.book_id as item_id, 'Book' as material_type, b.title, DATETIME(r.reservation_date, '+8 hours') as reservation_date, r.status, r.priority_no
                 FROM RESERVATION r 
                 JOIN BOOK_COPY bc ON r.material_id = bc.material_id
                 JOIN BOOK b ON bc.book_id = b.book_id 
                 WHERE r.user_id = ? AND r.status = 'Pending'
                 UNION ALL
-                SELECT r.reservation_id, pc.periodical_id as item_id, 'Periodical' as material_type, p.title 
+                SELECT r.reservation_id, pc.periodical_id as item_id, 'Periodical' as material_type, p.title, DATETIME(r.reservation_date, '+8 hours') as reservation_date, r.status, r.priority_no
                 FROM RESERVATION r 
                 JOIN PERIODICAL_COPY pc ON r.material_id = pc.material_id
                 JOIN PERIODICAL p ON pc.periodical_id = p.periodical_id 
@@ -112,28 +112,46 @@ app.get('/api/admin/reservations', async (req, res) => {
     try {
         // Array 1: Ready to Process
         const readyRes = await db.execute({
-            sql: `SELECT r.reservation_id, r.user_id, bc.book_id, r.reservation_date, r.status,
-                         u.first_name, u.last_name, b.title, bc.status as material_status
+            sql: `SELECT r.reservation_id, r.user_id, bc.book_id as item_id, 'Book' as material_type, DATETIME(r.reservation_date, '+8 hours') as reservation_date, r.status, r.priority_no,
+                         u.first_name, u.last_name, b.title, bc.status as material_status 
                   FROM RESERVATION r
                   JOIN BOOK_COPY bc ON r.material_id = bc.material_id
                   JOIN BOOK b ON bc.book_id = b.book_id
                   JOIN USER u ON r.user_id = u.user_id
                   WHERE r.status IN ('Pending', 'Approved') 
                   AND bc.status = 'Available'
-                  ORDER BY r.reservation_date ASC`
+                  UNION ALL
+                  SELECT r.reservation_id, r.user_id, pc.periodical_id as item_id, 'Periodical' as material_type, DATETIME(r.reservation_date, '+8 hours') as reservation_date, r.status, r.priority_no,
+                         u.first_name, u.last_name, p.title, pc.status as material_status 
+                  FROM RESERVATION r
+                  JOIN PERIODICAL_COPY pc ON r.material_id = pc.material_id
+                  JOIN PERIODICAL p ON pc.periodical_id = p.periodical_id
+                  JOIN USER u ON r.user_id = u.user_id
+                  WHERE r.status IN ('Pending', 'Approved') 
+                  AND pc.status = 'Available'
+                  ORDER BY reservation_date ASC`
         });
 
         // Array 2: Waitlist
         const waitlistRes = await db.execute({
-            sql: `SELECT r.reservation_id, r.user_id, bc.book_id, r.reservation_date,
-                         u.first_name, u.last_name, b.title, bc.status as book_status
+            sql: `SELECT r.reservation_id, r.user_id, bc.book_id as item_id, 'Book' as material_type, DATETIME(r.reservation_date, '+8 hours') as reservation_date, r.priority_no,
+                         u.first_name, u.last_name, b.title, bc.status as book_status 
                   FROM RESERVATION r
                   JOIN BOOK_COPY bc ON r.material_id = bc.material_id
                   JOIN BOOK b ON bc.book_id = b.book_id
                   JOIN USER u ON r.user_id = u.user_id
                   WHERE r.status = 'Pending' 
-                  AND bc.status != 'Available' 
-                  ORDER BY r.reservation_date ASC`
+                  AND bc.status != 'Available'
+                  UNION ALL
+                  SELECT r.reservation_id, r.user_id, pc.periodical_id as item_id, 'Periodical' as material_type, DATETIME(r.reservation_date, '+8 hours') as reservation_date, r.priority_no,
+                         u.first_name, u.last_name, p.title, pc.status as book_status 
+                  FROM RESERVATION r
+                  JOIN PERIODICAL_COPY pc ON r.material_id = pc.material_id
+                  JOIN PERIODICAL p ON pc.periodical_id = p.periodical_id
+                  JOIN USER u ON r.user_id = u.user_id
+                  WHERE r.status = 'Pending' 
+                  AND pc.status != 'Available' 
+                  ORDER BY reservation_date ASC`
         });
 
         res.json({ success: true, readyToProcess: readyRes.rows, waitlist: waitlistRes.rows });
@@ -195,21 +213,28 @@ app.post('/api/reservations/cancel', async (req, res) => {
     
     try {
         const resResult = await db.execute({
-            sql: `SELECT r.material_id, r.user_id FROM RESERVATION r WHERE r.reservation_id = ?`,
+            sql: `SELECT r.material_id, r.user_id, r.priority_no FROM RESERVATION r WHERE r.reservation_id = ?`,
             args: [reservation_id]
         });
 
         if (resResult.rows.length === 0) {
             return res.status(404).json({ success: false, message: "Reservation not found." });
         }
-        const { material_id, user_id } = resResult.rows[0];
+        const { material_id, user_id, priority_no } = resResult.rows[0];
 
         await db.execute({
             sql: "DELETE FROM RESERVATION WHERE reservation_id = ?",
             args: [reservation_id]
         });
 
-        await logUserAction(user_id, 'CANCEL_RESERVATION', 'RESERVATION', reservation_id, `User cancelled reservation`);
+        if (priority_no) {
+            await db.execute({
+                sql: "UPDATE RESERVATION SET priority_no = priority_no - 1 WHERE material_id = ? AND priority_no > ?",
+                args: [material_id, priority_no]
+            });
+        }
+
+        await logUserAction(user_id, 'CANCEL_RESERVATION', `User cancelled reservation`);
 
         res.json({ success: true, message: "Reservation cancelled." });
     } catch (error) {
@@ -654,10 +679,17 @@ app.post('/api/waitlist', async (req, res) => {
         if (matRes.rows.length === 0) return res.status(404).json({ success: false, message: "Material not found." });
         const targetMaterialId = matRes.rows[0].material_id;
 
+        // Determine Priority Logic
+        const prioRes = await db.execute({
+            sql: "SELECT MAX(priority_no) as max_p FROM RESERVATION WHERE material_id = ? AND status IN ('Pending', 'Approved')",
+            args: [targetMaterialId]
+        });
+        const nextPriority = (prioRes.rows[0]?.max_p || 0) + 1;
+
         // 2. Insert Reservation
         const resResult = await db.execute({
-            sql: "INSERT INTO RESERVATION (user_id, material_id, status) VALUES (?, ?, 'Pending') RETURNING reservation_id",
-            args: [user_id, targetMaterialId]
+            sql: "INSERT INTO RESERVATION (user_id, material_id, status, priority_no) VALUES (?, ?, 'Pending', ?) RETURNING reservation_id",
+            args: [user_id, targetMaterialId, nextPriority]
         });
 
         await logUserAction(user_id, 'JOIN_WAITLIST', 'RESERVATION', resResult.rows[0].reservation_id, `User joined waitlist for '${bookTitle}'`);
@@ -1652,7 +1684,11 @@ app.post('/api/admin/user/status', async (req, res) => {
 
         // 4. Send Email
         if (emailToSend) {
-            await sendAccountStatusEmail(emailToSend, nameToSend, status);
+            if (status === 'Active') {
+                await sendLibraryCard(emailToSend, userId, nameToSend);
+            } else {
+                await sendAccountStatusEmail(emailToSend, nameToSend, status);
+            }
         }
 
         if (adminId) {

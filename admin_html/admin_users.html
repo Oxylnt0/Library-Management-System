@@ -427,7 +427,7 @@
 
         window.updateUserStatus = async function(userId, status) {
             if (localStorage.getItem('adminRole') === 'Assistant Librarian') {
-                alert("Restricted: You do not have permission to perform this action.");
+                window.showCustomAlert("Restricted: You do not have permission to perform this action.");
                 return;
             }
 
@@ -440,27 +440,26 @@
             // If Suspend is clicked here (via Activate button logic), bypass modal
             // But our UI now points Suspend button to openSuspendModal.
             // This function handles Approve, Reject, and Reactivate.
-            if (!confirm(`Are you sure you want to ${actionText} this user?`)) return;
-            const adminId = localStorage.getItem('adminId');
-
-            try {
-                const response = await fetch('http://localhost:3000/api/admin/user/status', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ userId, status, adminId })
-                });
-                const result = await response.json();
-                alert(result.message);
-                loadUsers();
-            } catch (error) {
-                alert("Error: " + error.message);
-            }
+            window.showCustomConfirm(`Are you sure you want to ${actionText} this user?`, async () => {
+                const adminId = localStorage.getItem('adminId');
+                try {
+                    const response = await fetch('http://localhost:3000/api/admin/user/status', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ userId, status, adminId })
+                    });
+                    const result = await response.json();
+                    window.showCustomAlert(result.message, () => loadUsers());
+                } catch (error) {
+                    window.showCustomAlert("Error: " + error.message);
+                }
+            });
         };
 
         // --- SUSPENSION MODAL LOGIC ---
         window.openSuspendModal = function(userId) {
             if (localStorage.getItem('adminRole') === 'Assistant Librarian') {
-                alert("Restricted: You do not have permission to suspend users.");
+                window.showCustomAlert("Restricted: You do not have permission to suspend users.");
                 return;
             }
 
@@ -488,15 +487,16 @@
                 });
                 const result = await response.json();
                 if(result.success) {
-                    alert("User suspended successfully.");
-                    closeSuspendModal();
-                    loadUsers();
+                    window.showCustomAlert("User suspended successfully.", () => {
+                        closeSuspendModal();
+                        loadUsers();
+                    });
                 } else {
-                    alert("Error: " + result.message);
+                    window.showCustomAlert("Error: " + result.message);
                 }
             } catch (error) {
                 console.error(error);
-                alert("Failed to suspend user.");
+                window.showCustomAlert("Failed to suspend user.");
             }
         }
 
@@ -587,7 +587,7 @@
                 const users = result.rows;
                 
                 if (users.length === 0) {
-                    alert("No users to export.");
+                    window.showCustomAlert("No users to export.");
                     return;
                 }
 
@@ -628,7 +628,7 @@
                 document.body.removeChild(link);
             } catch (error) {
                 console.error("Export failed:", error);
-                alert("Failed to export data: " + error.message);
+                window.showCustomAlert("Failed to export data: " + error.message);
             }
         }
         window.exportUserData = exportUserData;
