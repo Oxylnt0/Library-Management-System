@@ -427,15 +427,14 @@
 
     <div id="page-container" class="flex flex-col flex-1 transition-opacity duration-500 ease-in-out opacity-100">
         <!-- Navbar -->
-        <nav
-            class="w-full bg-gradient-to-r from-[#183B5B] to-[#244D75] px-6 py-5 shadow-lg border-b border-[#D6A84A]/30 relative z-20 overflow-hidden">
+        <nav class="w-full h-20 bg-[#3E2723] backdrop-blur-md text-[#D4AF37] px-6 shadow-sm border-b border-[#2D1B18] relative z-20 overflow-hidden flex items-center">
             <div id="particles-container" class="absolute inset-0 pointer-events-none"></div>
             <div class="w-full flex justify-between items-center relative z-10">
                 <a href="public_view.html"
-                    class="nav-link text-[#D6A84A] font-bold text-lg font-cinzel hover:text-white transition-colors flex items-center gap-2">
+                    class="nav-link text-[#D4AF37] font-bold text-lg font-cinzel hover:text-white transition-colors flex items-center gap-2">
                     <span>←</span> Back to Library
                 </a>
-                <div class="text-white/80 text-sm font-cinzel tracking-widest">New User Registration</div>
+                <div class="text-[#D4AF37]/80 text-sm font-cinzel tracking-widest">New User Registration</div>
             </div>
         </nav>
 
@@ -1280,21 +1279,22 @@
                 }
             }
 
-            // Navbar Particles
-            document.addEventListener('DOMContentLoaded', () => {
+            function initRegister() {
                 const container = document.getElementById('particles-container');
-                const particleCount = 20;
-                const runes = ['ᚠ', 'ᚢ', 'ᚦ', 'ᚨ', 'ᚱ', 'ᚲ', 'ᚷ', 'ᚹ', 'ᚺ', 'ᚾ', 'ᛁ', 'ᛃ', 'ᛈ', 'ᛇ', 'ᛉ', 'ᛊ', 'ᛏ', 'ᛒ', 'ᛖ', 'ᛗ', 'ᛚ', 'ᛜ', 'ᛞ', 'ᛟ'];
+                if (container && container.children.length === 0) {
+                    const particleCount = 20;
+                    const runes = ['ᚠ', 'ᚢ', 'ᚦ', 'ᚨ', 'ᚱ', 'ᚲ', 'ᚷ', 'ᚹ', 'ᚺ', 'ᚾ', 'ᛁ', 'ᛃ', 'ᛈ', 'ᛇ', 'ᛉ', 'ᛊ', 'ᛏ', 'ᛒ', 'ᛖ', 'ᛗ', 'ᛚ', 'ᛜ', 'ᛞ', 'ᛟ'];
 
-                for (let i = 0; i < particleCount; i++) {
-                    const particle = document.createElement('div');
-                    particle.className = 'enchant-particle';
-                    particle.textContent = runes[Math.floor(Math.random() * runes.length)];
-                    particle.style.left = Math.random() * 100 + '%';
-                    particle.style.top = Math.random() * 100 + '%';
-                    particle.style.animationDelay = Math.random() * 5 + 's';
-                    particle.style.fontSize = (Math.random() * 10 + 10) + 'px';
-                    container.appendChild(particle);
+                    for (let i = 0; i < particleCount; i++) {
+                        const particle = document.createElement('div');
+                        particle.className = 'enchant-particle';
+                        particle.textContent = runes[Math.floor(Math.random() * runes.length)];
+                        particle.style.left = Math.random() * 100 + '%';
+                        particle.style.top = Math.random() * 100 + '%';
+                        particle.style.animationDelay = Math.random() * 5 + 's';
+                        particle.style.fontSize = (Math.random() * 10 + 10) + 'px';
+                        container.appendChild(particle);
+                    }
                 }
 
                 // Date Picker Constraints
@@ -1309,7 +1309,13 @@
                     input.max = maxDate;
                     input.min = minDate;
                 });
-            });
+            }
+
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', initRegister);
+            } else {
+                initRegister();
+            }
 
             window.checkEmailExists = async function(email) {
                 try {
