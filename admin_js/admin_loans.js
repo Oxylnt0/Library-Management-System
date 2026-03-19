@@ -5,12 +5,10 @@
         const { logAdminAction } = require(path.join(process.cwd(), 'audit_service.js'));
 
         // Initialize
-        let borrowedData = [];
-        let returnedData = [];
+        let historyData = [];
         let overdueData = [];
-        let sortState = { borrowed: 'desc', returned: 'desc', overdue: 'asc' };
 
-        fetchRecentActivity();
+        fetchHistory();
         fetchOverdueBooks();
         fetchLoanStats();
 
@@ -276,7 +274,8 @@
 
                 window.showCustomAlert("Checkout Approved! Book is now borrowed.", () => {
                     onUserQrScanned(userId); // Refresh the modal
-                    fetchRecentActivity(); // Refresh sidebar
+                    fetchHistory(); // Refresh lists
+                    fetchOverdueBooks();
                     fetchLoanStats(); // Refresh stats
                 });
 
@@ -303,7 +302,8 @@
 
                 window.showCustomAlert("Book successfully borrowed!", () => {
                     onUserQrScanned(userId, 'borrow'); // Refresh modal
-                    fetchRecentActivity();
+                    fetchHistory();
+                    fetchOverdueBooks();
                     fetchLoanStats();
                 });
             } catch (error) {
@@ -380,7 +380,8 @@
 
                     window.showCustomAlert("Book returned successfully.", () => {
                         onUserQrScanned(userId, 'return'); 
-                        fetchRecentActivity(); // Refresh sidebar
+                        fetchHistory();
+                        fetchOverdueBooks();
                         fetchLoanStats(); // Refresh stats
                     });
                 } catch (error) {
@@ -393,92 +394,125 @@
         async function fetchOverdueBooks() {
             try {
                 const overdueRes = await db.execute({
-                    sql: `SELECT bt.due_date, b.title, u.first_name, u.last_name 
+                    sql: `SELECT bt.due_date as date_field, b.title, u.first_name, u.last_name 
                           FROM BORROW_TRANSACTION bt 
                           JOIN BOOK_COPY bc ON bt.material_id = bc.material_id
                           JOIN BOOK b ON bc.book_id = b.book_id 
                           JOIN USER u ON bt.user_id = u.user_id 
                           WHERE bt.status = 'Overdue' OR (bt.status = 'Borrowed' AND bt.due_date < DATE('now', '+8 hours'))
-                          ORDER BY bt.due_date ASC`
+                          UNION ALL
+                          SELECT bt.due_date as date_field, p.title, u.first_name, u.last_name 
+                          FROM BORROW_TRANSACTION bt 
+                          JOIN PERIODICAL_COPY pc ON bt.material_id = pc.material_id
+                          JOIN PERIODICAL p ON pc.periodical_id = p.periodical_id 
+                          JOIN USER u ON bt.user_id = u.user_id 
+                          WHERE bt.status = 'Overdue' OR (bt.status = 'Borrowed' AND bt.due_date < DATE('now', '+8 hours'))`
                 });
                 overdueData = overdueRes.rows;
-                renderActivityTable('tbody-overdue', overdueData, 'due_date');
+                applyFilters();
             } catch (error) {
                 console.error("Error fetching overdue books:", error);
             }
         }
 
-        async function fetchRecentActivity() {
+        async function fetchHistory() {
             try {
-                // Fetch Recently Borrowed
-                const borrowedRes = await db.execute({
-                    sql: `SELECT bt.borrow_date, b.title, u.first_name, u.last_name 
+                // Fetch History (Borrowed & Returned)
+                const historyRes = await db.execute({
+                    sql: `SELECT COALESCE(bt.return_date, bt.borrow_date) as date_field, bt.status, b.title, u.first_name, u.last_name 
                           FROM BORROW_TRANSACTION bt 
                           JOIN BOOK_COPY bc ON bt.material_id = bc.material_id
                           JOIN BOOK b ON bc.book_id = b.book_id 
                           JOIN USER u ON bt.user_id = u.user_id 
-                          WHERE bt.status = 'Borrowed' 
-                          ORDER BY bt.borrow_date DESC LIMIT 50`
-                });
-                borrowedData = borrowedRes.rows;
-                renderActivityTable('tbody-borrowed', borrowedData, 'borrow_date');
-
-                // Fetch Recently Returned
-                const returnedRes = await db.execute({
-                    sql: `SELECT bt.return_date, b.title, u.first_name, u.last_name 
+                          WHERE bt.status IN ('Borrowed', 'Returned')
+                          UNION ALL
+                          SELECT COALESCE(bt.return_date, bt.borrow_date) as date_field, bt.status, p.title, u.first_name, u.last_name 
                           FROM BORROW_TRANSACTION bt 
-                          JOIN BOOK_COPY bc ON bt.material_id = bc.material_id
-                          JOIN BOOK b ON bc.book_id = b.book_id 
+                          JOIN PERIODICAL_COPY pc ON bt.material_id = pc.material_id
+                          JOIN PERIODICAL p ON pc.periodical_id = p.periodical_id 
                           JOIN USER u ON bt.user_id = u.user_id 
-                          WHERE bt.status = 'Returned' 
-                          ORDER BY bt.return_date DESC LIMIT 50`
+                          WHERE bt.status IN ('Borrowed', 'Returned')`
                 });
-                returnedData = returnedRes.rows;
-                renderActivityTable('tbody-returned', returnedData, 'return_date');
-
+                historyData = historyRes.rows;
+                applyFilters();
             } catch (error) {
-                console.error("Error fetching recent activity:", error);
+                console.error("Error fetching history:", error);
             }
         }
 
-        function renderActivityTable(tbodyId, data, dateField) {
+        function renderTable(tbodyId, data, isHistory) {
             const tbody = document.getElementById(tbodyId);
             if (!tbody) return;
             tbody.innerHTML = '';
 
+            if (data.length === 0) {
+                const cols = isHistory ? 4 : 3;
+                tbody.innerHTML = `<tr><td colspan="${cols}" class="p-4 text-center text-slate-500 italic">No records found.</td></tr>`;
+                return;
+            }
+
             data.forEach(item => {
                 const row = document.createElement('tr');
                 row.className = 'hover:bg-slate-50 transition-colors';
-                row.innerHTML = `
-                    <td class="p-4 font-medium text-slate-800">${item.first_name} ${item.last_name}</td>
-                    <td class="p-4 text-slate-600">${item.title}</td>
-                    <td class="p-4 text-slate-500">${new Date(item[dateField]).toLocaleDateString()}</td>
-                `;
+                
+                if (isHistory) {
+                    const statusColor = item.status === 'Returned' ? 'bg-slate-100 text-slate-600' : 'bg-green-100 text-green-700';
+                    row.innerHTML = `
+                        <td class="p-4 font-medium text-slate-800">${item.first_name} ${item.last_name}</td>
+                        <td class="p-4 text-slate-600">${item.title}</td>
+                        <td class="p-4"><span class="px-2 py-1 rounded text-xs font-bold ${statusColor}">${item.status}</span></td>
+                        <td class="p-4 text-slate-500">${new Date(item.date_field).toLocaleDateString()}</td>
+                    `;
+                } else {
+                    row.innerHTML = `
+                        <td class="p-4 font-medium text-slate-800">${item.first_name} ${item.last_name}</td>
+                        <td class="p-4 text-slate-600">${item.title}</td>
+                        <td class="p-4 text-red-600 font-bold">${new Date(item.date_field).toLocaleDateString()}</td>
+                    `;
+                }
                 tbody.appendChild(row);
             });
         }
 
-        function sortActivity(type) {
-            const field = type === 'borrowed' ? 'borrow_date' : (type === 'returned' ? 'return_date' : 'due_date');
-            const data = type === 'borrowed' ? borrowedData : (type === 'returned' ? returnedData : overdueData);
-            const tbodyId = type === 'borrowed' ? 'tbody-borrowed' : (type === 'returned' ? 'tbody-returned' : 'tbody-overdue');
+        window.applyFilters = function() {
+            const startDate = document.getElementById('filter-start-date').value;
+            const endDate = document.getElementById('filter-end-date').value;
+            const sortOrder = document.getElementById('history-sort').value; // 'desc' or 'asc'
             
-            // Toggle sort
-            sortState[type] = sortState[type] === 'desc' ? 'asc' : 'desc';
-            const direction = sortState[type];
+            const isHistory = (typeof window.currentActiveTab !== 'undefined' ? window.currentActiveTab : 'history') === 'history';
+            const dataset = isHistory ? historyData : overdueData;
+            const tbodyId = isHistory ? 'tbody-history' : 'tbody-overdue';
 
-            // Sort data
-            data.sort((a, b) => {
-                const dateA = new Date(a[field]);
-                const dateB = new Date(b[field]);
-                return direction === 'asc' ? dateA - dateB : dateB - dateA;
+            let filtered = [...dataset];
+
+            // Filter
+            if (startDate || endDate) {
+                const start = startDate ? new Date(startDate) : new Date('1900-01-01');
+                start.setHours(0,0,0,0);
+                const end = endDate ? new Date(endDate) : new Date('2100-01-01');
+                end.setHours(23,59,59,999);
+
+                filtered = filtered.filter(item => {
+                    const itemDate = new Date(item.date_field);
+                    return itemDate >= start && itemDate <= end;
+                });
+            }
+
+            // Sort
+            filtered.sort((a, b) => {
+                const dateA = new Date(a.date_field);
+                const dateB = new Date(b.date_field);
+                return sortOrder === 'asc' ? dateA - dateB : dateB - dateA;
             });
 
-            // Update Icon
-            const icon = document.getElementById(`sort-icon-${type}`);
-            if(icon) icon.innerText = direction === 'asc' ? '▲' : '▼';
+            renderTable(tbodyId, filtered, isHistory);
+        }
 
-            renderActivityTable(tbodyId, data, field);
+        window.clearFilters = function() {
+            document.getElementById('filter-start-date').value = '';
+            document.getElementById('filter-end-date').value = '';
+            document.getElementById('history-sort').value = 'desc';
+            applyFilters();
         }
 
         async function fetchLoanStats() {
@@ -516,7 +550,6 @@
         window.confirmBorrow = confirmBorrow;
         window.processReturn = processReturn;
         window.closeLoanModal = closeLoanModal;
-        window.sortActivity = sortActivity;
         window.updateTotal = updateTotal;
     } catch (error) {
         console.error("Failed to initialize admin_loans.js:", error);

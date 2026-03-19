@@ -551,6 +551,61 @@ app.post('/api/books/add', async (req, res) => {
     }
 });
 
+// 8.5 POST /api/books/copies/add (Add physical copies to existing title)
+app.post('/api/books/copies/add', async (req, res) => {
+    const { item_id, material_type, copies, adminId } = req.body;
+
+    try {
+        let parentTitle = 'Unknown Material', parentCategory = 'General';
+        if (material_type === 'Book') {
+            const pRes = await db.execute({ sql: "SELECT title, book_category FROM BOOK WHERE book_id = ?", args: [item_id] });
+            if (pRes.rows.length > 0) { parentTitle = pRes.rows[0].title; parentCategory = pRes.rows[0].book_category; }
+        } else {
+            const pRes = await db.execute({ sql: "SELECT title, type FROM PERIODICAL WHERE periodical_id = ?", args: [item_id] });
+            if (pRes.rows.length > 0) { parentTitle = pRes.rows[0].title; parentCategory = pRes.rows[0].type; }
+        }
+
+        // Fetch latest issue/vol for periodicals to inherit automatically
+        let issueNo = 'N/A', volNo = null, pubDate = null;
+        if (material_type === 'Periodical') {
+            const latest = await db.execute({ sql: "SELECT issue_no, volume_no, publication_date FROM PERIODICAL_COPY WHERE periodical_id = ? LIMIT 1", args: [item_id] });
+            if (latest.rows.length > 0) {
+                issueNo = latest.rows[0].issue_no; volNo = latest.rows[0].volume_no; pubDate = latest.rows[0].publication_date;
+            }
+        }
+
+        for (const copy of copies) {
+            const mRes = await db.execute("INSERT INTO MATERIAL (material_type) VALUES (?) RETURNING material_id", [material_type]);
+            const matId = mRes.rows[0].material_id;
+
+            if (material_type === 'Book') {
+                await db.execute({
+                    sql: "INSERT INTO BOOK_COPY (book_id, material_id, book_source, book_condition, status, location) VALUES (?, ?, ?, ?, 'Available', ?)",
+                    args: [item_id, matId, copy.source, copy.condition, copy.location]
+                });
+            } else {
+                await db.execute({
+                    sql: "INSERT INTO PERIODICAL_COPY (periodical_id, material_id, publication_date, issue_no, volume_no, periodical_source, periodical_condition, status, location) VALUES (?, ?, ?, ?, ?, ?, ?, 'Available', ?)",
+                    args: [item_id, matId, pubDate, issueNo, volNo, copy.source, copy.condition, copy.location]
+                });
+            }
+
+            if (copy.source === 'Donated') {
+                await db.execute({
+                    sql: "INSERT INTO DONATION (donation_type, user_id, donor_name, book_id, periodical_id, book_title, category, quantity, status, donation_date) VALUES ('Inbound', ?, ?, ?, ?, ?, ?, 1, 'Cataloged', DATE('now', '+8 hours'))",
+                    args: [copy.user_id || null, copy.donor_name || null, material_type === 'Book' ? item_id : null, material_type === 'Periodical' ? item_id : null, parentTitle, parentCategory]
+                });
+            }
+        }
+
+        if (adminId) await logAdminAction(adminId, 'ADD_COPIES', 'MATERIAL', item_id, `Added ${copies.length} new physical copies for ${material_type} ID ${item_id}`);
+        res.json({ success: true, message: "Successfully added physical copies to the catalog." });
+    } catch (error) {
+        console.error("Add Copies Error:", error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
 // 9. GET /api/donations/stats
 app.get('/api/donations/stats', async (req, res) => {
     try {

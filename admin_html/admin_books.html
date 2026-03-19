@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' https:; script-src 'self' 'unsafe-inline' https://esm.run https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' http://localhost:3000 https://cdn.jsdelivr.net;">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' https:; script-src 'self' 'unsafe-inline' https://esm.run https://cdn.jsdelivr.net https://unpkg.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' http://localhost:3000 https://cdn.jsdelivr.net;">
     <title>Puerto Palabra - Manage Books</title>
 
     <link href="../output.css" rel="stylesheet">
@@ -48,12 +48,6 @@
                         </div>
     
                         <div class="flex gap-3">
-                        <select id="filter-material-type" onchange="loadBooks()" class="bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 px-4 py-2 rounded-full font-medium shadow-sm outline-none focus:ring-2 focus:ring-[#183B5B] transition-colors cursor-pointer text-sm">
-                            <option value="all">All Materials</option>
-                            <option value="Book">Books</option>
-                            <option value="Periodical">Periodicals</option>
-                        </select>
-
                         <button onclick="archiveAllOutdated()" class="bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 p-2.5 rounded-full font-medium shadow-sm transition-colors flex items-center gap-2" title="Archive all Outdated/Obsolete items">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"></path></svg>
                         </button>
@@ -63,7 +57,7 @@
                         </button>
 
                         <button id="archive-view-btn" onclick="toggleArchivedView()" class="bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 px-4 py-2 rounded-full font-medium shadow-sm transition-colors text-sm">
-                            Catalog Archive
+                           View Catalog Archive
                         </button>
 
                         <a href="../admin_html/admin_add_books.html" id="btn-add-catalog"
@@ -74,20 +68,114 @@
                     </div>
                     </div>
 
-                    <div class="relative w-full max-w-md group">
-                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <svg class="h-5 w-5 text-slate-400 group-focus-within:text-[#D6A84A] transition-colors"
-                                fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                            </svg>
+                    <div class="flex items-center gap-3 w-full max-w-3xl relative z-40">
+                        <div class="relative flex-1 group">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <svg class="h-5 w-5 text-slate-400 group-focus-within:text-[#D6A84A] transition-colors"
+                                    fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                                </svg>
+                            </div>
+                            <input type="text" id="admin-search-input" oninput="searchBooks(this.value)" placeholder="Search title, author, ISBN..."
+                                class="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-300 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-[#D6A84A]/50 focus:border-[#D6A84A] transition-all shadow-sm text-slate-800">
                         </div>
-                        <input type="text" id="admin-search-input" oninput="searchBooks(this.value)" placeholder="Search title, author, ISBN..."
-                            class="w-full pl-10 pr-24 py-2.5 bg-white border border-slate-300 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-[#D6A84A]/50 focus:border-[#D6A84A] transition-all shadow-sm text-slate-800">
-                        <button onclick="searchBooks(document.getElementById('admin-search-input').value)"
-                            class="absolute right-1.5 top-1.5 bottom-1.5 px-4 bg-[#183B5B] text-[#D6A84A] text-xs font-bold rounded-full hover:bg-[#2E5F87] transition-colors shadow-sm">
-                            Search
-                        </button>
+
+                        <div class="relative">
+                            <button onclick="toggleAdvancedFilter()" class="bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 px-5 py-2.5 rounded-full font-medium shadow-sm transition-colors flex items-center gap-2 text-sm">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path></svg>
+                                <span>Advanced Filters</span>
+                            </button>
+                            
+                            <!-- Advanced Filter Panel -->
+                            <div id="advanced-filter-menu" class="hidden absolute right-0 top-full mt-2 w-72 md:w-80 bg-white rounded-xl shadow-xl border border-slate-200 z-50 flex flex-col max-h-[70vh]">
+                                <div class="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50 rounded-t-xl shrink-0">
+                                    <span class="font-bold text-[#183B5B]">Filters</span>
+                                    <button onclick="clearFilters()" class="text-xs font-bold text-red-500 hover:text-red-700 transition-colors">Clear All</button>
+                                </div>
+                                <div class="p-4 overflow-y-auto flex-1 space-y-6 min-h-0">
+                                    <div class="pb-4 border-b border-slate-100">
+                                        <p class="text-xs font-bold text-slate-400 uppercase mb-2">Material Type</p>
+                                        <div class="flex flex-wrap gap-4 text-sm text-slate-700">
+                                            <label class="flex items-center gap-1.5 cursor-pointer"><input type="radio" name="adv-filter-type" value="all" checked class="accent-[#183B5B]"> All</label>
+                                            <label class="flex items-center gap-1.5 cursor-pointer"><input type="radio" name="adv-filter-type" value="Book" class="accent-[#183B5B]"> Books</label>
+                                            <label class="flex items-center gap-1.5 cursor-pointer"><input type="radio" name="adv-filter-type" value="Periodical" class="accent-[#183B5B]"> Periodicals</label>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <p class="text-xs font-bold text-slate-400 uppercase mb-2">Genres</p>
+                                        <div class="space-y-3 text-sm text-slate-700">
+                                            <details class="group">
+                                                <summary class="font-bold text-[#183B5B] cursor-pointer flex justify-between items-center bg-slate-50 p-2 rounded">Fiction & Lit <span class="group-open:rotate-180 transition-transform text-xs">▼</span></summary>
+                                                <div class="pl-2 mt-2 space-y-2 text-xs font-medium pb-2">
+                                                    <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="adv-filter-genre rounded text-[#183B5B] accent-[#183B5B]" value="Action & Adventure"> Action & Adventure</label>
+                                                    <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="adv-filter-genre rounded text-[#183B5B] accent-[#183B5B]" value="Classic Fiction"> Classic Fiction</label>
+                                                    <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="adv-filter-genre rounded text-[#183B5B] accent-[#183B5B]" value="Fantasy"> Fantasy</label>
+                                                    <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="adv-filter-genre rounded text-[#183B5B] accent-[#183B5B]" value="Historical Fiction"> Historical Fiction</label>
+                                                    <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="adv-filter-genre rounded text-[#183B5B] accent-[#183B5B]" value="Horror"> Horror</label>
+                                                    <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="adv-filter-genre rounded text-[#183B5B] accent-[#183B5B]" value="Mystery & Thriller"> Mystery & Thriller</label>
+                                                    <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="adv-filter-genre rounded text-[#183B5B] accent-[#183B5B]" value="Romance"> Romance</label>
+                                                    <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="adv-filter-genre rounded text-[#183B5B] accent-[#183B5B]" value="Science Fiction (Sci-Fi)"> Sci-Fi</label>
+                                                    <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="adv-filter-genre rounded text-[#183B5B] accent-[#183B5B]" value="Poetry"> Poetry</label>
+                                                    <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="adv-filter-genre rounded text-[#183B5B] accent-[#183B5B]" value="Drama / Plays"> Drama / Plays</label>
+                                                    <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="adv-filter-genre rounded text-[#183B5B] accent-[#183B5B]" value="Young Adult (YA)"> Young Adult</label>
+                                                    <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="adv-filter-genre rounded text-[#183B5B] accent-[#183B5B]" value="Children's Literature"> Children's Lit</label>
+                                                    <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="adv-filter-genre rounded text-[#183B5B] accent-[#183B5B]" value="Graphic Novel / Comic"> Graphic Novel</label>
+                                                </div>
+                                            </details>
+                                            <details class="group">
+                                                <summary class="font-bold text-[#183B5B] cursor-pointer flex justify-between items-center bg-slate-50 p-2 rounded">Non-Fiction <span class="group-open:rotate-180 transition-transform text-xs">▼</span></summary>
+                                                <div class="pl-2 mt-2 space-y-2 text-xs font-medium pb-2">
+                                                    <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="adv-filter-genre rounded text-[#183B5B] accent-[#183B5B]" value="Biography & Autobiography"> Biography</label>
+                                                    <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="adv-filter-genre rounded text-[#183B5B] accent-[#183B5B]" value="Self-Help & Motivation"> Self-Help</label>
+                                                    <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="adv-filter-genre rounded text-[#183B5B] accent-[#183B5B]" value="Business & Economics"> Business</label>
+                                                    <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="adv-filter-genre rounded text-[#183B5B] accent-[#183B5B]" value="History & Geography"> History</label>
+                                                    <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="adv-filter-genre rounded text-[#183B5B] accent-[#183B5B]" value="Philosophy & Psychology"> Philosophy</label>
+                                                    <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="adv-filter-genre rounded text-[#183B5B] accent-[#183B5B]" value="Religion & Theology"> Religion</label>
+                                                    <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="adv-filter-genre rounded text-[#183B5B] accent-[#183B5B]" value="True Crime"> True Crime</label>
+                                                    <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="adv-filter-genre rounded text-[#183B5B] accent-[#183B5B]" value="Arts & Music"> Arts & Music</label>
+                                                    <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="adv-filter-genre rounded text-[#183B5B] accent-[#183B5B]" value="Cookery & Gastronomy"> Cookery & Gastronomy</label>
+                                                    <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="adv-filter-genre rounded text-[#183B5B] accent-[#183B5B]" value="Travel & Tourism"> Travel & Tourism</label>
+                                                    <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="adv-filter-genre rounded text-[#183B5B] accent-[#183B5B]" value="Sports & Recreation"> Sports & Recreation</label>
+                                                </div>
+                                            </details>
+                                            <details class="group">
+                                                <summary class="font-bold text-[#183B5B] cursor-pointer flex justify-between items-center bg-slate-50 p-2 rounded">Academic <span class="group-open:rotate-180 transition-transform text-xs">▼</span></summary>
+                                                <div class="pl-2 mt-2 space-y-2 text-xs font-medium pb-2">
+                                                    <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="adv-filter-genre rounded text-[#183B5B] accent-[#183B5B]" value="Computer Science & Technology"> Comp Sci</label>
+                                                    <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="adv-filter-genre rounded text-[#183B5B] accent-[#183B5B]" value="Medicine & Health"> Medicine</label>
+                                                    <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="adv-filter-genre rounded text-[#183B5B] accent-[#183B5B]" value="Astronomy & Space"> Astronomy & Space</label>
+                                                    <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="adv-filter-genre rounded text-[#183B5B] accent-[#183B5B]" value="Biology & Life Sciences"> Biology</label>
+                                                    <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="adv-filter-genre rounded text-[#183B5B] accent-[#183B5B]" value="Chemistry & Physics"> Chemistry/Physics</label>
+                                                    <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="adv-filter-genre rounded text-[#183B5B] accent-[#183B5B]" value="Environmental Science"> Environmental Sci</label>
+                                                    <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="adv-filter-genre rounded text-[#183B5B] accent-[#183B5B]" value="Mathematics"> Mathematics</label>
+                                                    <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="adv-filter-genre rounded text-[#183B5B] accent-[#183B5B]" value="Engineering"> Engineering</label>
+                                                    <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="adv-filter-genre rounded text-[#183B5B] accent-[#183B5B]" value="Law & Politics"> Law & Politics</label>
+                                                    <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="adv-filter-genre rounded text-[#183B5B] accent-[#183B5B]" value="Education & Teaching"> Education</label>
+                                                </div>
+                                            </details>
+                                            <details class="group">
+                                                <summary class="font-bold text-[#183B5B] cursor-pointer flex justify-between items-center bg-slate-50 p-2 rounded">Reference & Special <span class="group-open:rotate-180 transition-transform text-xs">▼</span></summary>
+                                                <div class="pl-2 mt-2 space-y-2 text-xs font-medium pb-2">
+                                                    <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="adv-filter-genre rounded text-[#183B5B] accent-[#183B5B]" value="Dictionary"> Dictionary</label>
+                                                    <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="adv-filter-genre rounded text-[#183B5B] accent-[#183B5B]" value="Encyclopedia"> Encyclopedia</label>
+                                                    <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="adv-filter-genre rounded text-[#183B5B] accent-[#183B5B]" value="Atlas & Maps"> Atlas & Maps</label>
+                                                    <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="adv-filter-genre rounded text-[#183B5B] accent-[#183B5B]" value="Almanac"> Almanac</label>
+                                                    <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="adv-filter-genre rounded text-[#183B5B] accent-[#183B5B]" value="Thesaurus"> Thesaurus</label>
+                                                    <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="adv-filter-genre rounded text-[#183B5B] accent-[#183B5B]" value="Filipiniana"> Filipiniana</label>
+                                                    <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="adv-filter-genre rounded text-[#183B5B] accent-[#183B5B]" value="Periodical / Journal"> Periodical</label>
+                                                    <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="adv-filter-genre rounded text-[#183B5B] accent-[#183B5B]" value="Thesis / Dissertation"> Thesis</label>
+                                                    <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="adv-filter-genre rounded text-[#183B5B] accent-[#183B5B]" value="Yearbook"> Yearbook</label>
+                                                </div>
+                                            </details>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="p-4 border-t border-slate-100 bg-slate-50 rounded-b-xl shrink-0">
+                                    <button onclick="applyFilters()" class="w-full bg-[#183B5B] text-[#D6A84A] font-bold py-2.5 rounded-full hover:bg-[#2E5F87] transition-colors shadow-sm text-sm">Apply Filters</button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -101,10 +189,6 @@
                 <!-- FOOTER -->
                 <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4 flex justify-between items-center text-xs text-slate-500 shrink-0" id="books-footer">
                     <span id="books-count">Loading...</span>
-                    <div class="flex gap-2">
-                        <button class="px-3 py-1 bg-white border rounded hover:bg-slate-100">Previous</button>
-                        <button class="px-3 py-1 bg-white border rounded hover:bg-slate-100">Next</button>
-                    </div>
                 </div>
 
                 </main>
@@ -465,6 +549,7 @@
                                         <th class="p-3 text-xs font-bold text-slate-500 uppercase">Location</th>
                                         <th class="p-3 text-xs font-bold text-slate-500 uppercase">Source</th>
                                         <th class="p-3 text-xs font-bold text-slate-500 uppercase">Added</th>
+                                        <th class="p-3 text-xs font-bold text-slate-500 uppercase w-10"></th>
                                     </tr>
                                 </thead>
                                 <tbody id="copies-table-body" class="divide-y divide-slate-100 text-sm">
@@ -472,8 +557,52 @@
                                 </tbody>
                             </table>
                         </div>
-                        <div class="mt-4 flex justify-end shrink-0">
-                            <button type="button" onclick="closeModal('copies-modal')" class="px-4 py-2 rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200 transition font-bold text-sm shadow-sm">Close</button>
+                        <div class="mt-4 flex justify-between shrink-0">
+                            <div class="flex gap-2">
+                                <button type="button" onclick="addPurchasedCopy()" class="px-4 py-2 rounded-lg bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition font-bold text-sm shadow-sm border border-emerald-200 whitespace-nowrap">+ Add Purchased</button>
+                                <button type="button" onclick="openAddDonatedCopyModal()" class="px-4 py-2 rounded-lg bg-blue-50 text-blue-700 hover:bg-blue-100 transition font-bold text-sm shadow-sm border border-blue-200 whitespace-nowrap">+ Add Donated</button>
+                            </div>
+                            <div class="flex gap-2">
+                                <button type="button" onclick="closeModal('copies-modal')" class="px-4 py-2 rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200 transition font-bold text-sm shadow-sm">Cancel</button>
+                                <button type="button" onclick="saveNewCopies()" class="px-4 py-2 rounded-lg bg-[#183B5B] text-[#D6A84A] hover:bg-[#2E5F87] transition font-bold text-sm shadow-sm whitespace-nowrap">Save Changes</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Add Donated Copy Modal -->
+                <div id="add-donated-copy-modal" class="fixed inset-0 z-[60] hidden flex items-center justify-center bg-black/50 backdrop-blur-sm transition-opacity duration-300">
+                    <div class="bg-white rounded-xl shadow-2xl w-full max-w-md p-6 transform transition-all scale-100">
+                        <h3 class="text-xl font-bold text-[#183B5B] font-cinzel mb-4">Donor Information</h3>
+                        <div class="space-y-4">
+                            <div class="flex gap-4 mb-3">
+                                <label class="flex items-center gap-2 cursor-pointer">
+                                    <input type="radio" name="copy_donor_type" value="registered" checked onchange="toggleCopyDonorInput()" class="accent-[#183B5B]">
+                                    <span class="text-xs font-bold text-[#183B5B] font-cinzel">Registered User</span>
+                                </label>
+                                <label class="flex items-center gap-2 cursor-pointer">
+                                    <input type="radio" name="copy_donor_type" value="walkin" onchange="toggleCopyDonorInput()" class="accent-[#183B5B]">
+                                    <span class="text-xs font-bold text-[#183B5B] font-cinzel">Walk-in (Guest)</span>
+                                </label>
+                            </div>
+            
+                            <div id="copy-input-user-id" class="form-group">
+                                <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Donor (Registered User)</label>
+                                <div class="flex items-center gap-2">
+                                    <input type="text" id="copy-inp-user-name" class="w-full p-2 rounded border border-slate-300 bg-slate-100/70 cursor-default focus:ring-2 focus:ring-[#183B5B] outline-none text-sm" placeholder="Scan QR to get name" readonly>
+                                    <input type="hidden" id="copy-inp-user-id">
+                                    <button type="button" onclick="openBookScanner()" class="shrink-0 px-4 py-2 bg-[#183B5B] text-[#D6A84A] rounded-lg text-xs font-bold hover:bg-[#2E5F87] transition-colors shadow-sm">Scan QR</button>
+                                </div>
+                            </div>
+            
+                            <div id="copy-input-donor-name" class="form-group hidden">
+                                <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Donor Name</label>
+                                <input type="text" id="copy-inp-donor-name" class="w-full p-2 rounded border border-slate-300 focus:ring-2 focus:ring-[#183B5B] outline-none text-sm" placeholder="e.g. John Doe">
+                            </div>
+                        </div>
+                        <div class="flex justify-end gap-3 mt-6">
+                            <button type="button" onclick="closeModal('add-donated-copy-modal')" class="px-4 py-2 rounded-lg text-slate-600 hover:bg-slate-100 transition font-bold text-sm">Cancel</button>
+                            <button type="button" onclick="confirmAddDonatedCopy()" class="px-4 py-2 rounded-lg bg-[#183B5B] text-[#D6A84A] hover:bg-[#2E5F87] transition shadow-md font-bold text-sm">Add Copy</button>
                         </div>
                     </div>
                 </div>
@@ -512,6 +641,18 @@
                     </div>
                 </div>
 
+                <!-- QR Scanner Modal -->
+                <div id="book-qr-scanner-modal" class="fixed inset-0 z-[100] hidden flex items-center justify-center bg-black/80 backdrop-blur-sm">
+                    <div class="bg-white rounded-xl shadow-2xl w-full max-w-md p-6 relative">
+                        <button onclick="closeBookScanner()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                        </button>
+                        <h3 class="text-lg font-bold text-slate-800 mb-4">Scan User QR Code</h3>
+                        <div id="book-qr-reader" class="w-full h-64 bg-slate-100 rounded-lg overflow-hidden"></div>
+                        <p class="text-center text-sm text-slate-500 mt-4">Point camera at a QR code</p>
+                    </div>
+                </div>
+
     <script>
       {
         const path = require('path');
@@ -528,10 +669,26 @@
         }
         window.searchBooks = searchBooks;
 
+        window.toggleAdvancedFilter = function() {
+            document.getElementById('advanced-filter-menu').classList.toggle('hidden');
+        }
+
+        window.clearFilters = function() {
+            document.querySelector('input[name="adv-filter-type"][value="all"]').checked = true;
+            document.querySelectorAll('.adv-filter-genre').forEach(cb => cb.checked = false);
+            loadBooks();
+        }
+
+        window.applyFilters = function() {
+            document.getElementById('advanced-filter-menu').classList.add('hidden');
+            loadBooks();
+        }
+
         async function loadBooks() {
             const grid = document.getElementById('books-grid');
             const footerCount = document.getElementById('books-count');
-            const filterType = document.getElementById('filter-material-type') ? document.getElementById('filter-material-type').value : 'all';
+            const typeFilterEl = document.querySelector('input[name="adv-filter-type"]:checked');
+            const filterType = typeFilterEl ? typeFilterEl.value : 'all';
             
             grid.innerHTML = '<p class="text-slate-500 col-span-full text-center py-10">Loading books...</p>';
             
@@ -603,6 +760,12 @@
                     allItems = allItems.concat(res.rows);
                 }
 
+                // Client-side Genre Filtering
+                const checkedGenres = Array.from(document.querySelectorAll('.adv-filter-genre:checked')).map(cb => cb.value);
+                if (checkedGenres.length > 0) {
+                    allItems = allItems.filter(item => checkedGenres.includes(item.genre));
+                }
+
                 // Sort alphabetically as fallback since date_added is now per copy
                 allItems.sort((a, b) => (a.title || '').localeCompare(b.title || ''));
                 
@@ -633,7 +796,7 @@
                     // Handle Image
                     let imageHtml = '';
                     if (item.image_url) {
-                        imageHtml = `<img src="${item.image_url}" class="w-full h-full object-cover" alt="Cover">`;
+                        imageHtml = `<img src="${item.image_url}" class="w-full h-full object-cover" alt="Cover" onerror="this.src='https://placehold.co/200x300?text=No+Cover'">`;
                     } else {
                         // Icon based on type
                         if (item.material_type === 'Periodical') {
@@ -932,10 +1095,17 @@
         }
         window.openBookDetails = openBookDetails;
 
+        window.currentCopiesContext = { itemId: null, type: null, title: null };
+        window.dbCopies = [];
+        window.unsavedCopies = [];
+
         async function openCopiesModal(itemId, type, title) {
+            window.currentCopiesContext = { itemId, type, title };
+            window.unsavedCopies = []; // Reset unsaved rows
+            
             document.getElementById('copies-modal-title').innerText = title;
             const tbody = document.getElementById('copies-table-body');
-            tbody.innerHTML = '<tr><td colspan="6" class="p-4 text-center text-slate-500">Loading copies...</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="7" class="p-4 text-center text-slate-500">Loading copies...</td></tr>';
             document.getElementById('copies-modal').classList.remove('hidden');
 
             try {
@@ -947,34 +1117,232 @@
                 }
 
                 const res = await db.execute({ sql, args: [itemId] });
-                
-                tbody.innerHTML = '';
-                if (res.rows.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="6" class="p-4 text-center text-slate-400 italic">No copies found.</td></tr>';
-                    return;
-                }
-
-                res.rows.forEach(copy => {
-                    let statusColor = 'text-green-600 bg-green-50';
-                    if (copy.status === 'Borrowed') statusColor = 'text-amber-600 bg-amber-50';
-                    else if (copy.status !== 'Available') statusColor = 'text-slate-600 bg-slate-100';
-
-                    tbody.innerHTML += `
-                        <tr class="hover:bg-slate-50 transition-colors">
-                            <td class="p-3 font-mono text-slate-600">${copy.material_id}</td>
-                            <td class="p-3"><span class="px-2 py-0.5 rounded text-xs font-bold ${statusColor}">${copy.status}</span></td>
-                            <td class="p-3 text-slate-700 font-medium">${copy.condition}</td>
-                            <td class="p-3 text-slate-700">${copy.location || 'N/A'}</td>
-                            <td class="p-3 text-slate-600">${copy.source}</td>
-                            <td class="p-3 text-slate-500 text-xs">${new Date(copy.date_added).toLocaleDateString()}</td>
-                        </tr>
-                    `;
-                });
+                window.dbCopies = res.rows;
+                renderAllCopies();
             } catch(e) {
-                tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-red-500">Error: ${e.message}</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="7" class="p-4 text-center text-red-500">Error: ${e.message}</td></tr>`;
             }
         }
         window.openCopiesModal = openCopiesModal;
+
+        function renderAllCopies() {
+            const tbody = document.getElementById('copies-table-body');
+            tbody.innerHTML = '';
+
+            if (window.dbCopies.length === 0 && window.unsavedCopies.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" class="p-4 text-center text-slate-400 italic">No copies found.</td></tr>';
+                return;
+            }
+
+            // 1. Render Database Copies
+            window.dbCopies.forEach(copy => {
+                let statusColor = 'text-green-600 bg-green-50';
+                if (copy.status === 'Borrowed') statusColor = 'text-amber-600 bg-amber-50';
+                else if (copy.status !== 'Available') statusColor = 'text-slate-600 bg-slate-100';
+
+                tbody.innerHTML += `
+                    <tr class="hover:bg-slate-50 transition-colors border-b border-slate-100">
+                        <td class="p-3 font-mono text-slate-600">${copy.material_id}</td>
+                        <td class="p-3"><span class="px-2 py-0.5 rounded text-xs font-bold ${statusColor}">${copy.status}</span></td>
+                        <td class="p-3 text-slate-700 font-medium">${copy.condition}</td>
+                        <td class="p-3 text-slate-700">${copy.location || 'N/A'}</td>
+                        <td class="p-3 text-slate-600">${copy.source}</td>
+                        <td class="p-3 text-slate-500 text-xs">${new Date(copy.date_added).toLocaleDateString()}</td>
+                        <td class="p-3"></td>
+                    </tr>
+                `;
+            });
+
+            // Helper for dynamic Location dropdown
+            const getLocOptions = (selected) => {
+                const opts = [
+                    { group: 'Specialized', items: ['Front Desk', 'REF-1: General Reference', 'PER-1: Periodicals & News'] },
+                    { group: 'Non-Fiction & Textbooks', items: [
+                        'Shelf NF-1: (000-099) Computer Science, Information & General Works',
+                        'Shelf NF-2: (100-199) Philosophy & Psychology',
+                        'Shelf NF-3: (200-299) Religion',
+                        'Shelf NF-4: (300-399) Social Sciences',
+                        'Shelf NF-5: (400-499) Language',
+                        'Shelf NF-6: (500-599) Science',
+                        'Shelf NF-7: (600-699) Technology & Medicine',
+                        'Shelf NF-8: (700-799) Arts & Recreation',
+                        'Shelf NF-9: (800-899) Literature',
+                        'Shelf NF-10: (900-999) History & Geography'
+                    ]},
+                    { group: 'Fiction', items: ['Shelf FIC-A: Fiction (A-H)', 'Shelf FIC-B: Fiction (I-P)', 'Shelf FIC-C: Fiction (Q-Z)'] }
+                ];
+                let html = '';
+                opts.forEach(g => {
+                    html += `<optgroup label="${g.group}">`;
+                    g.items.forEach(i => { html += `<option value="${i}" ${selected === i ? 'selected' : ''}>${i.replace(/: \([^\)]+\) /, ': ')}</option>`; });
+                    html += `</optgroup>`;
+                });
+                return html;
+            }
+
+            // 2. Render Unsaved Copies
+            window.unsavedCopies.forEach((copy, idx) => {
+                let sourceBadge = copy.source === 'Donated' ? '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-100 text-blue-700">Donated</span>' : '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-700">Purchased</span>';
+                let donorInfo = copy.source === 'Donated' ? `<div class="text-[10px] text-slate-400 mt-1">From: ${copy.donor_name ? copy.donor_name : 'ID ' + copy.user_id}</div>` : '';
+
+                tbody.innerHTML += `
+                    <tr class="bg-amber-50/30 border-b border-amber-100 border-l-2 border-l-amber-400 transition-colors">
+                        <td class="p-3 text-xs text-amber-600 font-bold italic">Unsaved</td>
+                        <td class="p-3"><span class="px-2 py-0.5 rounded text-xs font-bold text-green-600 bg-green-50">Available</span></td>
+                        <td class="p-3">
+                            <select class="p-1 border border-slate-300 rounded text-xs outline-none bg-white" onchange="window.unsavedCopies[${idx}].condition = this.value">
+                                <option value="New" ${copy.condition==='New'?'selected':''}>New</option>
+                                <option value="Moderate Damage" ${copy.condition==='Moderate Damage'?'selected':''}>Moderate Damage</option>
+                                <option value="Severe Damage" ${copy.condition==='Severe Damage'?'selected':''}>Severe Damage</option>
+                            </select>
+                        </td>
+                        <td class="p-3">
+                            <select class="p-1 border border-slate-300 rounded text-[10px] max-w-[150px] outline-none bg-white" onchange="window.unsavedCopies[${idx}].location = this.value">
+                                ${getLocOptions(copy.location)}
+                            </select>
+                        </td>
+                        <td class="p-3 leading-tight">${sourceBadge}${donorInfo}</td>
+                        <td class="p-3 text-slate-500 text-xs italic">Just now</td>
+                        <td class="p-3 text-right">
+                            <button onclick="removeUnsavedCopy(${idx})" class="text-red-400 hover:text-red-600 transition-colors font-bold text-lg leading-none" title="Remove row">&times;</button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        // Dynamic Copy Functions
+        window.addPurchasedCopy = function() {
+            window.unsavedCopies.push({ source: 'Purchased', condition: 'New', location: 'Front Desk' });
+            renderAllCopies();
+        }
+
+        window.openAddDonatedCopyModal = function() {
+            document.getElementById('copy-inp-user-id').value = '';
+            document.getElementById('copy-inp-user-name').value = '';
+            document.getElementById('copy-inp-donor-name').value = '';
+            document.getElementById('add-donated-copy-modal').classList.remove('hidden');
+        }
+
+        window.toggleCopyDonorInput = function() {
+            const type = document.querySelector('input[name="copy_donor_type"]:checked').value;
+            if (type === 'registered') {
+                document.getElementById('copy-input-user-id').classList.remove('hidden');
+                document.getElementById('copy-input-donor-name').classList.add('hidden');
+            } else {
+                document.getElementById('copy-input-user-id').classList.add('hidden');
+                document.getElementById('copy-input-donor-name').classList.remove('hidden');
+            }
+        }
+
+        window.confirmAddDonatedCopy = function() {
+            const type = document.querySelector('input[name="copy_donor_type"]:checked').value;
+            let userId = null, donorName = null;
+
+            if (type === 'registered') {
+                userId = document.getElementById('copy-inp-user-id').value;
+                donorName = document.getElementById('copy-inp-user-name').value;
+                if (!userId) { window.showCustomAlert("Please scan a User QR Code."); return; }
+            } else {
+                donorName = document.getElementById('copy-inp-donor-name').value;
+                if (!donorName) { window.showCustomAlert("Please enter a Donor Name."); return; }
+            }
+
+            window.unsavedCopies.push({ source: 'Donated', condition: 'New', location: 'Front Desk', user_id: userId, donor_name: donorName });
+            closeModal('add-donated-copy-modal');
+            renderAllCopies();
+        }
+
+        window.removeUnsavedCopy = function(idx) {
+            window.unsavedCopies.splice(idx, 1);
+            renderAllCopies();
+        }
+
+        window.saveNewCopies = async function() {
+            if (window.unsavedCopies.length === 0) {
+                closeModal('copies-modal');
+                return;
+            }
+
+            const adminId = localStorage.getItem('adminId');
+
+            try {
+                const response = await fetch('http://localhost:3000/api/books/copies/add', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        item_id: window.currentCopiesContext.itemId,
+                        material_type: window.currentCopiesContext.type,
+                        copies: window.unsavedCopies,
+                        adminId: adminId
+                    })
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                    window.showCustomAlert(result.message, () => {
+                        // Refresh the modal to show newly generated DB IDs
+                        openCopiesModal(window.currentCopiesContext.itemId, window.currentCopiesContext.type, window.currentCopiesContext.title);
+                        loadBooks(); // Refresh background grid stats
+                    });
+                } else {
+                    throw new Error(result.message);
+                }
+            } catch (error) {
+                window.showCustomAlert("Failed to save copies: " + error.message);
+            }
+        }
+
+        // --- QR SCANNER LOGIC ---
+        let bookHtml5QrCode;
+        let isScanning = false;
+
+        window.openBookScanner = function() {
+            const modal = document.getElementById('book-qr-scanner-modal');
+            modal.classList.remove('hidden');
+
+            if (!bookHtml5QrCode) {
+                bookHtml5QrCode = new Html5Qrcode("book-qr-reader");
+            }
+
+            bookHtml5QrCode.start(
+                { facingMode: "environment" },
+                { fps: 10, qrbox: { width: 250, height: 250 } },
+                async (decodedText) => {
+                    await bookHtml5QrCode.stop();
+                    modal.classList.add('hidden');
+                    try {
+                        const qrData = JSON.parse(decodedText);
+                        const userId = qrData.id;
+                        if (!userId) throw new Error("Invalid QR format");
+                        
+                        const response = await fetch(`http://localhost:3000/api/user/${userId}`);
+                        const result = await response.json();
+                        if (result.success) {
+                            const user = result.data;
+                            document.getElementById('copy-inp-user-name').value = `${user.first_name} ${user.last_name}`;
+                            document.getElementById('copy-inp-user-id').value = user.user_id;
+                        } else {
+                            throw new Error(result.message);
+                        }
+                    } catch (e) {
+                        window.showCustomAlert("QR Error: " + e.message);
+                    }
+                },
+                (error) => { /* Ignore frequent failures */ }
+            ).catch(err => {
+                window.showCustomAlert("Could not start camera: " + err);
+                modal.classList.add('hidden');
+            });
+        }
+
+        window.closeBookScanner = function() {
+            const modal = document.getElementById('book-qr-scanner-modal');
+            modal.classList.add('hidden');
+            if (bookHtml5QrCode) {
+                bookHtml5QrCode.stop().catch(e => console.error(e));
+            }
+        }
 
         function closeModal(modalId) {
             document.getElementById(modalId).classList.add('hidden');
@@ -1117,6 +1485,7 @@
     </div>
 
     <!-- JS -->
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
     <script src="../admin_js/dashboard_loader.js"></script>
     <script src="../admin_js/admin_renderer.js"></script>
 </body>

@@ -62,6 +62,8 @@ function renderCopyRows() {
     if (!container) return;
     const count = parseInt(inpCopies.value) || 1;
     const currentRows = container.children.length;
+    
+    const isDonation = inpDonationId && inpDonationId.value;
 
     if (count > currentRows) {
         for (let i = currentRows + 1; i <= count; i++) {
@@ -103,9 +105,8 @@ function renderCopyRows() {
                     </select>
                 </div>
                 <div class="col-span-3">
-                    <select class="copy-source w-full p-1.5 rounded bg-slate-50 border border-slate-200 text-xs outline-none focus:border-[#3E2723]">
-                        <option value="Purchased">Purchased</option>
-                        <option value="Donated">Donated</option>
+                    <select class="copy-source w-full p-1.5 rounded bg-slate-50 border border-slate-200 text-xs outline-none focus:border-[#3E2723]" ${isDonation ? 'disabled' : ''}>
+                        ${isDonation ? '<option value="Donated">Donated</option>' : '<option value="Purchased">Purchased</option>'}
                     </select>
                 </div>
             `;
@@ -173,12 +174,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (inpCopies) inpCopies.value = params.get('quantity') || 1;
         
         renderCopyRows();
-        
-        // Force all copy sources to 'Donated'
-        document.querySelectorAll('.copy-source').forEach(sel => {
-            sel.value = 'Donated';
-            sel.disabled = true;
-        });
         
         updateFormVisibility(); // Ensure correct fields are shown for donated item
     } else {
