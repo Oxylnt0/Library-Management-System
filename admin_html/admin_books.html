@@ -552,7 +552,8 @@
                             b.*,
                             COUNT(c.copy_id) as total_copies,
                             SUM(CASE WHEN c.status = 'Available' THEN 1 ELSE 0 END) as available_copies,
-                            SUM(CASE WHEN c.book_condition IN ('Outdated', 'Obsolete') THEN 1 ELSE 0 END) as weeding_copies
+                            SUM(CASE WHEN c.book_condition IN ('Outdated', 'Obsolete') THEN 1 ELSE 0 END) as weeding_copies,
+                            MAX(CASE WHEN c.book_condition = 'Obsolete' THEN 2 WHEN c.book_condition = 'Outdated' THEN 1 ELSE 0 END) as weeding_level
                         FROM BOOK b
                         JOIN BOOK_COPY c ON b.book_id = c.book_id
                         WHERE 
@@ -582,7 +583,8 @@
                             MAX(c.issue_no) as latest_issue,
                             COUNT(c.p_copy_id) as total_copies,
                             SUM(CASE WHEN c.status = 'Available' THEN 1 ELSE 0 END) as available_copies,
-                            SUM(CASE WHEN c.periodical_condition IN ('Outdated', 'Obsolete') THEN 1 ELSE 0 END) as weeding_copies
+                            SUM(CASE WHEN c.periodical_condition IN ('Outdated', 'Obsolete') THEN 1 ELSE 0 END) as weeding_copies,
+                            MAX(CASE WHEN c.periodical_condition = 'Obsolete' THEN 2 WHEN c.periodical_condition = 'Outdated' THEN 1 ELSE 0 END) as weeding_level
                         FROM PERIODICAL p
                         JOIN PERIODICAL_COPY c ON p.periodical_id = c.periodical_id
                         WHERE 
@@ -618,13 +620,15 @@
 
                 allItems.forEach(item => {
                     // Determine Status Color
+                    let itemStatus = isArchivedView ? 'Archived' : (item.available_copies > 0 ? 'Available' : 'Unavailable');
                     let statusColor = 'bg-green-500';
-                    if (item.status === 'Archived') statusColor = 'bg-slate-400';
-                    else if (item.status === 'Donated Outbound') statusColor = 'bg-purple-500';
+                    
+                    if (isArchivedView) statusColor = 'bg-slate-400';
                     else if (item.available_copies === 0) statusColor = 'bg-red-500';
                     else if (item.available_copies < 3) statusColor = 'bg-amber-500';
                     
                     const isWeeding = item.weeding_copies > 0;
+                    const weedingType = item.weeding_level === 2 ? 'Obsolete' : 'Outdated';
 
                     // Handle Image
                     let imageHtml = '';
@@ -663,7 +667,7 @@
                         cardBg = 'bg-purple-50 border-purple-200';
                     }
                     if (isWeeding) {
-                        cardBg = 'bg-amber-50 border-amber-200'; // Weeding color takes precedence
+                        cardBg = weedingType === 'Obsolete' ? 'bg-red-50 border-red-200' : 'bg-amber-50 border-amber-200';
                     }
 
                     card.className = `${cardBg} rounded-xl shadow-sm border p-4 flex flex-col gap-4 hover:shadow-md transition-shadow group`;
@@ -677,7 +681,7 @@
                     // Determine Action Button (Archive vs Restore)
                     let actionButton = isArchivedView 
                         ? `<button ${isAssistant ? 'disabled title="Restricted"' : ''} onclick="openRestoreModal(${itemId}, '${safeTitle}', '${item.material_type}')" class="text-slate-400 ${isAssistant ? 'opacity-50 cursor-not-allowed' : 'hover:text-green-600 transition-colors'}" title="Restore Material"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg></button>`
-                        : `<button ${isAssistant ? 'disabled title="Restricted"' : ''} onclick="openArchiveModal(${itemId}, '${safeTitle}', '${item.material_type}')" class="${isWeeding ? 'text-amber-500 hover:text-amber-700' : 'text-slate-400 hover:text-amber-600'} transition-colors ${isAssistant ? 'opacity-50 cursor-not-allowed' : ''}" title="${isWeeding ? 'Contains Weeding Candidates' : 'Archive Title'}"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"></path></svg></button>`;
+                        : `<button ${isAssistant ? 'disabled title="Restricted"' : ''} onclick="openArchiveModal(${itemId}, '${safeTitle}', '${item.material_type}')" class="${isWeeding ? (weedingType === 'Obsolete' ? 'text-red-500 hover:text-red-700' : 'text-amber-500 hover:text-amber-700') : 'text-slate-400 hover:text-amber-600'} transition-colors ${isAssistant ? 'opacity-50 cursor-not-allowed' : ''}" title="${isWeeding ? `Contains ${weedingType} Candidates` : 'Archive Title'}"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"></path></svg></button>`;
 
                     card.innerHTML = `
                         <div class="flex gap-4">
@@ -687,7 +691,7 @@
                             <div class="flex-1 min-w-0 flex flex-col">
                                 <div class="flex justify-between items-start">
                                     <h3 class="font-bold text-slate-800 text-lg leading-tight line-clamp-2" title="${item.title}">${item.title}</h3>
-                                    <span class="w-2.5 h-2.5 rounded-full ${statusColor} shrink-0 mt-1.5 ml-2" title="${item.status}"></span>
+                                    <span class="w-2.5 h-2.5 rounded-full ${statusColor} shrink-0 mt-1.5 ml-2" title="${itemStatus}"></span>
                                 </div>
                                 ${extraInfoHtml}
                                 <p class="text-sm text-slate-600 mt-1">${authorOrPub}</p>
@@ -701,8 +705,11 @@
                         
                         <div class="pt-3 border-t border-slate-100 flex items-center justify-between">
                             <div class="text-xs text-slate-500 flex items-center gap-2">
-                                <span><span class="font-bold text-slate-700">${item.available_copies}</span> / ${item.total_copies} Copies</span>
-                                ${isWeeding ? `<span class="px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 font-bold text-[10px] border border-amber-200">⚠️ WEEDING</span>` : ''}
+                                ${isArchivedView 
+                                    ? `<span><span class="font-bold text-slate-700">${item.total_copies}</span> Archived Copies</span>`
+                                    : `<span><span class="font-bold text-slate-700">${item.available_copies}</span> / ${item.total_copies} Copies</span>`
+                                }
+                                ${isWeeding ? `<span class="px-1.5 py-0.5 rounded font-bold text-[10px] border uppercase ${weedingType === 'Obsolete' ? 'bg-red-100 text-red-700 border-red-200' : 'bg-amber-100 text-amber-700 border-amber-200'}">⚠️ ${weedingType}</span>` : ''}
                             </div>
                             <div class="flex items-center gap-2">
                                 <button onclick="openCopiesModal(${itemId}, '${item.material_type}', '${safeTitle}')"
@@ -822,7 +829,7 @@
                 loadBooks(); // Refresh grid
             } catch (err) {
                 console.error("Error updating book:", err);
-                alert("Failed to update book: " + err.message);
+                window.showCustomAlert("Failed to update book: " + err.message);
             }
         }
         window.saveBookChanges = saveBookChanges;
@@ -859,7 +866,7 @@
                 loadBooks(); // Refresh grid
             } catch (err) {
                 console.error("Error updating periodical:", err);
-                alert("Failed to update periodical: " + err.message);
+                window.showCustomAlert("Failed to update periodical: " + err.message);
             }
         }
         window.savePeriodicalChanges = savePeriodicalChanges;
@@ -1002,7 +1009,7 @@
                 loadBooks();
             } catch (err) {
                 console.error("Error archiving material:", err);
-                alert("Failed to archive material: " + err.message);
+                window.showCustomAlert("Failed to archive material: " + err.message);
             }
         }
         window.archiveBook = archiveBook;
@@ -1045,7 +1052,7 @@
                 loadBooks();
             } catch (err) {
                 console.error("Error restoring material:", err);
-                alert("Failed to restore material: " + err.message);
+                window.showCustomAlert("Failed to restore material: " + err.message);
             }
         }
         window.restoreBook = restoreBook;
@@ -1070,14 +1077,16 @@
         }
         window.runAutoWeeding = runAutoWeeding;
 
-        async function archiveAllOutdated() {
-            if(!confirm("Are you sure you want to ARCHIVE ALL items currently tagged as 'Outdated' or 'Obsolete'?\n\nThis will hide them from the public catalog.")) return;
-            try {
-                const response = await fetch('http://localhost:3000/api/admin/weeding/archive-all', { method: 'POST' });
-                const result = await response.json();
-                alert(result.message);
-                loadBooks();
-            } catch (err) { alert("Error: " + err.message); }
+        function archiveAllOutdated() {
+            window.showCustomConfirm("Are you sure you want to ARCHIVE ALL items currently tagged as 'Outdated' or 'Obsolete'? This will hide them from the public catalog.", async () => {
+                try {
+                    const response = await fetch('http://localhost:3000/api/admin/weeding/archive-all', { method: 'POST' });
+                    const result = await response.json();
+                    window.showCustomAlert(result.message, () => {
+                        loadBooks();
+                    });
+                } catch (err) { window.showCustomAlert("Error: " + err.message); }
+            });
         }
         window.archiveAllOutdated = archiveAllOutdated;
 

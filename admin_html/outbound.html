@@ -62,7 +62,7 @@
                                         <th class="p-4 border-b w-10">
                                             <input type="checkbox" id="select-all" class="w-4 h-4 rounded border-slate-300 text-[#183B5B] focus:ring-[#183B5B]">
                                         </th>
-                                        <th class="p-4 text-xs font-bold text-slate-500 uppercase border-b">Book Title</th>
+                                        <th class="p-4 text-xs font-bold text-slate-500 uppercase border-b">Material Title</th>
                                         <th class="p-4 text-xs font-bold text-slate-500 uppercase border-b">Category</th>
                                         <th class="p-4 text-xs font-bold text-slate-500 uppercase border-b">Condition</th>
                                         <th class="p-4 text-xs font-bold text-slate-500 uppercase border-b">Status</th>
@@ -106,7 +106,7 @@
             <form id="outbound-form" class="space-y-4">
                 <div>
                     <label class="block text-sm font-medium text-slate-700 mb-1">Selected Items</label>
-                    <div id="modal-selected-count" class="text-lg font-bold text-[#183B5B]">0 Books</div>
+                    <div id="modal-selected-count" class="text-lg font-bold text-[#183B5B]">0 Items</div>
                     <p class="text-xs text-slate-500">These items will be archived and marked as donated.</p>
                 </div>
 
@@ -213,7 +213,7 @@
             // Update Headers
             if (isHistoryView) {
                 thead.innerHTML = `
-                    <th class="p-4 text-xs font-bold text-slate-500 uppercase border-b">Book Title</th>
+                    <th class="p-4 text-xs font-bold text-slate-500 uppercase border-b">Material Title</th>
                     <th class="p-4 text-xs font-bold text-slate-500 uppercase border-b">Category</th>
                     <th class="p-4 text-xs font-bold text-slate-500 uppercase border-b">Condition</th>
                     <th class="p-4 text-xs font-bold text-slate-500 uppercase border-b">Recipient</th>
@@ -222,7 +222,7 @@
             } else {
                 thead.innerHTML = `
                     <th class="p-4 border-b w-10"><input type="checkbox" id="select-all" class="w-4 h-4 rounded border-slate-300 text-[#183B5B] focus:ring-[#183B5B]"></th>
-                    <th class="p-4 text-xs font-bold text-slate-500 uppercase border-b">Book Title</th>
+                    <th class="p-4 text-xs font-bold text-slate-500 uppercase border-b">Material Title</th>
                     <th class="p-4 text-xs font-bold text-slate-500 uppercase border-b">Category</th>
                     <th class="p-4 text-xs font-bold text-slate-500 uppercase border-b">Condition</th>
                     <th class="p-4 text-xs font-bold text-slate-500 uppercase border-b">Status</th>
@@ -232,7 +232,7 @@
             }
 
             if (eligibleBooks.length === 0) {
-                noMsg.innerText = isHistoryView ? "No books donated yet." : "No books found eligible for donation.";
+                noMsg.innerText = isHistoryView ? "No items donated yet." : "No items found eligible for donation.";
                 noMsg.classList.remove('hidden');
                 return;
             }
@@ -251,22 +251,28 @@
                     const dateStr = book.donation_date ? new Date(book.donation_date).toLocaleDateString() : 'N/A';
                     const recipient = book.recipient_organization || 'Unknown';
                     tr.innerHTML = `
-                        <td class="p-4 border-b font-medium text-slate-800">${book.title}</td>
-                        <td class="p-4 border-b text-slate-600">${book.book_category}</td>
+                        <td class="p-4 border-b font-medium text-slate-800">
+                            ${book.title}
+                            <div class="text-[10px] text-slate-400 font-normal uppercase mt-0.5">${book.material_type}</div>
+                        </td>
+                        <td class="p-4 border-b text-slate-600">${book.category}</td>
                         <td class="p-4 border-b">${condBadge}</td>
                         <td class="p-4 border-b text-slate-700">${recipient}</td>
                         <td class="p-4 border-b text-slate-500 text-xs">${dateStr}</td>
                     `;
                 } else {
-                    const isChecked = selectedBooks.has(book.book_id);
+                    const isChecked = selectedBooks.has(`${book.item_id}-${book.material_type}`);
                     const statusBadge = `<span class="px-2 py-1 rounded text-xs font-bold ${book.status === 'Available' ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-500'}">${book.status}</span>`;
                     tr.innerHTML = `
                         <td class="p-4 border-b">
                             <input type="checkbox" class="book-checkbox w-4 h-4 rounded border-slate-300 text-[#183B5B] focus:ring-[#183B5B]" 
-                                value="${book.book_id}" ${isChecked ? 'checked' : ''} onchange="toggleSelection(${book.book_id})">
+                                value="${book.item_id}-${book.material_type}" ${isChecked ? 'checked' : ''} onchange="toggleSelection(${book.item_id}, '${book.material_type}')">
                         </td>
-                        <td class="p-4 border-b font-medium text-slate-800">${book.title}</td>
-                        <td class="p-4 border-b text-slate-600">${book.book_category}</td>
+                        <td class="p-4 border-b font-medium text-slate-800">
+                            ${book.title}
+                            <div class="text-[10px] text-slate-400 font-normal uppercase mt-0.5">${book.material_type}</div>
+                        </td>
+                        <td class="p-4 border-b text-slate-600">${book.category}</td>
                         <td class="p-4 border-b">${condBadge}</td>
                         <td class="p-4 border-b">${statusBadge}</td>
                         <td class="p-4 border-b text-slate-500 text-xs">${new Date(book.date_added).toLocaleDateString()}</td>
@@ -277,11 +283,12 @@
             if (!isHistoryView) updateSelectionUI();
         }
 
-        window.toggleSelection = function(bookId) {
-            if (selectedBooks.has(bookId)) {
-                selectedBooks.delete(bookId);
+        window.toggleSelection = function(itemId, materialType) {
+            const key = `${itemId}-${materialType}`;
+            if (selectedBooks.has(key)) {
+                selectedBooks.delete(key);
             } else {
-                selectedBooks.add(bookId);
+                selectedBooks.add(key);
             }
             updateSelectionUI();
         }
@@ -310,7 +317,7 @@
             const sa = document.getElementById('select-all');
             if(sa) sa.addEventListener('change', (e) => {
                 if (e.target.checked) {
-                    eligibleBooks.forEach(b => selectedBooks.add(b.book_id));
+                    eligibleBooks.forEach(b => selectedBooks.add(`${b.item_id}-${b.material_type}`));
                 } else {
                     selectedBooks.clear();
                 }
@@ -322,7 +329,7 @@
         // Modal Logic
         window.openBulkModal = function() {
             if (selectedBooks.size === 0) return;
-            document.getElementById('modal-selected-count').innerText = `${selectedBooks.size} Books`;
+            document.getElementById('modal-selected-count').innerText = `${selectedBooks.size} Items`;
             document.getElementById('out-recipient').value = '';
             document.getElementById('outbound-modal').classList.remove('hidden');
         }
@@ -341,11 +348,12 @@
 
             // Prepare data
             const booksToDonate = eligibleBooks
-                .filter(b => selectedBooks.has(b.book_id))
+                .filter(b => selectedBooks.has(`${b.item_id}-${b.material_type}`))
                 .map(b => ({
-                    book_id: b.book_id,
+                    item_id: b.item_id,
+                    material_type: b.material_type,
                     book_title: b.title,
-                    category: b.book_category
+                    category: b.category
                 }));
 
             btn.disabled = true;
@@ -366,15 +374,16 @@
 
                 const result = await response.json();
                 if (result.success) {
-                    alert(result.message);
-                    closeOutboundModal();
-                    selectedBooks.clear();
-                    fetchEligibleBooks(); // Refresh list
+                    window.showCustomAlert(result.message, () => {
+                        closeOutboundModal();
+                        selectedBooks.clear();
+                        fetchEligibleBooks(); // Refresh list
+                    });
                 } else {
                     throw new Error(result.message);
                 }
             } catch (error) {
-                alert("Error: " + error.message);
+                window.showCustomAlert("Error: " + error.message);
             } finally {
                 btn.disabled = false;
                 btn.innerText = "Confirm Outbound Donation";

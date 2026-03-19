@@ -78,7 +78,7 @@
                                     <tr>
                                         <th class="p-4 text-xs font-bold text-slate-500 uppercase border-b">Donor Name
                                         </th>
-                                        <th class="p-4 text-xs font-bold text-slate-500 uppercase border-b">Book Title
+                                        <th class="p-4 text-xs font-bold text-slate-500 uppercase border-b">Material Title
                                         </th>
                                         <th class="p-4 text-xs font-bold text-slate-500 uppercase border-b">Date
                                             Received</th>
@@ -105,7 +105,7 @@
                     <div class="space-y-4">
                         <div class="p-4 rounded-xl border border-green-100 shadow-sm bg-green-50">
                             <div class="flex items-center justify-between mb-2">
-                                <span class="text-xs font-bold text-green-700 uppercase">Total Books</span>
+                                <span class="text-xs font-bold text-green-700 uppercase">Total Materials</span>
                                 <span class="text-lg"></span>
                             </div>
                             <div id="stat-total-donations" class="text-2xl font-bold text-slate-800">...</div>
@@ -157,7 +157,7 @@
                                     d.donation_date 
                                 FROM DONATION d
                                 LEFT JOIN USER u ON d.user_id = u.user_id
-                                WHERE d.donation_type = 'Inbound' AND d.book_id IS NULL
+                                WHERE d.donation_type = 'Inbound' AND d.status = 'Pending'
                             `;
                             
                             const args = [];
@@ -205,7 +205,7 @@
                                         </td>
                                         <td class="p-4 text-slate-600">${new Date(donation.donation_date).toLocaleDateString()}</td>
                                         <td class="p-4 text-right">
-                                            <button onclick="window.location.href='admin_add_books.html?donation_id=${donation.donation_id}&title=${encodeURIComponent(donation.book_title)}&category=${donation.category}&quantity=${donation.quantity}'" 
+                                            <button onclick="window.location.href='admin_add_books.html?donation_id=${donation.donation_id}&title=${encodeURIComponent(donation.book_title).replace(/'/g, "%27")}&category=${encodeURIComponent(donation.category)}&quantity=${donation.quantity}'" 
                                                 class="px-4 py-1.5 bg-[#183B5B] text-[#D6A84A] text-xs font-bold rounded-full hover:bg-[#2E5F87] transition shadow-sm">
                                                 Catalog Item
                                             </button>
@@ -231,7 +231,7 @@
 
                             // 2. Pending Catalog Count
                             const pendingRes = await db.execute({
-                                sql: "SELECT COUNT(*) as count FROM DONATION WHERE donation_type = 'Inbound' AND book_id IS NULL"
+                                sql: "SELECT COUNT(*) as count FROM DONATION WHERE donation_type = 'Inbound' AND status = 'Pending'"
                             });
                             const pendingCount = pendingRes.rows[0].count || 0;
 

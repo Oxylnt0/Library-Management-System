@@ -24,17 +24,17 @@ async function initUserDonations() {
         if (result.success) {
             renderDonations(result.data);
         } else {
-            listContainer.innerHTML = `<tr><td colspan="4" class="p-8 text-center text-red-500">Error: ${result.message}</td></tr>`;
+            listContainer.innerHTML = `<tr><td colspan="5" class="p-8 text-center text-red-500">Error: ${result.message}</td></tr>`;
         }
 
     } catch (error) {
         console.error("Error fetching donations:", error);
-        listContainer.innerHTML = `<tr><td colspan="4" class="p-8 text-center text-red-500">Failed to load donations. Server might be down.</td></tr>`;
+        listContainer.innerHTML = `<tr><td colspan="5" class="p-8 text-center text-red-500">Failed to load donations. Server might be down.</td></tr>`;
     }
 
     function renderDonations(donations) {
         if (donations.length === 0) {
-            listContainer.innerHTML = `<tr><td colspan="4" class="px-6 py-4 text-center text-slate-500 italic">You haven't made any donations yet.</td></tr>`;
+            listContainer.innerHTML = `<tr><td colspan="5" class="px-6 py-4 text-center text-slate-500 italic">You haven't made any donations yet.</td></tr>`;
             return;
         }
 
@@ -45,6 +45,9 @@ async function initUserDonations() {
                     <span class="px-2 py-1 bg-white/50 rounded text-xs font-bold border border-white/30">${d.category}</span>
                 </td>
                 <td class="px-6 py-4 text-center font-bold text-[#1A202C]">${d.quantity}</td>
+                <td class="px-6 py-4 text-center">
+                    <span class="px-2 py-1 rounded-full text-[10px] font-bold ${d.status === 'Cataloged' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}">${d.status}</span>
+                </td>
                 <td class="px-6 py-4 text-right text-[#1A202C] font-medium">${new Date(d.donation_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</td>
             </tr>
         `).join('');

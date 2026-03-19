@@ -59,7 +59,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         } catch (error) {
             console.error("Error processing QR code:", error);
-            alert("Failed to process QR code: " + error.message);
+            window.showCustomAlert("Failed to process QR code: " + error.message);
             // Clear fields on error
             document.getElementById('inp-user-name').value = '';
             document.getElementById('inp-user-id').value = '';
@@ -79,7 +79,7 @@ document.addEventListener('DOMContentLoaded', () => {
             onScanSuccess,
             onScanFailure
         ).catch(err => {
-            alert("Could not start QR scanner. Ensure camera permissions are granted. " + err);
+            window.showCustomAlert("Could not start QR scanner. Ensure camera permissions are granted. " + err);
             scannerModal.classList.add('hidden');
         });
     });
@@ -107,7 +107,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Validation
             if (!bookTitle) {
-                alert("Please enter a book title.");
+                window.showCustomAlert("Please enter a material title.");
                 return;
             }
 
@@ -206,7 +206,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
 
                 if (failCount === 0) {
-                    alert(`Success! Recorded ${successCount} donations.`);
+                    window.showCustomAlert(`Success! Recorded ${successCount} donations.`);
                     
                     // Reset Everything
                     donationQueue = [];
@@ -219,7 +219,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     toggleDonorInput();
                     document.getElementById('inp-user-name').value = '';
                 } else {
-                    alert(`Completed with issues.\nSuccess: ${successCount}\nFailed: ${failCount}`);
+                    window.showCustomAlert(`Completed with issues.\nSuccess: ${successCount}\nFailed: ${failCount}`);
                     // In a real app, we'd keep failed items in the list. 
                     // For now, we clear to prevent duplicates on retry.
                     donationQueue = []; 
@@ -230,7 +230,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             } catch (error) {
                 console.error("Batch submission error:", error);
-                alert("Network Error: " + error.message);
+                window.showCustomAlert("Network Error: " + error.message);
             } finally {
                 btnRecordAll.innerText = originalText;
                 if (donationQueue.length > 0) btnRecordAll.disabled = false;

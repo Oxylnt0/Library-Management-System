@@ -84,11 +84,16 @@ function renderCopyRows() {
                             <option value="PER-1: Periodicals & News">PER-1: Periodicals & News</option>
                         </optgroup>
                         <optgroup label="Non-Fiction & Textbooks">
-                            <option value="Shelf NF-1: Comp Sci & Info (000-099)">Shelf NF-1: Comp Sci (000-099)</option>
-                            <option value="Shelf NF-2: Philosophy & Psych (100-199)">Shelf NF-2: Philosophy (100-199)</option>
-                            <option value="Shelf NF-4: Social Sciences (300-399)">Shelf NF-4: Social Sci (300-399)</option>
-                            <option value="Shelf NF-7: Technology & Med (600-699)">Shelf NF-7: Tech & Med (600-699)</option>
-                            <option value="Shelf NF-10: History & Geo (900-999)">Shelf NF-10: History (900-999)</option>
+                            <option value="Shelf NF-1: (000-099) Computer Science, Information & General Works">Shelf NF-1: (000-099) Comp Sci & Info</option>
+                            <option value="Shelf NF-2: (100-199) Philosophy & Psychology">Shelf NF-2: (100-199) Philosophy & Psych</option>
+                            <option value="Shelf NF-3: (200-299) Religion">Shelf NF-3: (200-299) Religion</option>
+                            <option value="Shelf NF-4: (300-399) Social Sciences">Shelf NF-4: (300-399) Social Sciences</option>
+                            <option value="Shelf NF-5: (400-499) Language">Shelf NF-5: (400-499) Language</option>
+                            <option value="Shelf NF-6: (500-599) Science">Shelf NF-6: (500-599) Science</option>
+                            <option value="Shelf NF-7: (600-699) Technology & Medicine">Shelf NF-7: (600-699) Tech & Med</option>
+                            <option value="Shelf NF-8: (700-799) Arts & Recreation">Shelf NF-8: (700-799) Arts & Rec</option>
+                            <option value="Shelf NF-9: (800-899) Literature">Shelf NF-9: (800-899) Literature</option>
+                            <option value="Shelf NF-10: (900-999) History & Geography">Shelf NF-10: (900-999) History & Geo</option>
                         </optgroup>
                         <optgroup label="Fiction">
                             <option value="Shelf FIC-A: Fiction (A-H)">Shelf FIC-A: Fiction (A-H)</option>

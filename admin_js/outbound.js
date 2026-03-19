@@ -83,15 +83,16 @@ async function handleOutboundSubmit(e) {
         const result = await response.json();
 
         if (result.success) {
-            alert("Donation processed successfully!");
-            closeOutboundModal();
-            fetchEligibleBooks(); // Refresh table
+            window.showCustomAlert("Donation processed successfully!", () => {
+                closeOutboundModal();
+                fetchEligibleBooks(); // Refresh table
+            });
         } else {
-            alert("Error: " + result.message);
+            window.showCustomAlert("Error: " + result.message);
         }
     } catch (error) {
         console.error("Submission error:", error);
-        alert("Failed to process donation.");
+        window.showCustomAlert("Failed to process donation.");
     }
 }
 

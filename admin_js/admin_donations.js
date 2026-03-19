@@ -34,7 +34,7 @@
                     </td>
                     <td class="p-4 text-slate-600">${new Date(donation.donation_date).toLocaleDateString()}</td>
                     <td class="p-4 text-right">
-                        <button onclick="window.location.href='admin_add_books.html?donation_id=${donation.donation_id}&title=${encodeURIComponent(donation.book_title)}&category=${donation.category}&quantity=${donation.quantity}'" 
+                        <button onclick="window.location.href='admin_add_books.html?donation_id=${donation.donation_id}&title=${encodeURIComponent(donation.book_title).replace(/'/g, "%27")}&category=${encodeURIComponent(donation.category)}&quantity=${donation.quantity}'" 
                             class="px-3 py-1.5 bg-[#183B5B] text-white text-xs font-bold rounded hover:bg-[#2E5F87] transition shadow-sm">
                             Catalog Item
                         </button>

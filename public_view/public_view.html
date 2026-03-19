@@ -293,9 +293,12 @@
                                     <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="genre-filter rounded text-[#183B5B]" value="Classic Fiction"> Classic Fiction</label>
                                     <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="genre-filter rounded text-[#183B5B]" value="Fantasy"> Fantasy</label>
                                     <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="genre-filter rounded text-[#183B5B]" value="Historical Fiction"> Historical Fiction</label>
+                                    <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="genre-filter rounded text-[#183B5B]" value="Horror"> Horror</label>
                                     <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="genre-filter rounded text-[#183B5B]" value="Mystery & Thriller"> Mystery & Thriller</label>
                                     <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="genre-filter rounded text-[#183B5B]" value="Romance"> Romance</label>
                                     <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="genre-filter rounded text-[#183B5B]" value="Science Fiction (Sci-Fi)"> Sci-Fi</label>
+                                    <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="genre-filter rounded text-[#183B5B]" value="Poetry"> Poetry</label>
+                                    <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="genre-filter rounded text-[#183B5B]" value="Drama / Plays"> Drama / Plays</label>
                                     <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="genre-filter rounded text-[#183B5B]" value="Young Adult (YA)"> Young Adult</label>
                                     <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="genre-filter rounded text-[#183B5B]" value="Children's Literature"> Children's Lit</label>
                                     <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="genre-filter rounded text-[#183B5B]" value="Graphic Novel / Comic"> Graphic Novel</label>
@@ -316,6 +319,9 @@
                                     <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="genre-filter rounded text-[#183B5B]" value="Religion & Theology"> Religion</label>
                                     <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="genre-filter rounded text-[#183B5B]" value="True Crime"> True Crime</label>
                                     <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="genre-filter rounded text-[#183B5B]" value="Arts & Music"> Arts & Music</label>
+                                    <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="genre-filter rounded text-[#183B5B]" value="Cookery & Gastronomy"> Cookery & Gastronomy</label>
+                                    <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="genre-filter rounded text-[#183B5B]" value="Travel & Tourism"> Travel & Tourism</label>
+                                    <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="genre-filter rounded text-[#183B5B]" value="Sports & Recreation"> Sports & Recreation</label>
                                 </div>
                             </details>
 
@@ -327,8 +333,10 @@
                                 <div class="mt-2 space-y-2 text-sm pl-2 text-slate-600">
                                     <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="genre-filter rounded text-[#183B5B]" value="Computer Science & Technology"> Comp Sci</label>
                                     <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="genre-filter rounded text-[#183B5B]" value="Medicine & Health"> Medicine</label>
+                                    <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="genre-filter rounded text-[#183B5B]" value="Astronomy & Space"> Astronomy & Space</label>
                                     <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="genre-filter rounded text-[#183B5B]" value="Biology & Life Sciences"> Biology</label>
                                     <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="genre-filter rounded text-[#183B5B]" value="Chemistry & Physics"> Chemistry/Physics</label>
+                                    <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="genre-filter rounded text-[#183B5B]" value="Environmental Science"> Environmental Science</label>
                                     <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="genre-filter rounded text-[#183B5B]" value="Mathematics"> Mathematics</label>
                                     <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="genre-filter rounded text-[#183B5B]" value="Engineering"> Engineering</label>
                                     <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="genre-filter rounded text-[#183B5B]" value="Law & Politics"> Law & Politics</label>
@@ -350,6 +358,7 @@
                                     <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="genre-filter rounded text-[#183B5B]" value="Filipiniana"> Filipiniana</label>
                                     <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="genre-filter rounded text-[#183B5B]" value="Periodical / Journal"> Periodical</label>
                                     <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="genre-filter rounded text-[#183B5B]" value="Thesis / Dissertation"> Thesis</label>
+                                    <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="genre-filter rounded text-[#183B5B]" value="Yearbook"> Yearbook</label>
                                 </div>
                             </details>
                         </div>
@@ -898,15 +907,15 @@
                 // Map groupName to genres
                 let genres = [];
                 if (groupName === 'Fiction') {
-                    genres = ["Action & Adventure", "Classic Fiction", "Fantasy", "Historical Fiction", "Mystery & Thriller", "Romance", "Science Fiction (Sci-Fi)", "Young Adult (YA)", "Children's Literature", "Graphic Novel / Comic"];
+                    genres = ["Action & Adventure", "Classic Fiction", "Fantasy", "Historical Fiction", "Horror", "Mystery & Thriller", "Romance", "Science Fiction (Sci-Fi)", "Poetry", "Drama / Plays", "Young Adult (YA)", "Children's Literature", "Graphic Novel / Comic"];
                 } else if (groupName === 'Non-Fiction') {
-                    genres = ["Biography & Autobiography", "Self-Help & Motivation", "Business & Economics", "History & Geography", "Philosophy & Psychology", "Religion & Theology", "True Crime", "Arts & Music"];
+                    genres = ["Biography & Autobiography", "Self-Help & Motivation", "Business & Economics", "History & Geography", "Philosophy & Psychology", "Religion & Theology", "True Crime", "Arts & Music", "Cookery & Gastronomy", "Travel & Tourism", "Sports & Recreation"];
                 } else if (groupName === 'Academic') {
-                    genres = ["Computer Science & Technology", "Medicine & Health", "Biology & Life Sciences", "Chemistry & Physics", "Mathematics", "Engineering", "Law & Politics", "Education & Teaching"];
+                    genres = ["Computer Science & Technology", "Medicine & Health", "Astronomy & Space", "Biology & Life Sciences", "Chemistry & Physics", "Environmental Science", "Mathematics", "Engineering", "Law & Politics", "Education & Teaching"];
                 } else if (groupName === 'Reference') {
                     genres = ["Dictionary", "Encyclopedia", "Atlas & Maps", "Almanac", "Thesaurus"];
                 } else if (groupName === 'Special') {
-                    genres = ["Filipiniana", "Periodical / Journal", "Thesis / Dissertation"];
+                    genres = ["Filipiniana", "Periodical / Journal", "Thesis / Dissertation", "Yearbook"];
                 }
 
                 // Check specific

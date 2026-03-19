@@ -249,8 +249,8 @@ app.post('/api/donations/inbound', async (req, res) => {
 
     try {
         await db.execute({
-            sql: `INSERT INTO DONATION (donation_type, user_id, donor_name, book_title, category, quantity, donation_date) 
-                  VALUES ('Inbound', ?, ?, ?, ?, ?, DATE('now', '+8 hours'))`,
+            sql: `INSERT INTO DONATION (donation_type, user_id, donor_name, book_title, category, quantity, donation_date, status) 
+                  VALUES ('Inbound', ?, ?, ?, ?, ?, DATE('now', '+8 hours'), 'Pending')`,
             args: [user_id || null, donor_name || null, book_title, category, quantity]
         });
 
@@ -270,12 +270,19 @@ app.get('/api/donations/eligible', async (req, res) => {
     try {
         // Fetch books marked as Outdated or Obsolete
         const result = await db.execute({
-            sql: `SELECT b.book_id, b.title, b.book_category, c.book_condition, c.date_added, c.status 
+            sql: `SELECT b.book_id as item_id, 'Book' as material_type, b.title, b.book_category as category, c.book_condition as condition, c.date_added, c.status 
                   FROM BOOK b
                   JOIN BOOK_COPY c ON b.book_id = c.book_id
                   WHERE c.book_condition IN ('Outdated', 'Obsolete') 
                   AND c.status IN ('Available', 'Archived')
-                  GROUP BY b.book_id`
+                  GROUP BY b.book_id
+                  UNION ALL
+                  SELECT p.periodical_id as item_id, 'Periodical' as material_type, p.title, p.type as category, pc.periodical_condition as condition, pc.publication_date as date_added, pc.status 
+                  FROM PERIODICAL p
+                  JOIN PERIODICAL_COPY pc ON p.periodical_id = p.periodical_id
+                  WHERE pc.periodical_condition IN ('Outdated', 'Obsolete') 
+                  AND pc.status IN ('Available', 'Archived')
+                  GROUP BY p.periodical_id`
         });
 
         res.json({ success: true, data: result.rows });
@@ -287,28 +294,41 @@ app.get('/api/donations/eligible', async (req, res) => {
 
 // 6. POST /api/donations/outbound
 app.post('/api/donations/outbound', async (req, res) => {
-    const { book_id, book_title, category, recipient_organization, adminId } = req.body;
+    const { item_id, material_type, book_title, category, recipient_organization, adminId } = req.body;
 
     try {
-        // 1. Update Book Status
-        await db.execute({
-            sql: `UPDATE BOOK_COPY 
-                  SET status = 'Donated Outbound', book_condition = 'Outdated' 
-                  WHERE copy_id = (
-                      SELECT copy_id FROM BOOK_COPY WHERE book_id = ? AND book_condition IN ('Outdated', 'Obsolete') LIMIT 1
-                  )`,
-            args: [book_id]
-        });
-
-        // 2. Insert Donation Record
-        await db.execute({
-            sql: `INSERT INTO DONATION (donation_type, recipient_organization, book_id, book_title, category, quantity, donation_date) 
-                  VALUES ('Outbound', ?, ?, ?, ?, 1, DATE('now', '+8 hours'))`,
-            args: [recipient_organization, book_id, book_title, category]
-        });
+        if (material_type === 'Book') {
+            await db.execute({
+                sql: `UPDATE BOOK_COPY 
+                      SET status = 'Donated Outbound', book_condition = 'Outdated' 
+                      WHERE copy_id = (
+                          SELECT copy_id FROM BOOK_COPY WHERE book_id = ? AND book_condition IN ('Outdated', 'Obsolete') LIMIT 1
+                      )`,
+                args: [item_id]
+            });
+            await db.execute({
+                sql: `INSERT INTO DONATION (donation_type, recipient_organization, book_id, book_title, category, quantity, donation_date, status) 
+                      VALUES ('Outbound', ?, ?, ?, ?, 1, DATE('now', '+8 hours'), 'Completed')`,
+                args: [recipient_organization, item_id, book_title, category]
+            });
+        } else {
+            await db.execute({
+                sql: `UPDATE PERIODICAL_COPY 
+                      SET status = 'Donated Outbound', periodical_condition = 'Outdated' 
+                      WHERE p_copy_id = (
+                          SELECT p_copy_id FROM PERIODICAL_COPY WHERE periodical_id = ? AND periodical_condition IN ('Outdated', 'Obsolete') LIMIT 1
+                      )`,
+                args: [item_id]
+            });
+            await db.execute({
+                sql: `INSERT INTO DONATION (donation_type, recipient_organization, periodical_id, book_title, category, quantity, donation_date, status) 
+                      VALUES ('Outbound', ?, ?, ?, ?, 1, DATE('now', '+8 hours'), 'Completed')`,
+                args: [recipient_organization, item_id, book_title, category]
+            });
+        }
 
         if (adminId) {
-            await logAdminAction(adminId, 'OUTBOUND_DONATION', 'DONATION', null, `Donated book '${book_title}' to ${recipient_organization}`);
+            await logAdminAction(adminId, 'OUTBOUND_DONATION', 'DONATION', null, `Donated ${material_type} '${book_title}' to ${recipient_organization}`);
         }
 
         res.json({ success: true, message: "Outbound donation processed successfully." });
@@ -320,26 +340,39 @@ app.post('/api/donations/outbound', async (req, res) => {
 
 // 6.5 POST /api/donations/outbound/bulk
 app.post('/api/donations/outbound/bulk', async (req, res) => {
-    const { books, recipient_organization, adminId } = req.body; // books is array of { book_id, book_title, category }
+    const { books, recipient_organization, adminId } = req.body; // books is array of { item_id, material_type, book_title, category }
 
     try {
         for (const book of books) {
-             // 1. Update Book Status
-            await db.execute({
-                sql: `UPDATE BOOK_COPY 
-                      SET status = 'Donated Outbound', book_condition = 'Outdated' 
-                      WHERE copy_id = (
-                          SELECT copy_id FROM BOOK_COPY WHERE book_id = ? AND book_condition IN ('Outdated', 'Obsolete') LIMIT 1
-                      )`,
-                args: [book.book_id]
-            });
-
-            // 2. Insert Donation Record
-            await db.execute({
-                sql: `INSERT INTO DONATION (donation_type, recipient_organization, book_id, book_title, category, quantity, donation_date) 
-                      VALUES ('Outbound', ?, ?, ?, ?, 1, DATE('now', '+8 hours'))`,
-                args: [recipient_organization, book.book_id, book.book_title, book.category]
-            });
+            if (book.material_type === 'Book') {
+                await db.execute({
+                    sql: `UPDATE BOOK_COPY 
+                          SET status = 'Donated Outbound', book_condition = 'Outdated' 
+                          WHERE copy_id = (
+                              SELECT copy_id FROM BOOK_COPY WHERE book_id = ? AND book_condition IN ('Outdated', 'Obsolete') LIMIT 1
+                          )`,
+                    args: [book.item_id]
+                });
+                await db.execute({
+                    sql: `INSERT INTO DONATION (donation_type, recipient_organization, book_id, book_title, category, quantity, donation_date, status) 
+                          VALUES ('Outbound', ?, ?, ?, ?, 1, DATE('now', '+8 hours'), 'Completed')`,
+                    args: [recipient_organization, book.item_id, book.book_title, book.category]
+                });
+            } else {
+                await db.execute({
+                    sql: `UPDATE PERIODICAL_COPY 
+                          SET status = 'Donated Outbound', periodical_condition = 'Outdated' 
+                          WHERE p_copy_id = (
+                              SELECT p_copy_id FROM PERIODICAL_COPY WHERE periodical_id = ? AND periodical_condition IN ('Outdated', 'Obsolete') LIMIT 1
+                          )`,
+                    args: [book.item_id]
+                });
+                await db.execute({
+                    sql: `INSERT INTO DONATION (donation_type, recipient_organization, periodical_id, book_title, category, quantity, donation_date, status) 
+                          VALUES ('Outbound', ?, ?, ?, ?, 1, DATE('now', '+8 hours'), 'Completed')`,
+                    args: [recipient_organization, book.item_id, book.book_title, book.category]
+                });
+            }
         }
        
         if (adminId) {
@@ -357,11 +390,13 @@ app.post('/api/donations/outbound/bulk', async (req, res) => {
 app.get('/api/donations/outbound/history', async (req, res) => {
     try {
         const result = await db.execute({
-            sql: `SELECT b.book_id, b.title, b.book_category, c.book_condition, c.status, d.donation_date, d.recipient_organization
-                  FROM BOOK b
-                  JOIN BOOK_COPY c ON b.book_id = c.book_id
-                  LEFT JOIN DONATION d ON b.book_id = d.book_id AND d.donation_type = 'Outbound'
-                  WHERE c.status = 'Donated Outbound'
+            sql: `SELECT 
+                    CASE WHEN book_id IS NOT NULL THEN 'Book' ELSE 'Periodical' END as material_type,
+                    COALESCE(book_id, periodical_id, 0) as item_id,
+                    book_title as title, category, 'Outdated' as condition,
+                    recipient_organization, donation_date
+                  FROM DONATION
+                  WHERE donation_type = 'Outbound'
                   ORDER BY d.donation_date DESC`
         });
         res.json({ success: true, data: result.rows });
@@ -377,7 +412,7 @@ app.get('/api/donations/pending', async (req, res) => {
         const result = await db.execute({
             sql: `SELECT donation_id, donor_name, book_title, category, quantity, donation_date 
                   FROM DONATION 
-                  WHERE donation_type = 'Inbound' AND book_id IS NULL`
+                  WHERE donation_type = 'Inbound' AND status = 'Pending'`
         });
         res.json({ success: true, data: result.rows });
     } catch (error) {
@@ -495,8 +530,13 @@ app.post('/api/books/add', async (req, res) => {
 
         if (data.donation_id && newBookId) {
             await db.execute({
-                sql: "UPDATE DONATION SET book_id = ? WHERE donation_id = ?",
+                sql: "UPDATE DONATION SET book_id = ?, status = 'Cataloged' WHERE donation_id = ?",
                 args: [newBookId, data.donation_id]
+            });
+        } else if (data.donation_id && newPeriodicalId) {
+            await db.execute({
+                sql: "UPDATE DONATION SET periodical_id = ?, status = 'Cataloged' WHERE donation_id = ?",
+                args: [newPeriodicalId, data.donation_id]
             });
         }
 
@@ -522,7 +562,7 @@ app.get('/api/donations/stats', async (req, res) => {
 
         // 2. Pending Catalog Count
         const pendingRes = await db.execute({
-            sql: "SELECT COUNT(*) as count FROM DONATION WHERE donation_type = 'Inbound' AND book_id IS NULL"
+            sql: "SELECT COUNT(*) as count FROM DONATION WHERE donation_type = 'Inbound' AND status = 'Pending'"
         });
         const pendingCount = pendingRes.rows[0].count || 0;
 
@@ -1189,59 +1229,93 @@ app.get('/api/books/public', async (req, res) => {
 // 21. POST /api/admin/weeding/process (CREW Method Automation)
 app.post('/api/admin/weeding/process', async (req, res) => {
     try {
-        // 1. Mark OBSOLETE (5 Years+)
-        // Genres: Computer Science, Almanac, Medicine, Law
-        const obsoleteSql = `
+        const currentYearStr = "CAST(strftime('%Y', 'now', '+8 hours') AS INTEGER)";
+
+        // Helper to format IN clause and escape single quotes
+        const formatIn = (arr) => '(' + arr.map(g => `'${g.replace(/'/g, "''")}'`).join(', ') + ')';
+
+        // --- 0. RESET PREVIOUS WEEDING TAGS ---
+        // Clear out old tags so books are freshly re-evaluated against the current rules
+        await db.execute(`
             UPDATE BOOK_COPY 
-            SET book_condition = 'Obsolete'
-            WHERE status = 'Available' AND book_id IN (
-                SELECT book_id FROM BOOK 
-                WHERE (genre IN ('Computer Science & Technology', 'Almanac', 'Medicine & Health', 'Law & Politics') 
-                AND (CAST(strftime('%Y', 'now', '+8 hours') AS INTEGER) - publication_year) >= 5)
-            )`;
-        await db.execute(obsoleteSql);
+            SET book_condition = 'New' 
+            WHERE book_condition IN ('Outdated', 'Obsolete') AND status = 'Available'
+        `);
+        await db.execute(`
+            UPDATE PERIODICAL_COPY 
+            SET periodical_condition = 'New' 
+            WHERE periodical_condition IN ('Outdated', 'Obsolete') AND status = 'Available'
+        `);
 
-        // 2. Mark OUTDATED (3 to 4 Years Fast Moving)
-        const outdatedFastSql = `
-            UPDATE BOOK_COPY 
-            SET book_condition = 'Outdated'
-            WHERE status = 'Available' AND book_id IN (
-                SELECT book_id FROM BOOK 
-                WHERE genre IN ('Computer Science & Technology', 'Almanac') 
-                AND (CAST(strftime('%Y', 'now', '+8 hours') AS INTEGER) - publication_year) >= 3
-                AND (CAST(strftime('%Y', 'now', '+8 hours') AS INTEGER) - publication_year) < 5
-            )`;
-        await db.execute(outdatedFastSql);
+        // --- 1. MARK OBSOLETE BOOKS ---
+        const obsoleteRules = [
+            { years: 2, genres: ['Almanac'] },
+            { years: 8, genres: ['Computer Science & Technology', 'Computer Science'] },
+            { years: 10, genres: ['Medicine & Health', 'Medicine', 'Law & Politics', 'Law', 'Travel & Tourism', 'Business & Economics', 'Accounting & Business', 'Atlas & Maps', 'Geography'] },
+            { years: 12, genres: ['Engineering', 'Environmental Science'] },
+            { years: 15, genres: ['Education & Teaching', 'Astronomy & Space', 'Biology & Life Sciences', 'Chemistry & Physics', 'Self-Help & Motivation', 'Self-Help', 'Encyclopedia'] },
+            { years: 20, genres: ['Sports & Recreation', 'Thesis / Dissertation'] },
+            { years: 25, genres: ['Mathematics', 'Cookery & Gastronomy', 'Dictionary', 'Thesaurus'] },
+            { years: 30, genres: ['History & Geography', 'History'] },
+            { years: 40, genres: ['Philosophy & Psychology', 'Philosophy'] }
+        ];
 
-        // 3. Mark OUTDATED (10 Years+ Medium Moving)
-        const outdatedMedSql = `
-            UPDATE BOOK_COPY 
-            SET book_condition = 'Outdated'
-            WHERE status = 'Available' AND book_condition != 'Obsolete' AND book_id IN (
-                SELECT book_id FROM BOOK
-                WHERE genre IN ('Business & Economics', 'Biology & Life Sciences', 'Chemistry & Physics', 
-                           'Engineering', 'Education & Teaching', 'Atlas & Maps', 'Encyclopedia') 
-                 AND (CAST(strftime('%Y', 'now', '+8 hours') AS INTEGER) - publication_year) >= 10
-            )`;
-        await db.execute(outdatedMedSql);
+        for (const rule of obsoleteRules) {
+            await db.execute(`
+                UPDATE BOOK_COPY 
+                SET book_condition = 'Obsolete'
+                WHERE status = 'Available' AND book_condition NOT IN ('Moderate Damage', 'Severe Damage') AND book_id IN (
+                    SELECT book_id FROM BOOK 
+                    WHERE genre IN ${formatIn(rule.genres)}
+                    AND (${currentYearStr} - publication_year) >= ${rule.years}
+                )
+            `);
+        }
 
-        // 4. Mark OUTDATED (15 Years+ Slow Moving)
-        const outdatedSlowSql = `
-            UPDATE BOOK_COPY 
-            SET book_condition = 'Outdated'
-            WHERE status = 'Available' AND book_condition != 'Obsolete' AND book_id IN (
-                SELECT book_id FROM BOOK
-                WHERE genre IN ('History & Geography', 'Self-Help & Motivation') 
-                 AND (CAST(strftime('%Y', 'now', '+8 hours') AS INTEGER) - publication_year) >= 15
-            )`;
-        await db.execute(outdatedSlowSql);
+        // --- 2. MARK OUTDATED BOOKS ---
+        const outdatedRules = [
+            { years: 1, genres: ['Almanac'] },
+            { years: 3, genres: ['Computer Science & Technology', 'Computer Science'] },
+            { years: 5, genres: ['Medicine & Health', 'Medicine', 'Law & Politics', 'Law', 'Travel & Tourism', 'Business & Economics', 'Accounting & Business', 'Atlas & Maps', 'Geography'] },
+            { years: 7, genres: ['Engineering', 'Environmental Science'] },
+            { years: 8, genres: ['Education & Teaching'] },
+            { years: 10, genres: ['Astronomy & Space', 'Biology & Life Sciences', 'Chemistry & Physics', 'Sports & Recreation', 'Self-Help & Motivation', 'Self-Help', 'Thesis / Dissertation', 'Encyclopedia'] },
+            { years: 15, genres: ['Mathematics', 'Cookery & Gastronomy', 'History & Geography', 'History', 'True Crime', 'Dictionary', 'Thesaurus'] },
+            { years: 20, genres: ['Philosophy & Psychology', 'Philosophy', 'Religion & Theology', 'Biography & Autobiography', 'Biography', 'Arts & Music', 'Filipiniana'] }
+        ];
 
-        // 5. Apply similar logic to PERIODICALS (using publication_date)
-        // Assuming Periodicals follow the 'Fast Moving' rule generally if they match the genre
-        // or just general obsolescence for news/magazines > 5 years
-        await db.execute(`UPDATE PERIODICAL_COPY SET periodical_condition = 'Obsolete' WHERE status = 'Available' AND (CAST(strftime('%Y', 'now', '+8 hours') AS INTEGER) - CAST(strftime('%Y', publication_date) AS INTEGER)) >= 5`);
+        for (const rule of outdatedRules) {
+            await db.execute(`
+                UPDATE BOOK_COPY 
+                SET book_condition = 'Outdated'
+                WHERE status = 'Available' AND book_condition NOT IN ('Obsolete', 'Outdated', 'Moderate Damage', 'Severe Damage') AND book_id IN (
+                    SELECT book_id FROM BOOK 
+                    WHERE genre IN ${formatIn(rule.genres)}
+                    AND (${currentYearStr} - publication_year) >= ${rule.years}
+                )
+            `);
+        }
 
-        res.json({ success: true, message: "Weeding scan completed. Items tagged as Outdated/Obsolete." });
+        // --- 3. PERIODICALS ---
+        // Obsolete (2 Years)
+        await db.execute(`
+            UPDATE PERIODICAL_COPY 
+            SET periodical_condition = 'Obsolete' 
+            WHERE status = 'Available' 
+            AND periodical_condition != 'Obsolete'
+            AND publication_date <= DATE('now', '+8 hours', '-2 years')
+        `);
+
+        // Outdated (6 Months)
+        await db.execute(`
+            UPDATE PERIODICAL_COPY 
+            SET periodical_condition = 'Outdated' 
+            WHERE status = 'Available' 
+            AND periodical_condition NOT IN ('Obsolete', 'Outdated')
+            AND publication_date <= DATE('now', '+8 hours', '-6 months')
+        `);
+
+        res.json({ success: true, message: "Weeding scan completed. Items tagged as Outdated/Obsolete based on updated criteria." });
     } catch (error) {
         console.error("Weeding Error:", error);
         res.status(500).json({ success: false, message: error.message });
@@ -1732,7 +1806,7 @@ app.get('/api/donations/user/:userId', async (req, res) => {
     const { userId } = req.params;
     try {
         const result = await db.execute({
-            sql: `SELECT book_title, category, quantity, donation_date 
+            sql: `SELECT book_title, category, quantity, donation_date, status 
                   FROM DONATION 
                   WHERE user_id = ? AND donation_type = 'Inbound'
                   ORDER BY donation_date DESC`,

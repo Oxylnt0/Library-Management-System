@@ -149,6 +149,7 @@ async function createAllTables() {
             periodical_condition VARCHAR(50) DEFAULT 'New',
             status VARCHAR(20) DEFAULT 'Available',
             location VARCHAR(100),
+            date_added DATE DEFAULT CURRENT_DATE,
             FOREIGN KEY (periodical_id) REFERENCES PERIODICAL(periodical_id) ON DELETE CASCADE,
             FOREIGN KEY (material_id) REFERENCES MATERIAL(material_id) ON DELETE CASCADE
         );
@@ -291,12 +292,15 @@ async function createAllTables() {
             donor_name VARCHAR(150),
             recipient_organization VARCHAR(200),
             book_id INT,
+            periodical_id INT,
             book_title VARCHAR(255),
             category VARCHAR(50),
             quantity INT DEFAULT 1,
+            status VARCHAR(20) DEFAULT 'Pending',
             donation_date DATE DEFAULT CURRENT_DATE,
             FOREIGN KEY (user_id) REFERENCES USER(user_id) ON DELETE SET NULL,
-            FOREIGN KEY (book_id) REFERENCES BOOK(book_id) ON DELETE SET NULL
+            FOREIGN KEY (book_id) REFERENCES BOOK(book_id) ON DELETE SET NULL,
+            FOREIGN KEY (periodical_id) REFERENCES PERIODICAL(periodical_id) ON DELETE SET NULL
         );
     `;
 
