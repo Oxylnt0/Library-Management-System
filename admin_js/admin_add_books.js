@@ -55,6 +55,45 @@ const previewGenre = document.getElementById('preview-genre');
 const imgPreview = document.getElementById('img-preview');
 const imgPlaceholder = document.getElementById('img-placeholder');
 
+// --- AUTHOR CHIPS LOGIC ---
+let authorsList = [];
+const authorChipsContainer = document.getElementById('author-chips');
+
+if (inpAuthor) {
+    inpAuthor.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ',') {
+            e.preventDefault();
+            const val = inpAuthor.value.trim().replace(/^,+|,+$/g, '');
+            if (val && !authorsList.includes(val)) {
+                authorsList.push(val);
+                renderAuthorChips();
+            }
+            inpAuthor.value = '';
+            updatePreview();
+        } else if (e.key === 'Backspace' && inpAuthor.value === '' && authorsList.length > 0) {
+            authorsList.pop();
+            renderAuthorChips();
+            updatePreview();
+        }
+    });
+}
+
+function renderAuthorChips() {
+    if (!authorChipsContainer) return;
+    authorChipsContainer.innerHTML = '';
+    authorsList.forEach((author, index) => {
+        const chip = document.createElement('span');
+        chip.className = 'inline-flex items-center gap-1 px-2 py-0.5 bg-[#3E2723] text-[#D4AF37] text-xs font-bold rounded-full shadow-sm';
+        chip.innerHTML = `${author} <button type="button" onclick="removeAuthor(${index})" class="hover:text-red-400 font-bold ml-1 focus:outline-none">&times;</button>`;
+        authorChipsContainer.appendChild(chip);
+    });
+}
+
+window.removeAuthor = function(index) {
+    authorsList.splice(index, 1);
+    renderAuthorChips();
+    updatePreview();
+}
 
 // --- DYNAMIC COPIES LOGIC ---
 function renderCopyRows() {
@@ -239,7 +278,12 @@ function updatePreview() {
     if (type === 'Book') {
         if (previewAuthor) previewAuthor.classList.remove('hidden');
         if (previewPeriodicalDetails) previewPeriodicalDetails.classList.add('hidden');
-        if (previewAuthor) previewAuthor.innerText = inpAuthor.value || "Author Name";
+        
+        const currentInp = inpAuthor.value.trim().replace(/^,+|,+$/g, '');
+        const tempAuthors = [...authorsList];
+        if (currentInp && !tempAuthors.includes(currentInp)) tempAuthors.push(currentInp);
+        
+        if (previewAuthor) previewAuthor.innerText = tempAuthors.length > 0 ? tempAuthors.join('; ') : "Author Name";
         if (imgPlaceholder) imgPlaceholder.innerText = '📘';
     } else if (type === 'Periodical') {
         if (previewAuthor) previewAuthor.classList.add('hidden');
@@ -307,6 +351,14 @@ if (btnSave) {
                 return;
             }
 
+            // Finalize Author Array
+            let finalAuthorStr = '';
+            if (materialType === 'Book') {
+                const currentInp = inpAuthor.value.trim().replace(/^,+|,+$/g, '');
+                if (currentInp && !authorsList.includes(currentInp)) authorsList.push(currentInp);
+                finalAuthorStr = authorsList.join('; ');
+            }
+
             // Step A: Gather all the data from the form
             const data = {
                 // Common Fields
@@ -323,7 +375,7 @@ if (btnSave) {
 
             // Add type-specific fields
             if (materialType === 'Book') {
-                data.author = inpAuthor.value;
+                data.author = finalAuthorStr;
                 data.isbn = inpIsbn.value;
                 data.dewey_decimal = inpDewey.value;
                 data.publication_year = inpYear.value ? parseInt(inpYear.value) : null;
@@ -343,7 +395,7 @@ if (btnSave) {
                 window.showCustomAlert("⚠️ Material Title is a required field!");
                 return;
             }
-            if (materialType === 'Book' && !data.author) {
+            if (materialType === 'Book' && !finalAuthorStr) {
                 window.showCustomAlert("⚠️ Author is required for Books!");
                 return;
             }

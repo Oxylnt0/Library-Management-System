@@ -68,7 +68,7 @@
                     </div>
                     </div>
 
-                    <div class="flex items-center gap-3 w-full max-w-3xl relative z-40">
+                    <div class="flex items-center gap-3 w-full max-w-4xl relative z-40">
                         <div class="relative flex-1 group">
                             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                                 <svg class="h-5 w-5 text-slate-400 group-focus-within:text-[#D6A84A] transition-colors"
@@ -81,7 +81,18 @@
                                 class="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-300 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-[#D6A84A]/50 focus:border-[#D6A84A] transition-all shadow-sm text-slate-800">
                         </div>
 
-                        <div class="relative">
+                        <!-- Sort Dropdown -->
+                        <div class="relative flex items-center bg-white border border-slate-300 rounded-full px-4 py-2.5 shadow-sm text-sm shrink-0 focus-within:ring-2 focus-within:ring-[#D6A84A]/50 focus-within:border-[#D6A84A] transition-all">
+                            <span class="text-slate-500 font-bold uppercase text-[10px] mr-2 tracking-wider">Sort</span>
+                            <select id="admin-sort-select" onchange="loadBooks()" class="bg-transparent border-none outline-none text-slate-800 font-medium cursor-pointer text-sm pr-2">
+                                <option value="title_asc">A-Z (Title)</option>
+                                <option value="title_desc">Z-A (Title)</option>
+                                <option value="date_desc">Newest Added</option>
+                                <option value="date_asc">Oldest Added</option>
+                            </select>
+                        </div>
+
+                        <div class="relative shrink-0">
                             <button onclick="toggleAdvancedFilter()" class="bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 px-5 py-2.5 rounded-full font-medium shadow-sm transition-colors flex items-center gap-2 text-sm">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path></svg>
                                 <span>Advanced Filters</span>
@@ -207,7 +218,10 @@
                                 </div>
                                 <div>
                                     <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Author</label>
-                                    <input type="text" id="edit-author" class="w-full p-2 rounded border border-slate-300 focus:ring-2 focus:ring-[#183B5B] outline-none">
+                                    <div class="w-full p-1.5 rounded border border-slate-300 focus-within:ring-2 focus-within:ring-[#183B5B] bg-white transition-all flex flex-wrap gap-1.5 items-center min-h-[38px]">
+                                        <div id="edit-author-chips" class="flex flex-wrap gap-1.5"></div>
+                                        <input type="text" id="edit-author" class="flex-1 bg-transparent outline-none text-sm min-w-[120px] px-1 placeholder:text-slate-400" placeholder="Type name & press Enter">
+                                    </div>
                                 </div>
                                 <div>
                                     <label class="block text-xs font-bold text-slate-500 uppercase mb-1">ISBN</label>
@@ -707,6 +721,7 @@
                             b.book_id as item_id,
                             'Book' as material_type,
                             b.*,
+                            MIN(c.date_added) as date_added,
                             COUNT(c.copy_id) as total_copies,
                             SUM(CASE WHEN c.status = 'Available' THEN 1 ELSE 0 END) as available_copies,
                             SUM(CASE WHEN c.book_condition IN ('Outdated', 'Obsolete') THEN 1 ELSE 0 END) as weeding_copies,
@@ -736,6 +751,7 @@
                             p.periodical_id as item_id,
                             'Periodical' as material_type,
                             p.*,
+                            MIN(c.date_added) as date_added,
                             MAX(c.volume_no) as latest_vol,
                             MAX(c.issue_no) as latest_issue,
                             COUNT(c.p_copy_id) as total_copies,
@@ -766,8 +782,18 @@
                     allItems = allItems.filter(item => checkedGenres.includes(item.genre));
                 }
 
-                // Sort alphabetically as fallback since date_added is now per copy
-                allItems.sort((a, b) => (a.title || '').localeCompare(b.title || ''));
+                // Apply Sorting
+                const sortValue = document.getElementById('admin-sort-select') ? document.getElementById('admin-sort-select').value : 'title_asc';
+                
+                if (sortValue === 'title_asc') {
+                    allItems.sort((a, b) => (a.title || '').localeCompare(b.title || ''));
+                } else if (sortValue === 'title_desc') {
+                    allItems.sort((a, b) => (b.title || '').localeCompare(a.title || ''));
+                } else if (sortValue === 'date_desc') {
+                    allItems.sort((a, b) => (b.item_id || 0) - (a.item_id || 0));
+                } else if (sortValue === 'date_asc') {
+                    allItems.sort((a, b) => (a.item_id || 0) - (b.item_id || 0));
+                }
                 
                 grid.innerHTML = '';
                 
@@ -899,6 +925,41 @@
         }
         window.loadBooks = loadBooks;
 
+        // Edit Author Chips Logic
+        window.editAuthorsList = [];
+        
+        function renderEditAuthorChips() {
+            const container = document.getElementById('edit-author-chips');
+            if (!container) return;
+            container.innerHTML = '';
+            window.editAuthorsList.forEach((author, index) => {
+                const chip = document.createElement('span');
+                chip.className = 'inline-flex items-center gap-1 px-2 py-0.5 bg-[#183B5B] text-white text-xs font-bold rounded-full shadow-sm';
+                chip.innerHTML = `${author} <button type="button" onclick="removeEditAuthor(${index})" class="hover:text-red-300 font-bold ml-1 focus:outline-none">&times;</button>`;
+                container.appendChild(chip);
+            });
+        }
+
+        window.removeEditAuthor = function(index) {
+            window.editAuthorsList.splice(index, 1);
+            renderEditAuthorChips();
+        }
+
+        document.getElementById('edit-author').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ',') {
+                e.preventDefault();
+                const val = e.target.value.trim().replace(/^,+|,+$/g, '');
+                if (val && !window.editAuthorsList.includes(val)) {
+                    window.editAuthorsList.push(val);
+                    renderEditAuthorChips();
+                }
+                e.target.value = '';
+            } else if (e.key === 'Backspace' && e.target.value === '' && window.editAuthorsList.length > 0) {
+                window.editAuthorsList.pop();
+                renderEditAuthorChips();
+            }
+        });
+
         function openBookEdit(itemId, type) {
             const book = window.currentLoadedBooks?.find(b => b.item_id === itemId && b.material_type === type);
             if (!book) return;
@@ -936,7 +997,11 @@
 
             document.getElementById('edit-book-id').value = book.item_id;
             document.getElementById('edit-title').value = book.title ?? '';
-            document.getElementById('edit-author').value = book.author ?? '';
+            
+            window.editAuthorsList = book.author ? book.author.split(';').map(a => a.trim()).filter(a => a) : [];
+            renderEditAuthorChips();
+            document.getElementById('edit-author').value = '';
+            
             document.getElementById('edit-isbn').value = book.isbn ?? '';
             document.getElementById('edit-publisher').value = book.publisher ?? '';
             document.getElementById('edit-year').value = book.publication_year ?? '';
@@ -957,7 +1022,13 @@
         async function saveBookChanges() {
             const id = document.getElementById('edit-book-id').value;
             const title = document.getElementById('edit-title').value;
-            const author = document.getElementById('edit-author').value;
+            
+            const editAuthorInputVal = document.getElementById('edit-author').value.trim().replace(/^,+|,+$/g, '');
+            if (editAuthorInputVal && !window.editAuthorsList.includes(editAuthorInputVal)) {
+                window.editAuthorsList.push(editAuthorInputVal);
+            }
+            const author = window.editAuthorsList.join('; ');
+            
             const isbn = document.getElementById('edit-isbn').value;
             const publisher = document.getElementById('edit-publisher').value;
             const year = document.getElementById('edit-year').value;

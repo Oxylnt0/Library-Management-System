@@ -96,9 +96,10 @@
                                     <div id="field-group-author">
                                         <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Author
                                             *</label>
-                                        <input type="text" id="inp-author"
-                                            class="w-full p-2 rounded-lg bg-white/80 border border-slate-200 focus:ring-2 focus:ring-[#D4AF37]/50 focus:border-[#D4AF37] outline-none transition-all text-sm"
-                                            placeholder="Ex: Jose Rizal">
+                                        <div class="w-full p-1.5 rounded-lg bg-white/80 border border-slate-200 focus-within:ring-2 focus-within:ring-[#D4AF37]/50 focus-within:border-[#D4AF37] transition-all flex flex-wrap gap-1.5 items-center min-h-[38px]">
+                                            <div id="author-chips" class="flex flex-wrap gap-1.5"></div>
+                                            <input type="text" id="inp-author" class="flex-1 bg-transparent outline-none text-sm min-w-[120px] px-1 placeholder:text-slate-400" placeholder="Type name & press Enter">
+                                        </div>
                                     </div>
                                     <!-- Identifier (ISBN for Books, ISSN for Periodicals) -->
                                     <div id="field-group-isbn">

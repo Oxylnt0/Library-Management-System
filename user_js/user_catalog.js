@@ -21,21 +21,13 @@
         }
 
         // Search
-        const searchBtn = document.getElementById('search-btn');
         const searchInput = document.getElementById('search-input');
         
-        if (searchBtn && searchInput) {
-            // Clone to remove old listeners
-            const newSearchBtn = searchBtn.cloneNode(true);
-            searchBtn.parentNode.replaceChild(newSearchBtn, searchBtn);
-            
+        if (searchInput) {
             const newSearchInput = searchInput.cloneNode(true);
             searchInput.parentNode.replaceChild(newSearchInput, searchInput);
 
-            newSearchBtn.addEventListener('click', performSearch);
-            newSearchInput.addEventListener('keyup', (e) => {
-                if (e.key === 'Enter') performSearch();
-            });
+            newSearchInput.addEventListener('input', performSearch);
         }
 
         // Sort
@@ -56,6 +48,9 @@
         document.querySelectorAll('.genre-filter').forEach(cb => {
             cb.addEventListener('change', performSearch);
         });
+        document.querySelectorAll('input[name="adv-filter-type"]').forEach(radio => {
+            radio.addEventListener('change', performSearch);
+        });
         document.querySelectorAll('input[name="status"]').forEach(radio => {
             radio.addEventListener('change', performSearch);
         });
@@ -65,6 +60,7 @@
             resetBtn.addEventListener('click', () => {
                 document.querySelectorAll('.genre-filter').forEach(cb => cb.checked = false);
                 document.querySelector('input[name="status"][value="All"]').checked = true;
+                document.querySelector('input[name="adv-filter-type"][value="all"]').checked = true;
                 const searchInput = document.getElementById('search-input');
                 if(searchInput) searchInput.value = '';
                 performSearch();
@@ -230,9 +226,11 @@
         const query = input ? input.value.toLowerCase() : '';
         
         // Get Filters
+        const typeFilterEl = document.querySelector('input[name="adv-filter-type"]:checked');
+        const filterType = typeFilterEl ? typeFilterEl.value : 'all';
         const checkedGenres = Array.from(document.querySelectorAll('.genre-filter:checked')).map(cb => cb.value);
         const statusFilter = document.querySelector('input[name="status"]:checked')?.value || 'All';
-        const sortValue = document.getElementById('sort-select')?.value || 'relevance';
+        const sortValue = document.getElementById('sort-select')?.value || 'title_asc';
         
         const filtered = allBooks.filter(book => {
             // Search
@@ -241,20 +239,27 @@
             const isbnMatch = book.isbn && book.isbn.includes(query);
             const matchesSearch = !query || titleMatch || authorMatch || isbnMatch;
 
+            // Material Type
+            const matchesType = filterType === 'all' || book.material_type === filterType;
+
             // Genre
             const matchesGenre = checkedGenres.length === 0 || checkedGenres.includes(book.genre);
 
             // Status
             const matchesStatus = statusFilter === 'All' || book.status === statusFilter;
 
-            return matchesSearch && matchesGenre && matchesStatus;
+            return matchesSearch && matchesType && matchesGenre && matchesStatus;
         });
 
         // Sorting Logic
         if (sortValue === 'title_asc') {
             filtered.sort((a, b) => (a.title || '').localeCompare(b.title || ''));
-        } else if (sortValue === 'newest') {
-            filtered.sort((a, b) => new Date(b.date_added || 0) - new Date(a.date_added || 0));
+        } else if (sortValue === 'title_desc') {
+            filtered.sort((a, b) => (b.title || '').localeCompare(a.title || ''));
+        } else if (sortValue === 'date_desc') {
+            filtered.sort((a, b) => (b.item_id || 0) - (a.item_id || 0));
+        } else if (sortValue === 'date_asc') {
+            filtered.sort((a, b) => (a.item_id || 0) - (b.item_id || 0));
         }
         
         renderBooks(filtered);

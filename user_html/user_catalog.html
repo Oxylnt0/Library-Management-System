@@ -60,6 +60,15 @@
             </div>
 
             <div class="mb-6">
+                <h4 class="text-xs font-bold text-slate-400 uppercase mb-2">Material Type</h4>
+                <div class="space-y-2 text-sm text-slate-600">
+                    <label class="flex items-center gap-2 cursor-pointer hover:text-[#183B5B] transition-colors"><input type="radio" name="adv-filter-type" value="all" checked class="text-[#183B5B] focus:ring-[#183B5B]"> All</label>
+                    <label class="flex items-center gap-2 cursor-pointer hover:text-[#183B5B] transition-colors"><input type="radio" name="adv-filter-type" value="Book" class="text-[#183B5B] focus:ring-[#183B5B]"> Books</label>
+                    <label class="flex items-center gap-2 cursor-pointer hover:text-[#183B5B] transition-colors"><input type="radio" name="adv-filter-type" value="Periodical" class="text-[#183B5B] focus:ring-[#183B5B]"> Periodicals</label>
+                </div>
+            </div>
+
+            <div class="mb-6">
                 <h4 class="text-xs font-bold text-slate-400 uppercase mb-2">Availability</h4>
                 <div class="space-y-2 text-sm text-slate-600">
                     <label class="flex items-center gap-2 cursor-pointer hover:text-[#183B5B] transition-colors"><input type="radio" name="status" value="All" checked class="text-[#183B5B] focus:ring-[#183B5B]"> All Books</label>
@@ -153,48 +162,47 @@
         <main class="flex-1 flex flex-col h-full overflow-hidden relative">
             <!-- Header Area -->
             <div class="p-8 border-b border-white/20 bg-white/70 backdrop-blur-sm sticky top-0 z-20">
-                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
-                    <div>
-                        <h1 class="text-2xl font-bold text-[#183B5B] tracking-tight font-cinzel">Browse All Books</h1>
-                        <p class="text-[#2E5F87] text-sm mt-1">Explore our collection of over 12,000 titles.</p>
-                    </div>
-
-                    <!-- Search Bar -->
-                    <div class="relative w-full md:w-96 group">
-                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <svg class="h-5 w-5 text-[#2E5F87] group-focus-within:text-[#D6A84A] transition-colors"
-                                fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                            </svg>
+                <div class="flex flex-col gap-4">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <h1 class="text-2xl font-bold text-[#183B5B] tracking-tight font-cinzel">Browse All Books</h1>
+                            <p class="text-[#2E5F87] text-sm mt-1">Explore our collection of over 12,000 titles.</p>
                         </div>
-                        <input type="text" id="search-input" placeholder="Search by title, author, or ISBN..."
-                            class="w-full pl-10 pr-14 py-3 bg-white/80 border border-white/30 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-[#D6A84A]/50 focus:border-[#D6A84A] transition-all shadow-inner text-[#1A202C]">
-                        <button id="search-btn"
-                            class="absolute right-1.5 top-1.5 bottom-1.5 px-4 bg-[#183B5B] text-[#D6A84A] text-xs font-bold rounded-full hover:bg-[#2E5F87] transition-colors shadow-sm">
-                            Search
-                        </button>
-                    </div>
-                </div>
-
-                <!-- View Toggles & Sort -->
-                <div class="flex items-center justify-between">
-                    <p class="text-sm font-medium text-[#2E5F87]">Found <span id="result-count" class="text-[#1A202C]">0</span> results</p>
-
-                    <div class="flex items-center gap-4">
-                        <!-- Refresh Button -->
-                        <button id="refresh-btn" class="p-2 text-[#2E5F87] hover:text-[#183B5B] transition-colors rounded-full hover:bg-slate-100" title="Refresh Database">
+                        <button id="refresh-btn" class="p-2.5 bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 rounded-full shadow-sm transition-colors" title="Refresh Database">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
                             </svg>
                         </button>
+                    </div>
 
-                        <select id="sort-select"
-                            class="text-sm border-none bg-transparent text-slate-600 font-medium focus:ring-0 cursor-pointer hover:text-slate-900">
-                            <option value="relevance">Sort by: Relevance</option>
-                            <option value="newest">Newest Arrivals</option>
-                            <option value="title_asc">Title (A-Z)</option>
-                        </select>
+                    <div class="flex items-center justify-between gap-4">
+                        <div class="flex items-center gap-3 w-full max-w-2xl relative z-40">
+                            <!-- Search Bar -->
+                            <div class="relative flex-1 group">
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <svg class="h-5 w-5 text-slate-400 group-focus-within:text-[#D6A84A] transition-colors"
+                                        fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                                    </svg>
+                                </div>
+                                <input type="text" id="search-input" placeholder="Search by title, author, or ISBN..."
+                                    class="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-300 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-[#D6A84A]/50 focus:border-[#D6A84A] transition-all shadow-sm text-slate-800">
+                            </div>
+
+                            <!-- Sort Dropdown -->
+                            <div class="relative flex items-center bg-white border border-slate-300 rounded-full px-4 py-2.5 shadow-sm text-sm shrink-0 focus-within:ring-2 focus-within:ring-[#D6A84A]/50 focus-within:border-[#D6A84A] transition-all">
+                                <span class="text-slate-500 font-bold uppercase text-[10px] mr-2 tracking-wider hidden sm:inline">Sort</span>
+                                <select id="sort-select" class="bg-transparent border-none outline-none text-slate-800 font-medium cursor-pointer text-sm pr-2">
+                                    <option value="title_asc">A-Z (Title)</option>
+                                    <option value="title_desc">Z-A (Title)</option>
+                                    <option value="date_desc">Newest Added</option>
+                                    <option value="date_asc">Oldest Added</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <p class="text-sm font-medium text-[#2E5F87] shrink-0">Found <span id="result-count" class="text-[#1A202C] font-bold">0</span> results</p>
                     </div>
                 </div>
             </div>

@@ -275,6 +275,15 @@
                         <h3 class="font-bold text-[#183B5B] mb-4 font-cinzel">Filters</h3>
                         
                         <div class="mb-6">
+                            <h4 class="text-xs font-bold text-slate-400 uppercase mb-2">Material Type</h4>
+                            <div class="space-y-2 text-sm text-slate-600">
+                                <label class="flex items-center gap-2 cursor-pointer hover:text-[#183B5B] transition-colors"><input type="radio" name="adv-filter-type" value="all" checked class="text-[#183B5B] focus:ring-[#183B5B]"> All</label>
+                                <label class="flex items-center gap-2 cursor-pointer hover:text-[#183B5B] transition-colors"><input type="radio" name="adv-filter-type" value="Book" class="text-[#183B5B] focus:ring-[#183B5B]"> Books</label>
+                                <label class="flex items-center gap-2 cursor-pointer hover:text-[#183B5B] transition-colors"><input type="radio" name="adv-filter-type" value="Periodical" class="text-[#183B5B] focus:ring-[#183B5B]"> Periodicals</label>
+                            </div>
+                        </div>
+
+                        <div class="mb-6">
                             <h4 class="text-xs font-bold text-slate-400 uppercase mb-2">Availability</h4>
                             <div class="space-y-2 text-sm">
                                 <label class="flex items-center gap-2 cursor-pointer"><input type="radio" name="status" value="All" checked class="text-[#183B5B]"> All Books</label>
@@ -370,23 +379,33 @@
                     <main class="flex-1 flex flex-col h-full overflow-hidden">
                         <!-- Topbar (Search/Sort) -->
                         <div class="p-6 bg-white/60 border-b border-slate-200 flex flex-col md:flex-row justify-between items-center gap-4 shrink-0">
-                            <div class="relative w-full md:w-96">
-                                <input type="text" id="catalog-search-input" placeholder="Search catalog..." 
-                                    class="w-full pl-10 pr-4 py-2 rounded-full border border-slate-300 focus:outline-none focus:border-[#D6A84A] bg-white"
-                                    onkeypress="if(event.key === 'Enter') filterCatalogBooks()">
-                                <span class="absolute left-3 top-2.5 text-slate-400"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg></span>
-                            </div>
-                            
-                            <div class="flex items-center gap-3">
-                                <span class="text-sm text-slate-500 font-medium hidden md:inline">Sort by:</span>
-                                <select id="catalog-sort" onchange="sortCatalog()" class="bg-white border border-slate-300 text-slate-700 text-sm rounded-lg focus:ring-[#D6A84A] focus:border-[#D6A84A] block p-2 outline-none cursor-pointer">
-                                    <option value="title">Title (A-Z)</option>
-                                    <option value="author">Author (A-Z)</option>
-                                    <option value="year">Year (Newest)</option>
-                                </select>
+                            <div class="flex items-center gap-3 w-full max-w-2xl relative z-40">
+                                <div class="relative flex-1 group">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <svg class="h-5 w-5 text-slate-400 group-focus-within:text-[#D6A84A] transition-colors"
+                                            fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                                        </svg>
+                                    </div>
+                                    <input type="text" id="catalog-search-input" placeholder="Search catalog..." 
+                                        class="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-300 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-[#D6A84A]/50 focus:border-[#D6A84A] transition-all shadow-sm text-slate-800"
+                                        oninput="filterCatalogBooks()">
+                                </div>
+                                
+                                <!-- Sort Dropdown -->
+                                <div class="relative flex items-center bg-white border border-slate-300 rounded-full px-4 py-2.5 shadow-sm text-sm shrink-0 focus-within:ring-2 focus-within:ring-[#D6A84A]/50 focus-within:border-[#D6A84A] transition-all">
+                                    <span class="text-slate-500 font-bold uppercase text-[10px] mr-2 tracking-wider hidden sm:inline">Sort</span>
+                                    <select id="catalog-sort" onchange="sortCatalog()" class="bg-transparent border-none outline-none text-slate-800 font-medium cursor-pointer text-sm pr-2">
+                                        <option value="title_asc">A-Z (Title)</option>
+                                        <option value="title_desc">Z-A (Title)</option>
+                                        <option value="date_desc">Newest Added</option>
+                                        <option value="date_asc">Oldest Added</option>
+                                    </select>
+                                </div>
                             </div>
 
-                            <div class="text-sm text-slate-500">
+                            <div class="text-sm text-slate-500 font-medium shrink-0">
                                 Found <span id="result-count" class="font-bold text-[#183B5B]">0</span> results
                             </div>
                         </div>
@@ -488,10 +507,10 @@
     
         <!-- ================= MODAL ================= -->
         <div id="info-modal" class="fixed inset-0 z-50 hidden bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
-            <div class="bg-[#fffaf0] w-full max-w-5xl max-h-[85vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden border border-[#D6A84A] transform scale-95 transition-transform duration-300" id="modal-panel">
-                <div class="p-5 border-b border-[#D6A84A]/30 flex justify-between items-center bg-gradient-to-r from-[#183B5B] to-[#244D75] text-white">
-                    <h3 id="modal-title" class="text-2xl font-bold font-cinzel text-[#D6A84A]">Title</h3>
-                    <button onclick="closeModal()" class="text-white/70 hover:text-[#D6A84A] transition-colors text-3xl leading-none">&times;</button>
+            <div class="bg-white w-full max-w-5xl max-h-[85vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden border border-[#D4AF37]/50 transform scale-95 transition-transform duration-300" id="modal-panel">
+                <div class="p-5 border-b border-[#2D1B18] flex justify-between items-center bg-[#3E2723] text-[#D4AF37]">
+                    <h3 id="modal-title" class="text-2xl font-bold font-cinzel text-[#D4AF37]">Title</h3>
+                    <button onclick="closeModal()" class="text-[#D4AF37]/70 hover:text-white transition-colors text-3xl leading-none">&times;</button>
                 </div>
                 <div id="modal-body" class="p-8 overflow-y-auto custom-scrollbar">
                     <!-- Content goes here -->
@@ -780,12 +799,14 @@
             function sortCatalog() {
                 const sortValue = document.getElementById('catalog-sort').value;
                 
-                if (sortValue === 'title') {
+                if (sortValue === 'title_asc') {
                     allCatalogBooks.sort((a, b) => (a.title || '').localeCompare(b.title || ''));
-                } else if (sortValue === 'author') {
-                    allCatalogBooks.sort((a, b) => (a.author || '').localeCompare(b.author || ''));
-                } else if (sortValue === 'year') {
-                    allCatalogBooks.sort((a, b) => (b.year || 0) - (a.year || 0));
+                } else if (sortValue === 'title_desc') {
+                    allCatalogBooks.sort((a, b) => (b.title || '').localeCompare(a.title || ''));
+                } else if (sortValue === 'date_desc') {
+                    allCatalogBooks.sort((a, b) => (b.item_id || 0) - (a.item_id || 0));
+                } else if (sortValue === 'date_asc') {
+                    allCatalogBooks.sort((a, b) => (a.item_id || 0) - (b.item_id || 0));
                 }
                 
                 filterCatalogBooks();
@@ -797,6 +818,8 @@
                 const countEl = document.getElementById('result-count');
 
                 // Get Filters
+                const typeFilterEl = document.querySelector('input[name="adv-filter-type"]:checked');
+                const filterType = typeFilterEl ? typeFilterEl.value : 'all';
                 const checkedGenres = Array.from(document.querySelectorAll('.genre-filter:checked')).map(cb => cb.value);
                 const statusFilter = document.querySelector('input[name="status"]:checked').value;
 
@@ -811,6 +834,9 @@
                         author.includes(query) || 
                         isbn.includes(query);
                     
+                    // Material Type
+                    const matchesType = filterType === 'all' || book.material_type === filterType;
+
                     // Genre
                     const matchesGenre = checkedGenres.length === 0 || checkedGenres.includes(book.genre);
 
@@ -819,7 +845,7 @@
                         (statusFilter === 'Available' && book.available_copies > 0) || 
                         (statusFilter === 'Borrowed' && book.available_copies === 0);
 
-                    return matchesSearch && matchesGenre && matchesStatus;
+                    return matchesSearch && matchesType && matchesGenre && matchesStatus;
                 });
 
                 countEl.innerText = filtered.length;
@@ -930,6 +956,7 @@
             function resetFilters() {
                 document.querySelectorAll('.genre-filter').forEach(cb => cb.checked = false);
                 document.querySelector('input[name="status"][value="All"]').checked = true;
+                document.querySelector('input[name="adv-filter-type"][value="all"]').checked = true;
                 document.getElementById('catalog-search-input').value = '';
                 filterCatalogBooks();
             }
