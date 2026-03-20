@@ -39,7 +39,9 @@ async function registerUser(userData) {
             });
         }
 
-        await sendAccountStatusEmail(userData.email, userData.firstName, 'Pending');
+        if (userData.email) {
+            await sendAccountStatusEmail(userData.email, userData.firstName, 'Pending');
+        }
         await logUserAction(userId, 'REGISTRATION', 'USER', userId, 'New user registration completed');
 
         return { success: true, message: "Registration successful! Please wait for admin approval." };
@@ -49,19 +51,19 @@ async function registerUser(userData) {
     }
 }
 
-async function registerGuardian(guardianData, childData) {
+async function registerGuardian(guardianData, childrenData) {
     try {
         // 1. Create Guardian Record
         const guardianResult = await db.execute({
             sql: `INSERT INTO GUARDIAN_NAME (
-                first_name, last_name, middle_initial, relationship, 
+                first_name, last_name, middle_initial, birth_date, 
                 email, contact_number, address, password
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?) RETURNING guardian_id`,
             args: [
                 guardianData.firstName,
                 guardianData.lastName,
                 guardianData.mi,
-                guardianData.relationship,
+                guardianData.birthDate,
                 guardianData.email,
                 guardianData.contact,
                 guardianData.address,
@@ -86,24 +88,29 @@ async function registerGuardian(guardianData, childData) {
             });
         }
 
-        const childResult = await db.execute({
-            sql: `INSERT INTO USER (
-                first_name, last_name, middle_initial, birth_date, 
-                guardian_id, email, password
-            ) VALUES (?, ?, ?, ?, ?, NULL, NULL) RETURNING user_id`,
-            args: [
-                childData.firstName,
-                childData.lastName,
-                childData.mi,
-                childData.birthDate,
-                guardianId
-            ]
-        });
-
-        const childId = childResult.rows[0].user_id;
-        await sendAccountStatusEmail(guardianData.email, guardianData.firstName, 'Pending');
+        if (guardianData.email) {
+            await sendAccountStatusEmail(guardianData.email, guardianData.firstName, 'Pending');
+        }
         await logGuardianAction(guardianId, 'REGISTRATION', 'GUARDIAN_NAME', guardianId, 'New guardian registration completed');
-        await logUserAction(childId, 'REGISTRATION', 'USER', childId, 'Child account registered via Guardian');
+
+        for (const child of childrenData) {
+            const childResult = await db.execute({
+                sql: `INSERT INTO USER (
+                    first_name, last_name, middle_initial, birth_date, relationship, 
+                    guardian_id, email, password
+                ) VALUES (?, ?, ?, ?, ?, NULL, NULL) RETURNING user_id`,
+                args: [
+                    child.firstName,
+                    child.lastName,
+                    child.mi,
+                    child.birthDate,
+                    child.relationship,
+                    guardianId
+                ]
+            });
+            const childId = childResult.rows[0].user_id;
+            await logUserAction(childId, 'REGISTRATION', 'USER', childId, 'Child account registered via Guardian');
+        }
 
         return { success: true, message: "Registration successful! Please wait for admin approval." };
     } catch (error) {

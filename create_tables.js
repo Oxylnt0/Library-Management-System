@@ -50,22 +50,32 @@ async function createAllTables() {
             first_name VARCHAR(50) NOT NULL,
             last_name VARCHAR(50) NOT NULL,
             middle_initial VARCHAR(5),
-            relationship VARCHAR(50),
             email VARCHAR(255),
             contact_number VARCHAR(20),
             address VARCHAR(255),
+            birth_date DATE,
             password VARCHAR(255),
             status VARCHAR(20) DEFAULT 'Pending' CHECK (status IN ('Pending', 'Active', 'Rejected', 'Suspended', 'Banned')),
+            status_note TEXT,
+            email_verified INTEGER DEFAULT 0,
             date_created DATETIME DEFAULT CURRENT_TIMESTAMP
         );
 
-        CREATE TABLE IF NOT EXISTS USER (
+        CREATE TABLE USER (
             user_id INTEGER PRIMARY KEY AUTOINCREMENT,
             guardian_id INT,
             first_name VARCHAR(50) NOT NULL,
             last_name VARCHAR(50) NOT NULL,
+            middle_initial VARCHAR(5),
+            relationship VARCHAR(50),
             email VARCHAR(255),
-            status VARCHAR(20) DEFAULT 'Pending',
+            contact_number VARCHAR(20),
+            address VARCHAR(255),
+            birth_date DATE,
+            password VARCHAR(255),
+            status VARCHAR(20) DEFAULT 'Pending' CHECK (status IN ('Pending', 'Active', 'Rejected', 'Suspended', 'Banned')),
+            status_note TEXT,
+            email_verified INTEGER DEFAULT 0,
             date_created DATETIME DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (guardian_id) REFERENCES GUARDIAN_NAME(guardian_id)
         );

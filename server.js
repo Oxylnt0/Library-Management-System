@@ -40,9 +40,9 @@ app.post('/api/register/user', async (req, res) => {
 
 // Endpoint to register a guardian and child
 app.post('/api/register/guardian', async (req, res) => {
-    const { guardianData, childData } = req.body;
+    const { guardianData, childrenData } = req.body;
     try {
-        const result = await registerGuardian(guardianData, childData);
+        const result = await registerGuardian(guardianData, childrenData);
         res.json(result);
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
