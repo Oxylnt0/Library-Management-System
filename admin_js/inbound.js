@@ -43,8 +43,19 @@ document.addEventListener('DOMContentLoaded', () => {
                 throw new Error("QR code does not contain a valid user ID.");
             }
 
+            let actualId = userId;
+            let roleParam = '';
+            if (typeof userId === 'string') {
+                if (userId.startsWith('G-')) {
+                    actualId = userId.substring(2);
+                    roleParam = '?role=guardian';
+                } else if (userId.startsWith('U-')) {
+                    actualId = userId.substring(2);
+                }
+            }
+
             // Fetch user data from server
-            const response = await fetch(`http://localhost:3000/api/user/${userId}`);
+            const response = await fetch(`http://localhost:3000/api/user/${actualId}${roleParam}`);
             const result = await response.json();
 
             if (result.success) {

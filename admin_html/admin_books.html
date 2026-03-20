@@ -1387,7 +1387,18 @@
                         const userId = qrData.id;
                         if (!userId) throw new Error("Invalid QR format");
                         
-                        const response = await fetch(`http://localhost:3000/api/user/${userId}`);
+                        let actualId = userId;
+                        let roleParam = '';
+                        if (typeof userId === 'string') {
+                            if (userId.startsWith('G-')) {
+                                actualId = userId.substring(2);
+                                roleParam = '?role=guardian';
+                            } else if (userId.startsWith('U-')) {
+                                actualId = userId.substring(2);
+                            }
+                        }
+
+                        const response = await fetch(`http://localhost:3000/api/user/${actualId}${roleParam}`);
                         const result = await response.json();
                         if (result.success) {
                             const user = result.data;
