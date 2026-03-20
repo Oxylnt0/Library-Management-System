@@ -194,6 +194,7 @@
 
         async function loadReservations() {
             const userId = getCurrentUserId();
+            const userRole = localStorage.getItem('userRole');
             const tbody = document.getElementById('reservations-tbody');
             tbody.innerHTML = '<tr><td colspan="6" class="px-5 py-4 text-center text-slate-500">Loading reservations...</td></tr>';
 
@@ -203,20 +204,22 @@
             }
 
             try {
+                let rCond = "r.user_id = ?";
+                if (userRole === 'guardian') rCond = "r.user_id IN (SELECT user_id FROM USER WHERE guardian_id = ?)";
                 const query = `
                     SELECT
                         r.reservation_id, b.title, b.author, DATETIME(r.reservation_date, '+8 hours') as reservation_date, r.status, r.priority_no
                     FROM RESERVATION r
                     JOIN BOOK_COPY bc ON r.material_id = bc.material_id
                     JOIN BOOK b ON bc.book_id = b.book_id
-                    WHERE r.user_id = ? AND r.status = 'Pending'
+                    WHERE ${rCond} AND r.status = 'Pending'
                     UNION ALL
                     SELECT
                         r.reservation_id, p.title, p.publisher as author, DATETIME(r.reservation_date, '+8 hours') as reservation_date, r.status, r.priority_no
                     FROM RESERVATION r
                     JOIN PERIODICAL_COPY pc ON r.material_id = pc.material_id
                     JOIN PERIODICAL p ON pc.periodical_id = p.periodical_id
-                    WHERE r.user_id = ? AND r.status = 'Pending'
+                    WHERE ${rCond} AND r.status = 'Pending'
                     ORDER BY reservation_date DESC
                 `;
                 const result = await db.execute({ sql: query, args: [userId, userId] });

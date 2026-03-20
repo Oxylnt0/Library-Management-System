@@ -141,10 +141,11 @@ function initParticles() {
 
 async function updateTopbarUserInfo() {
     const userId = localStorage.getItem('userId');
+    const userRole = localStorage.getItem('userRole');
     if (!userId) return;
 
     try {
-        const response = await fetch(`http://localhost:3000/api/user/${userId}`);
+        const response = await fetch(`http://localhost:3000/api/user/${userId}?role=${userRole}`);
         const result = await response.json();
 
         if (result.success) {
@@ -154,8 +155,33 @@ async function updateTopbarUserInfo() {
             const topInit = document.getElementById('topbar-user-initials');
 
             if (topName) topName.textContent = `${user.first_name} ${user.last_name}`;
-            if (topId) topId.textContent = `Student ID: ${user.user_id}`;
-            if (topInit) topInit.textContent = `${user.first_name[0]}${user.last_name[0]}`;
+            if (topId) {
+                topId.textContent = userRole === 'guardian' ? `Guardian ID: ${user.user_id}` : `User ID: ${user.user_id}`;
+            }
+            if (topInit) topInit.textContent = ((user.first_name?.[0] || '') + (user.last_name?.[0] || '')).toUpperCase();
+
+            // Inject Switch Profile Button Globally
+            if (localStorage.getItem('guardianSession') && topName) {
+                // Inject Active Profile Badge next to the name
+                let profileBadge = document.getElementById('global-profile-badge');
+                if (!profileBadge) {
+                    profileBadge = document.createElement('span');
+                    profileBadge.id = 'global-profile-badge';
+                    profileBadge.className = 'ml-2 px-2 py-0.5 bg-green-100 text-green-700 text-[10px] font-bold uppercase rounded border border-green-200 align-middle tracking-wider shadow-sm';
+                    topName.appendChild(profileBadge);
+                }
+                const session = JSON.parse(localStorage.getItem('guardianSession'));
+                if (userRole === 'guardian') {
+                    profileBadge.innerText = 'Guardian';
+                } else {
+                    const cIndex = session.children.findIndex(c => c.user_id == userId);
+                    profileBadge.innerText = cIndex !== -1 ? `Child ${cIndex + 1}` : 'Child';
+                }
+
+                // Automatically unhide the Switch Profile button in the sidebar if it exists on the page
+                const switchContainer = document.getElementById('switch-profile-container');
+                if (switchContainer) switchContainer.classList.remove('hidden');
+            }
         }
     } catch (error) {
         console.error('Error updating topbar:', error);
@@ -212,6 +238,75 @@ window.showCustomAlert = function(message, callback) {
         if (callback) callback();
     }
 };
+
+// --- GLOBAL PROFILE SWITCHER LOGIC ---
+window.openProfileSwitcher = function() {
+    const sessionRaw = localStorage.getItem('guardianSession');
+    if (!sessionRaw) return;
+    
+    const session = JSON.parse(sessionRaw);
+    
+    let modal = document.getElementById('dashboard-profile-modal');
+    if (!modal) {
+        const modalHtml = `
+            <div id="dashboard-profile-modal" style="z-index: 120;" class="fixed inset-0 hidden flex items-center justify-center bg-black/60 backdrop-blur-sm transition-opacity duration-300">
+                <div class="bg-[#fdfbf7] border-2 border-[#D6A84A] rounded-xl shadow-2xl w-full max-w-md p-8 relative">
+                    <h3 class="text-2xl font-bold text-[#183B5B] font-cinzel mb-2 text-center">Switch Profile</h3>
+                    <p class="text-slate-600 text-sm text-center mb-6">Who is using the library right now?</p>
+                    <div id="dashboard-profile-list" class="max-h-[50vh] overflow-y-auto pr-2 custom-scrollbar"></div>
+                    <button onclick="document.getElementById('dashboard-profile-modal').classList.add('hidden')" class="w-full mt-6 py-2 text-slate-500 hover:text-[#183B5B] font-bold rounded transition-colors border border-transparent hover:border-[#183B5B]">Cancel / Go Back</button>
+                </div>
+            </div>
+        `;
+        document.body.insertAdjacentHTML('beforeend', modalHtml);
+        modal = document.getElementById('dashboard-profile-modal');
+    }
+
+    const list = document.getElementById('dashboard-profile-list');
+    list.innerHTML = '';
+    const currentUserId = localStorage.getItem('userId');
+    const currentUserRole = localStorage.getItem('userRole');
+
+    // Guardian
+    const g = session.profile;
+    const gInitials = ((g.first_name?.[0] || '') + (g.last_name?.[0] || '')).toUpperCase();
+    const gIsActive = (currentUserId == g.guardian_id && currentUserRole === 'guardian');
+
+    list.innerHTML += `
+        <div onclick="switchDashboardProfile(${g.guardian_id}, 'guardian', '${(g.first_name || '').replace(/'/g, "\\'")}')" class="flex items-center p-3 rounded-xl border ${gIsActive ? 'border-[#D6A84A] bg-[#D6A84A]/10' : 'border-slate-200 hover:border-[#D6A84A] hover:bg-slate-50 cursor-pointer'} transition-all group mb-3">
+            <div class="w-12 h-12 rounded-full bg-[#183B5B] text-[#D6A84A] flex items-center justify-center font-bold text-lg mr-4 ${!gIsActive ? 'group-hover:scale-105 transition-transform' : ''}">${gInitials}</div>
+            <div class="flex-1">
+                <div class="font-bold text-slate-800">${g.first_name} ${g.last_name} ${gIsActive ? '<span class="text-[10px] text-green-600 bg-green-100 px-2 py-0.5 rounded ml-2">Active</span>' : ''}</div>
+                <div class="text-xs text-slate-500 font-mono uppercase tracking-wider">Guardian Account</div>
+            </div>
+        </div>
+    `;
+
+    // Children
+    if (session.children && session.children.length > 0) {
+        session.children.forEach((child, index) => {
+            const cInitials = ((child.first_name?.[0] || '') + (child.last_name?.[0] || '')).toUpperCase();
+            const cIsActive = (currentUserId == child.user_id && currentUserRole === 'user');
+            list.innerHTML += `
+                <div onclick="switchDashboardProfile(${child.user_id}, 'user', '${(child.first_name || '').replace(/'/g, "\\'")}')" class="flex items-center p-3 rounded-xl border ${cIsActive ? 'border-[#D6A84A] bg-[#D6A84A]/10' : 'border-slate-200 hover:border-[#D6A84A] hover:bg-slate-50 cursor-pointer'} transition-all group mb-3">
+                    <div class="w-12 h-12 rounded-full bg-slate-200 text-slate-600 flex items-center justify-center font-bold text-lg mr-4 ${!cIsActive ? 'group-hover:scale-105 transition-transform' : ''}">${cInitials}</div>
+                    <div class="flex-1">
+                        <div class="font-bold text-slate-800">${child.first_name} ${child.last_name} ${cIsActive ? '<span class="text-[10px] text-green-600 bg-green-100 px-2 py-0.5 rounded ml-2">Active</span>' : ''}</div>
+                        <div class="text-xs text-slate-500 font-mono uppercase tracking-wider">Child Account ${index + 1}</div>
+                    </div>
+                </div>
+            `;
+        });
+    }
+    modal.classList.remove('hidden');
+}
+
+window.switchDashboardProfile = function(id, role, name) {
+    localStorage.setItem('userId', id);
+    localStorage.setItem('userRole', role);
+    localStorage.setItem('userName', name);
+    window.location.reload();
+}
 
 // --- Session Idle Timeout (3 Minutes) ---
 let idleTimeout;

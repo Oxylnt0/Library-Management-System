@@ -78,7 +78,8 @@
         try {
             console.log("Fetching books from API...");
             const userId = sessionStorage.getItem('userId') || localStorage.getItem('userId');
-            const response = await fetch(`http://localhost:3000/api/books?user_id=${userId}`);
+            const userRole = localStorage.getItem('userRole');
+            const response = await fetch(`http://localhost:3000/api/books?user_id=${userId}&role=${userRole}`);
             const result = await response.json();
             
             if (!result.success) throw new Error(result.message);
@@ -385,8 +386,13 @@
 
     window.borrowSpecificCopy = async function(materialId, btnElement) {
         const userId = sessionStorage.getItem('userId') || localStorage.getItem('userId');
+        const userRole = localStorage.getItem('userRole');
         if (!userId) {
             window.showCustomAlert("Please log in to perform this action.");
+            return;
+        }
+        if (userRole === 'guardian') {
+            window.showCustomAlert("Guardians act as a manager for their linked accounts. Please log out and select a Child Profile to borrow books directly.");
             return;
         }
 
@@ -429,9 +435,14 @@
         const action = btn.dataset.action;
         const materialType = btn.dataset.type;
         const userId = sessionStorage.getItem('userId') || localStorage.getItem('userId');
+        const userRole = localStorage.getItem('userRole');
 
         if (!userId) {
             window.showCustomAlert("Please log in to perform this action.");
+            return;
+        }
+        if (userRole === 'guardian') {
+            window.showCustomAlert("Guardians act as a manager for their linked accounts. Please log out and select a Child Profile to place a hold.");
             return;
         }
 

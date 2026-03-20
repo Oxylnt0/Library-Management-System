@@ -4,7 +4,7 @@ const path = require('path');
 require('dotenv').config();
 const { db } = require('./db_config.js');
 const { sendAdminWelcomeEmail, sendOtpEmail, sendAccountStatusEmail, sendLibraryCard } = require('./email_service.js');
-const { registerUser, registerGuardian, checkEmailExists } = require('./auth.js');
+const { registerUser, registerGuardian, checkEmailExists, verifyRegistrationOTP, generateAndSendRegistrationOTP } = require('./auth.js');
 const { logUserAction, logAdminAction } = require('./audit_service.js');
 
 const app = express();
@@ -15,6 +15,24 @@ app.use(cors());
 app.use(express.json());
 
 // --- NEW REGISTRATION API ENDPOINTS ---
+
+// Endpoint to verify OTP
+app.post('/api/register/verify-otp', async (req, res) => {
+    const { email, otp } = req.body;
+    try {
+        const result = await verifyRegistrationOTP(email, otp);
+        res.json(result);
+    } catch (error) { res.status(500).json({ success: false, message: error.message }); }
+});
+
+// Endpoint to resend OTP
+app.post('/api/register/resend-otp', async (req, res) => {
+    const { email } = req.body;
+    try {
+        await generateAndSendRegistrationOTP(email);
+        res.json({ success: true, message: "OTP sent." });
+    } catch (error) { res.status(500).json({ success: false, message: error.message }); }
+});
 
 // Endpoint to check if email exists
 app.post('/api/register/check-email', async (req, res) => {
@@ -825,6 +843,12 @@ app.get('/api/books', async (req, res) => {
         let args = [];
 
         if (userId) {
+            let uCond = "bt.user_id = ?";
+            let rCond = "r.user_id = ?";
+            if (req.query.role === 'guardian') {
+                uCond = "bt.user_id IN (SELECT user_id FROM USER WHERE guardian_id = ?)";
+                rCond = "r.user_id IN (SELECT user_id FROM USER WHERE guardian_id = ?)";
+            }
             sql = `
                 SELECT b.book_id as item_id, 'Book' as material_type, b.title, b.author, b.isbn, b.publisher, b.publication_year as year, b.volume, b.edition, b.genre, b.dewey_decimal, b.book_category as category, b.image_url, b.page_count, b.age_restriction, MIN(m.date_added) as date_added,
                 SUM(CASE WHEN c.status = 'Available' THEN 1 ELSE 0 END) as available_copies,
@@ -832,17 +856,17 @@ app.get('/api/books', async (req, res) => {
                 (SELECT COUNT(*) FROM BORROW_TRANSACTION bt 
                  JOIN BOOK_COPY bc_bt ON bt.material_id = bc_bt.material_id
                  WHERE bc_bt.book_id = b.book_id 
-                 AND bt.user_id = ? 
+                 AND ${uCond} 
                  AND bt.status IN ('Pending', 'Borrowed')) as user_already_has_it,
                 (SELECT bt.status FROM BORROW_TRANSACTION bt 
                  JOIN BOOK_COPY bc_bt ON bt.material_id = bc_bt.material_id
                  WHERE bc_bt.book_id = b.book_id 
-                 AND bt.user_id = ? 
+                 AND ${uCond} 
                  AND bt.status IN ('Pending', 'Borrowed') LIMIT 1) as user_transaction_status,
                 (SELECT COUNT(*) FROM RESERVATION r 
                  JOIN BOOK_COPY bc_r ON r.material_id = bc_r.material_id
                  WHERE bc_r.book_id = b.book_id 
-                 AND r.user_id = ? 
+                 AND ${rCond} 
                  AND r.status = 'Pending') as user_is_waitlisted
                 FROM BOOK b
                 JOIN BOOK_COPY c ON b.book_id = c.book_id
@@ -857,17 +881,17 @@ app.get('/api/books', async (req, res) => {
                 (SELECT COUNT(*) FROM BORROW_TRANSACTION bt 
                  JOIN PERIODICAL_COPY pc_bt ON bt.material_id = pc_bt.material_id
                  WHERE pc_bt.periodical_id = p.periodical_id 
-                 AND bt.user_id = ? 
+                 AND ${uCond} 
                  AND bt.status IN ('Pending', 'Borrowed')) as user_already_has_it,
                 (SELECT bt.status FROM BORROW_TRANSACTION bt 
                  JOIN PERIODICAL_COPY pc_bt ON bt.material_id = pc_bt.material_id
                  WHERE pc_bt.periodical_id = p.periodical_id 
-                 AND bt.user_id = ? 
+                 AND ${uCond} 
                  AND bt.status IN ('Pending', 'Borrowed') LIMIT 1) as user_transaction_status,
                 (SELECT COUNT(*) FROM RESERVATION r 
                  JOIN PERIODICAL_COPY pc_r ON r.material_id = pc_r.material_id
                  WHERE pc_r.periodical_id = p.periodical_id 
-                 AND r.user_id = ? 
+                 AND ${rCond} 
                  AND r.status = 'Pending') as user_is_waitlisted
                 FROM PERIODICAL p
                 JOIN PERIODICAL_COPY c ON p.periodical_id = c.periodical_id
@@ -1173,11 +1197,13 @@ app.get('/api/fines/user/:userId', async (req, res) => {
 // 16. GET /api/user/:id
 app.get('/api/user/:id', async (req, res) => {
     const { id } = req.params;
+    const { role } = req.query;
     try {
-        const result = await db.execute({
-            sql: "SELECT user_id, first_name, last_name, email, contact_number, address FROM USER WHERE user_id = ?",
-            args: [id]
-        });
+        let sql = "SELECT user_id, first_name, last_name, email, contact_number, address FROM USER WHERE user_id = ?";
+        if (role === 'guardian') {
+            sql = "SELECT guardian_id as user_id, first_name, last_name, email, contact_number, address FROM GUARDIAN_NAME WHERE guardian_id = ?";
+        }
+        const result = await db.execute({ sql, args: [id] });
 
         if (result.rows.length > 0) {
             res.json({ success: true, data: result.rows[0] });
@@ -1194,11 +1220,13 @@ app.get('/api/user/:id', async (req, res) => {
 // 19. PUT /api/user/:id (Update Profile)
 app.put('/api/user/:id', async (req, res) => {
     const { id } = req.params;
-    const { first_name, last_name, email, contact_number, address } = req.body;
+    const { first_name, last_name, email, contact_number, address, role } = req.body;
 
     try {
+        const table = role === 'guardian' ? 'GUARDIAN_NAME' : 'USER';
+        const idField = role === 'guardian' ? 'guardian_id' : 'user_id';
         await db.execute({
-            sql: "UPDATE USER SET first_name = ?, last_name = ?, email = ?, contact_number = ?, address = ? WHERE user_id = ?",
+            sql: `UPDATE ${table} SET first_name = ?, last_name = ?, email = ?, contact_number = ?, address = ? WHERE ${idField} = ?`,
             args: [first_name, last_name, email, contact_number, address, id]
         });
         res.json({ success: true, message: "Profile updated successfully." });
@@ -1211,11 +1239,13 @@ app.put('/api/user/:id', async (req, res) => {
 // 20. PUT /api/user/:id/password (Update Password)
 app.put('/api/user/:id/password', async (req, res) => {
     const { id } = req.params;
-    const { newPassword } = req.body;
+    const { newPassword, role } = req.body;
 
     try {
+        const table = role === 'guardian' ? 'GUARDIAN_NAME' : 'USER';
+        const idField = role === 'guardian' ? 'guardian_id' : 'user_id';
         await db.execute({
-            sql: "UPDATE USER SET password = ? WHERE user_id = ?",
+            sql: `UPDATE ${table} SET password = ? WHERE ${idField} = ?`,
             args: [newPassword, id]
         });
 
@@ -1481,17 +1511,37 @@ app.get('/api/admin/audit-logs', async (req, res) => {
 app.get('/api/admin/users', async (req, res) => {
     try {
         const result = await db.execute(`
-            SELECT u.*, 
-                   b.reason as ban_reason, 
-                   b.end_date as ban_end_date,
-                   (SELECT COUNT(*) FROM BAN_TERMINATION bt WHERE bt.user_id = u.user_id AND (bt.end_date IS NULL OR bt.end_date > DATE('now'))) as is_banned_active
+            SELECT u.user_id, u.first_name, u.last_name, u.email, u.contact_number, u.status, u.date_created, u.email_verified, u.address, u.birth_date,
+                   'User' as account_type,
+                   b.reason as ban_reason, b.end_date as ban_end_date
             FROM USER u
-            LEFT JOIN BAN_TERMINATION b ON u.user_id = b.user_id 
-            AND b.ban_id = (
-                SELECT MAX(ban_id) FROM BAN_TERMINATION WHERE user_id = u.user_id
-            )
-            ORDER BY u.user_id DESC
+            LEFT JOIN BAN_TERMINATION b ON u.user_id = b.user_id AND b.ban_id = (SELECT MAX(ban_id) FROM BAN_TERMINATION WHERE user_id = u.user_id)
+            WHERE u.guardian_id IS NULL AND (u.email_verified = 1 OR u.email IS NULL OR u.email = '' OR u.status != 'Pending')
+            
+            UNION ALL
+            
+            SELECT g.guardian_id as user_id, g.first_name, g.last_name, g.email, g.contact_number, g.status, g.date_created, g.email_verified, g.address, g.birth_date,
+                   'Guardian' as account_type,
+                   NULL as ban_reason, NULL as ban_end_date
+            FROM GUARDIAN_NAME g
+            WHERE (g.email_verified = 1 OR g.email IS NULL OR g.email = '' OR g.status != 'Pending')
+            ORDER BY date_created DESC
         `);
+        res.json({ success: true, data: result.rows });
+    } catch (error) {
+        console.error("Fetch Users Error:", error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+// Endpoint to get Guardian's linked children
+app.get('/api/admin/guardian/:id/children', async (req, res) => {
+    const { id } = req.params;
+    try {
+        const result = await db.execute({
+            sql: "SELECT first_name, last_name, middle_initial, birth_date, relationship FROM USER WHERE guardian_id = ?",
+            args: [id]
+        });
         res.json({ success: true, data: result.rows });
     } catch (error) {
         console.error("Fetch Users Error:", error);
@@ -1774,57 +1824,44 @@ app.post('/api/auth/reset-password', async (req, res) => {
 
 // 36. POST /api/admin/user/status
 app.post('/api/admin/user/status', async (req, res) => {
-    const { userId, status, adminId } = req.body; // status: 'Active' or 'Rejected'
+    const { userId, accountType, status, reason, adminId } = req.body;
     try {
-        // 1. Fetch User to get email and guardian info
+        const table = accountType === 'Guardian' ? 'GUARDIAN_NAME' : 'USER';
+        const idField = accountType === 'Guardian' ? 'guardian_id' : 'user_id';
+
         const userRes = await db.execute({
-            sql: "SELECT * FROM USER WHERE user_id = ?",
+            sql: `SELECT * FROM ${table} WHERE ${idField} = ?`,
             args: [userId]
         });
         
         if (userRes.rows.length === 0) return res.status(404).json({ success: false, message: "User not found." });
         const user = userRes.rows[0];
         
-        // 2. Update User Status
         await db.execute({
-            sql: "UPDATE USER SET status = ? WHERE user_id = ?",
-            args: [status, userId]
+            sql: `UPDATE ${table} SET status = ?, status_note = ? WHERE ${idField} = ?`,
+            args: [status, status === 'Rejected' ? reason : null, userId]
         });
 
-        let emailToSend = user.email;
-        let nameToSend = user.first_name;
-
-        // 3. If Child (has guardian), update Guardian Status too
-        if (user.guardian_id) {
+        if (accountType === 'Guardian') {
             await db.execute({
-                sql: "UPDATE GUARDIAN_NAME SET status = ? WHERE guardian_id = ?",
-                args: [status, user.guardian_id]
+                sql: "UPDATE USER SET status = ?, status_note = ? WHERE guardian_id = ?",
+                args: [status, status === 'Rejected' ? reason : null, userId]
             });
-            
-            // If user has no email (child), fetch guardian email
-            if (!emailToSend) {
-                const guardRes = await db.execute({
-                    sql: "SELECT email FROM GUARDIAN_NAME WHERE guardian_id = ?",
-                    args: [user.guardian_id]
-                });
-                if (guardRes.rows.length > 0) emailToSend = guardRes.rows[0].email;
-            }
         }
 
-        // 4. Send Email
-        if (emailToSend) {
+        if (user.email) {
             if (status === 'Active') {
-                await sendLibraryCard(emailToSend, userId, nameToSend);
-            } else {
-                await sendAccountStatusEmail(emailToSend, nameToSend, status);
+                await sendLibraryCard(user.email, `${accountType.charAt(0)}-${userId}`, user.first_name);
+            } else if (status === 'Rejected') {
+                await sendAccountStatusEmail(user.email, user.first_name, status, reason);
             }
         }
 
         if (adminId) {
-            await logAdminAction(adminId, 'UPDATE_USER_STATUS', 'USER', userId, `User status updated to ${status}`);
+            await logAdminAction(adminId, 'UPDATE_USER_STATUS', table, userId, `Status updated to ${status}`);
         }
 
-        res.json({ success: true, message: `User status updated to ${status}.` });
+        res.json({ success: true, message: `Account status updated to ${status}.` });
     } catch (e) {
         console.error("Update Status Error:", e);
         res.status(500).json({ success: false, message: e.message });
@@ -1834,16 +1871,20 @@ app.post('/api/admin/user/status', async (req, res) => {
 // 37. POST /api/user/:id/resend-qr
 app.post('/api/user/:id/resend-qr', async (req, res) => {
     const { id } = req.params;
+    const { role } = req.body;
     try {
+        const table = role === 'guardian' ? 'GUARDIAN_NAME' : 'USER';
+        const idField = role === 'guardian' ? 'guardian_id' : 'user_id';
         const userRes = await db.execute({
-            sql: "SELECT email, first_name FROM USER WHERE user_id = ?",
+            sql: `SELECT email, first_name FROM ${table} WHERE ${idField} = ?`,
             args: [id]
         });
 
         if (userRes.rows.length === 0) return res.status(404).json({ success: false, message: "User not found." });
         
         const user = userRes.rows[0];
-        const sent = await sendLibraryCard(user.email, id, user.first_name);
+        const prefix = role === 'guardian' ? 'G' : 'U';
+        const sent = await sendLibraryCard(user.email, `${prefix}-${id}`, user.first_name);
 
         if (sent) {
             res.json({ success: true, message: "QR Code sent to your email." });
@@ -1859,11 +1900,14 @@ app.post('/api/user/:id/resend-qr', async (req, res) => {
 // 18. GET /api/donations/user/:userId
 app.get('/api/donations/user/:userId', async (req, res) => {
     const { userId } = req.params;
+    const { role } = req.query;
     try {
+        let uCond = "user_id = ?";
+        if (role === 'guardian') uCond = "user_id IN (SELECT user_id FROM USER WHERE guardian_id = ?)";
         const result = await db.execute({
             sql: `SELECT book_title, category, quantity, donation_date, status 
                   FROM DONATION 
-                  WHERE user_id = ? AND donation_type = 'Inbound'
+                  WHERE ${uCond} AND donation_type = 'Inbound'
                   ORDER BY donation_date DESC`,
             args: [userId]
         });

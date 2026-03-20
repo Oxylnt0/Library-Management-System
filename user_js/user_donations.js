@@ -5,6 +5,7 @@ async function initUserDonations() {
     // 1. Get User ID from Local Storage
     // Check for direct userId first (consistent with catalog), then fallback to object
     let userId = sessionStorage.getItem('userId') || localStorage.getItem('userId');
+    const userRole = localStorage.getItem('userRole');
 
     if (!userId) {
         const userStr = localStorage.getItem('library_user') || sessionStorage.getItem('library_user') || localStorage.getItem('user') || sessionStorage.getItem('user');
@@ -18,7 +19,7 @@ async function initUserDonations() {
 
     try {
         // 2. Fetch Donations
-        const response = await fetch(`http://localhost:3000/api/donations/user/${userId}`);
+        const response = await fetch(`http://localhost:3000/api/donations/user/${userId}?role=${userRole}`);
         const result = await response.json();
 
         if (result.success) {

@@ -162,6 +162,14 @@
 
                 <aside class="w-80 p-6 flex flex-col h-full overflow-y-auto shrink-0 bg-[#fbf6e9]/60 border-l border-[#D6A84A]/20 backdrop-blur-sm">
 
+                    <!-- Switch Profile Container (Hidden by default, shown via JS if Guardian) -->
+                    <div id="switch-profile-container" class="hidden mb-6">
+                        <button onclick="openProfileSwitcher()" class="w-full py-3 rounded-xl border-2 border-[#183B5B] text-[#183B5B] font-bold font-cinzel hover:bg-[#183B5B] hover:text-[#D6A84A] transition-colors flex items-center justify-center gap-2 shadow-sm bg-white/50 backdrop-blur-sm">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path></svg>
+                            Switch Profile
+                        </button>
+                    </div>
+
                     <div class="mb-8">
                         <h3 class="font-bold text-[#1A202C] mb-4 font-cinzel">Notifications</h3>
                         <div class="space-y-3" id="notifications-container">
@@ -223,7 +231,13 @@
 
         async function loadUserDashboard() {
             const userId = localStorage.getItem('userId');
+            const userRole = localStorage.getItem('userRole');
             
+            // Check if Guardian Session exists to enable Profile Switching
+            if (localStorage.getItem('guardianSession')) {
+                document.getElementById('switch-profile-container').classList.remove('hidden');
+            }
+
             // 1. Load New Arrivals (Public)
             await loadNewArrivals();
 
@@ -235,13 +249,13 @@
             }
 
             // 2. Load Recently Borrowed
-            await loadRecentlyBorrowed(userId);
+            await loadRecentlyBorrowed(userId, userRole);
 
             // 3. Load Notifications
-            await loadNotifications(userId);
+            await loadNotifications(userId, userRole);
             
             // 4. Load Sidebar Statistics (Fines, Borrowed, Reservations)
-            await loadSidebarStats(userId);
+            await loadSidebarStats(userId, userRole);
         }
 
         async function loadNewArrivals() {
@@ -287,20 +301,22 @@
             }
         }
 
-        async function loadRecentlyBorrowed(userId) {
+        async function loadRecentlyBorrowed(userId, userRole) {
             try {
+                let uCond = "bt.user_id = ?";
+                if (userRole === 'guardian') uCond = "bt.user_id IN (SELECT user_id FROM USER WHERE guardian_id = ?)";
                 const query = `
                     SELECT bt.*, b.title, b.author, b.image_url 
                     FROM BORROW_TRANSACTION bt
                     JOIN BOOK_COPY bc ON bt.material_id = bc.material_id
                     JOIN BOOK b ON bc.book_id = b.book_id
-                    WHERE bt.user_id = ? AND bt.status IN ('Borrowed', 'Overdue')
+                    WHERE ${uCond} AND bt.status IN ('Borrowed', 'Overdue')
                     UNION ALL
                     SELECT bt.*, p.title, p.publisher as author, p.image_url 
                     FROM BORROW_TRANSACTION bt
                     JOIN PERIODICAL_COPY pc ON bt.material_id = pc.material_id
                     JOIN PERIODICAL p ON pc.periodical_id = p.periodical_id
-                    WHERE bt.user_id = ? AND bt.status IN ('Borrowed', 'Overdue')
+                    WHERE ${uCond} AND bt.status IN ('Borrowed', 'Overdue')
                     ORDER BY borrow_date DESC
                 `;
                 const res = await db.execute({ sql: query, args: [userId, userId] });
@@ -385,7 +401,7 @@
             }
         }
 
-        async function loadNotifications(userId) {
+        async function loadNotifications(userId, userRole) {
             const container = document.getElementById('notifications-container');
             container.innerHTML = '';
             let hasNotifs = false;
@@ -419,19 +435,26 @@
                     container.insertAdjacentHTML('beforeend', html);
                 });
 
+                let uCond = "bt.user_id = ?";
+                let rCond = "r.user_id = ?";
+                if (userRole === 'guardian') {
+                    uCond = "bt.user_id IN (SELECT user_id FROM USER WHERE guardian_id = ?)";
+                    rCond = "r.user_id IN (SELECT user_id FROM USER WHERE guardian_id = ?)";
+                }
+
                 // 1. Due Soon (<= 3 days)
                 const dueQuery = `
                     SELECT b.title, bt.due_date 
                     FROM BORROW_TRANSACTION bt 
                     JOIN BOOK_COPY bc ON bt.material_id = bc.material_id
                     JOIN BOOK b ON bc.book_id = b.book_id 
-                    WHERE bt.user_id = ? AND bt.status = 'Borrowed' AND bt.due_date <= date('now', '+3 days')
+                    WHERE ${uCond} AND bt.status = 'Borrowed' AND bt.due_date <= date('now', '+3 days')
                     UNION ALL
                     SELECT p.title, bt.due_date 
                     FROM BORROW_TRANSACTION bt 
                     JOIN PERIODICAL_COPY pc ON bt.material_id = pc.material_id
                     JOIN PERIODICAL p ON pc.periodical_id = p.periodical_id 
-                    WHERE bt.user_id = ? AND bt.status = 'Borrowed' AND bt.due_date <= date('now', '+3 days')
+                    WHERE ${uCond} AND bt.status = 'Borrowed' AND bt.due_date <= date('now', '+3 days')
                 `;
                 const dueRes = await db.execute({ sql: dueQuery, args: [userId, userId] });
                 
@@ -453,13 +476,13 @@
                     FROM RESERVATION r 
                     JOIN BOOK_COPY bc ON r.material_id = bc.material_id
                     JOIN BOOK b ON bc.book_id = b.book_id 
-                    WHERE r.user_id = ? AND r.status = 'Approved'
+                    WHERE ${rCond} AND r.status = 'Approved'
                     UNION ALL
                     SELECT p.title 
                     FROM RESERVATION r 
                     JOIN PERIODICAL_COPY pc ON r.material_id = pc.material_id
                     JOIN PERIODICAL p ON pc.periodical_id = p.periodical_id 
-                    WHERE r.user_id = ? AND r.status = 'Approved'
+                    WHERE ${rCond} AND r.status = 'Approved'
                 `;
                 const resResult = await db.execute({ sql: resQuery, args: [userId, userId] });
 
@@ -483,23 +506,30 @@
             }
         }
 
-        async function loadSidebarStats(userId) {
+        async function loadSidebarStats(userId, userRole) {
             try {
+                let uCond = "bt.user_id = ?";
+                let rCond = "user_id = ?";
+                if (userRole === 'guardian') {
+                    uCond = "bt.user_id IN (SELECT user_id FROM USER WHERE guardian_id = ?)";
+                    rCond = "user_id IN (SELECT user_id FROM USER WHERE guardian_id = ?)";
+                }
+
                 // 1. Get Unpaid Fines Total
                 const finesQuery = `
                     SELECT SUM(f.fine_amount) as total 
                     FROM FINE f 
                     JOIN BORROW_TRANSACTION bt ON f.borrow_id = bt.borrow_id 
-                    WHERE bt.user_id = ? AND f.status = 'Unpaid'
+                    WHERE ${uCond} AND f.status = 'Unpaid'
                 `;
                 const finesRes = await db.execute({ sql: finesQuery, args: [userId] });
                 const totalFines = finesRes.rows[0].total || 0;
 
                 // 2. Get Total Borrowed Books (Active)
-                const borrowRes = await db.execute({ sql: "SELECT COUNT(*) as count FROM BORROW_TRANSACTION WHERE user_id = ? AND status IN ('Borrowed', 'Overdue')", args: [userId] });
+                const borrowRes = await db.execute({ sql: `SELECT COUNT(*) as count FROM BORROW_TRANSACTION WHERE ${rCond} AND status IN ('Borrowed', 'Overdue')`, args: [userId] });
 
                 // 3. Get Total Reservations
-                const resRes = await db.execute({ sql: "SELECT COUNT(*) as count FROM RESERVATION WHERE user_id = ? AND status = 'Pending'", args: [userId] });
+                const resRes = await db.execute({ sql: `SELECT COUNT(*) as count FROM RESERVATION WHERE ${rCond} AND status = 'Pending'`, args: [userId] });
                 
                 // Update UI - Fines
                 const amountEl = document.getElementById('total-fines-amount');

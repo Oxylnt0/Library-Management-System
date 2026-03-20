@@ -255,6 +255,7 @@
 
         window.loadUserLoans = async function() {
             const userId = getCurrentUserId();
+            const userRole = localStorage.getItem('userRole');
             const tbody = document.querySelector('tbody');
             
             // Show loading state
@@ -266,6 +267,8 @@
             }
 
             try {
+                let uCond = "bt.user_id = ?";
+                if (userRole === 'guardian') uCond = "bt.user_id IN (SELECT user_id FROM USER WHERE guardian_id = ?)";
                 const query = `
                     SELECT 
                         bt.borrow_id,
@@ -282,7 +285,7 @@
                     FROM BORROW_TRANSACTION bt
                     JOIN BOOK_COPY bc ON bt.material_id = bc.material_id
                     JOIN BOOK b ON bc.book_id = b.book_id
-                    WHERE bt.user_id = ? AND bt.status IN ('Borrowed', 'Overdue', 'Returned', 'Pending')
+                    WHERE ${uCond} AND bt.status IN ('Borrowed', 'Overdue', 'Returned', 'Pending')
                     UNION ALL
                     SELECT 
                         bt.borrow_id,
@@ -299,7 +302,7 @@
                     FROM BORROW_TRANSACTION bt
                     JOIN PERIODICAL_COPY pc ON bt.material_id = pc.material_id
                     JOIN PERIODICAL p ON pc.periodical_id = p.periodical_id
-                    WHERE bt.user_id = ? AND bt.status IN ('Borrowed', 'Overdue', 'Returned', 'Pending')
+                    WHERE ${uCond} AND bt.status IN ('Borrowed', 'Overdue', 'Returned', 'Pending')
                     ORDER BY borrow_date DESC
                 `;
 

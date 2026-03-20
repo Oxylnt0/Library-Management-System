@@ -145,6 +145,7 @@
 
             async function loadFines() {
                 const userId = getCurrentUserId();
+                const userRole = localStorage.getItem('userRole');
                 const unpaidBody = document.getElementById('unpaid-fines-body');
                 const historyBody = document.getElementById('payment-history-body');
                 
@@ -162,6 +163,9 @@
                     // Fetch settings for fallback logic
                     const settingsRes = await db.execute("SELECT * FROM FINE_SETTINGS");
                     const settings = settingsRes.rows;
+
+                    let uCond = "b.user_id = ?";
+                    if (userRole === 'guardian') uCond = "b.user_id IN (SELECT user_id FROM USER WHERE guardian_id = ?)";
 
                     const query = `
                         SELECT 
@@ -187,7 +191,7 @@
                         LEFT JOIN PERIODICAL_COPY pc ON b.material_id = pc.material_id
                         LEFT JOIN PERIODICAL per ON pc.periodical_id = per.periodical_id
                         LEFT JOIN PAYMENT p ON f.fine_id = p.fine_id
-                        WHERE b.user_id = ?
+                        WHERE ${uCond}
                         ORDER BY f.status DESC, b.return_date DESC
                     `;
 

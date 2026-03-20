@@ -353,17 +353,31 @@
                 const result = await login(email, password);
 
                 if (result.success) {
-                    // Store session data for dashboard usage
                     if (result.role === 'user') {
                         localStorage.setItem('userId', result.user.user_id);
-                    }
-                    localStorage.setItem('userRole', result.role);
-                    localStorage.setItem('userName', result.user.first_name);
+                        localStorage.setItem('userRole', result.role);
+                        localStorage.setItem('userName', result.user.first_name);
 
-                    showCustomAlert("Login Successful! Welcome " + result.user.first_name, () => {
-                        // Redirect based on role or to dashboard
-                        window.location.href = '../user_html/user_dashboard.html'; 
-                    });
+                        showCustomAlert("Login Successful! Welcome " + result.user.first_name, () => {
+                            window.location.href = '../user_html/user_dashboard.html'; 
+                        });
+                    } else if (result.role === 'guardian') {
+                        window.guardianProfile = result.user;
+                        window.guardianChildren = result.children || [];
+
+                        // Save the guardian session so they can switch profiles later in the dashboard
+                        localStorage.setItem('guardianSession', JSON.stringify({
+                            profile: result.user,
+                            children: result.children || []
+                        }));
+
+                        renderProfileSelection();
+                        document.getElementById('profile-modal').classList.remove('hidden');
+                    }
+                } else if (result.requiresOtp) {
+                    // Intercept unverified user and show OTP Modal
+                    window.registrationEmail = result.email;
+                    document.getElementById('otp-modal').classList.remove('hidden');
                 } else {
                     showCustomAlert("Login Failed: " + result.message);
                 }
@@ -401,6 +415,98 @@
         } else {
             initLogin();
         }
+
+        // --- PROFILE SELECTION LOGIC ---
+        window.renderProfileSelection = function() {
+            const list = document.getElementById('profile-list');
+            list.innerHTML = '';
+
+            // 1. Guardian Option (Themselves)
+            const g = window.guardianProfile;
+            const gInitials = ((g.first_name?.[0] || '') + (g.last_name?.[0] || '')).toUpperCase();
+            list.innerHTML += `
+                <div onclick="selectProfile(${g.guardian_id}, 'guardian', '${g.first_name.replace(/'/g, "\\'")}')" class="flex items-center p-3 rounded-xl border border-slate-200 hover:border-[#D6A84A] hover:bg-slate-50 cursor-pointer transition-all group mb-3">
+                    <div class="w-12 h-12 rounded-full bg-[#183B5B] text-[#D6A84A] flex items-center justify-center font-bold text-lg mr-4 group-hover:scale-105 transition-transform">${gInitials}</div>
+                    <div class="flex-1">
+                        <div class="font-bold text-slate-800">${g.first_name} ${g.last_name}</div>
+                        <div class="text-xs text-slate-500 font-mono uppercase tracking-wider">Guardian Account</div>
+                    </div>
+                    <div class="text-slate-300 group-hover:text-[#D6A84A] transition-colors">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                    </div>
+                </div>
+            `;
+
+            // 2. Children Options
+            window.guardianChildren.forEach((child, index) => {
+                const cInitials = ((child.first_name?.[0] || '') + (child.last_name?.[0] || '')).toUpperCase();
+                list.innerHTML += `
+                    <div onclick="selectProfile(${child.user_id}, 'user', '${child.first_name.replace(/'/g, "\\'")}')" class="flex items-center p-3 rounded-xl border border-slate-200 hover:border-[#D6A84A] hover:bg-slate-50 cursor-pointer transition-all group mb-3">
+                        <div class="w-12 h-12 rounded-full bg-slate-200 text-slate-600 flex items-center justify-center font-bold text-lg mr-4 group-hover:scale-105 transition-transform">${cInitials}</div>
+                        <div class="flex-1">
+                            <div class="font-bold text-slate-800">${child.first_name} ${child.last_name}</div>
+                            <div class="text-xs text-slate-500 font-mono uppercase tracking-wider">Child Account ${index + 1}</div>
+                        </div>
+                        <div class="text-slate-300 group-hover:text-[#D6A84A] transition-colors">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        window.selectProfile = function(id, role, name) {
+            localStorage.setItem('userId', id);
+            localStorage.setItem('userRole', role);
+            localStorage.setItem('userName', name);
+            document.getElementById('profile-modal').classList.add('hidden');
+            window.location.href = '../user_html/user_dashboard.html'; 
+        }
+
+        // --- OTP VERIFICATION LOGIC ---
+        window.registrationEmail = "";
+
+        window.closeOTPModal = function() {
+            document.getElementById('otp-modal').classList.add('hidden');
+        }
+
+        window.verifyOTP = async function() {
+            const otp = document.getElementById('otp-input').value.trim();
+            if (otp.length !== 6) return showCustomAlert("Please enter a valid 6-digit OTP.");
+            
+            const btn = document.getElementById('btn-verify-otp');
+            btn.disabled = true; btn.innerHTML = 'Verifying...';
+            
+            try {
+                const res = await fetch('http://localhost:3000/api/register/verify-otp', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ email: window.registrationEmail, otp })
+                });
+                const result = await res.json();
+                if (result.success) {
+                    showCustomAlert(result.message + " Please wait for admin approval.", () => closeOTPModal());
+                } else {
+                    showCustomAlert(result.message);
+                }
+            } catch (e) { showCustomAlert("Error: " + e.message); } 
+            finally { btn.disabled = false; btn.innerHTML = 'Verify Code'; }
+        };
+
+        window.resendOTP = async function() {
+            const btn = document.getElementById('btn-resend-otp');
+            btn.disabled = true; btn.innerText = 'Resending...';
+            try {
+                const res = await fetch('http://localhost:3000/api/register/resend-otp', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ email: window.registrationEmail })
+                });
+                const result = await res.json();
+                showCustomAlert(result.message || "OTP Resent.");
+            } catch (e) { showCustomAlert("Error: " + e.message); } 
+            finally { btn.disabled = false; btn.innerText = 'Resend Code'; }
+        };
 
         // --- RECOVERY LOGIC ---
         let recoveryEmail = "";
@@ -629,7 +735,6 @@
         }
       }
     </script>
-    </div>
 
     <!-- Recovery Modal -->
     <div id="recovery-modal" class="fixed inset-0 z-[100] hidden flex items-center justify-center bg-black/60 backdrop-blur-sm">
@@ -746,8 +851,22 @@
         </div>
     </div>
 
+    <!-- Profile Selection Modal -->
+    <div id="profile-modal" style="z-index: 120;" class="fixed inset-0 hidden flex items-center justify-center bg-black/60 backdrop-blur-sm transition-opacity duration-300">
+        <div class="bg-[#fdfbf7] border-2 border-[#D6A84A] rounded-xl shadow-2xl w-full max-w-md p-8 relative">
+            <h3 class="text-2xl font-bold text-[#183B5B] font-cinzel mb-2 text-center">Select Profile</h3>
+            <p class="text-slate-600 text-sm text-center mb-6">Who is using the library right now?</p>
+            
+            <div id="profile-list" class="max-h-[50vh] overflow-y-auto pr-2 custom-scrollbar">
+                <!-- Profiles injected here -->
+            </div>
+            
+            <button onclick="document.getElementById('profile-modal').classList.add('hidden')" class="w-full mt-6 py-2 text-slate-500 hover:text-[#183B5B] font-bold rounded transition-colors border border-transparent hover:border-[#183B5B]">Cancel / Go Back</button>
+        </div>
+    </div>
+
     <!-- Custom Alert Modal -->
-    <div id="custom-alert" class="fixed inset-0 z-[100] hidden flex items-center justify-center bg-black/50 backdrop-blur-sm transition-opacity duration-300">
+    <div id="custom-alert" style="z-index: 9999;" class="fixed inset-0 hidden flex items-center justify-center bg-black/50 backdrop-blur-sm transition-opacity duration-300">
         <div class="bg-[#fdfbf7] border-2 border-[#D6A84A] rounded-lg p-8 max-w-sm w-full shadow-2xl transform scale-100 transition-transform duration-300 relative overflow-hidden">
             <div class="absolute top-0 left-0 w-16 h-16 border-t-4 border-l-4 border-[#183B5B]/20 rounded-tl-lg"></div>
             <div class="absolute bottom-0 right-0 w-16 h-16 border-b-4 border-r-4 border-[#183B5B]/20 rounded-br-lg"></div>
@@ -761,6 +880,22 @@
             </div>
         </div>
     </div>
+
+    <!-- OTP Modal -->
+    <div id="otp-modal" class="fixed inset-0 z-[100] hidden flex items-center justify-center bg-black/50 backdrop-blur-sm transition-opacity duration-300">
+        <div class="bg-[#fdfbf7] border-2 border-[#D6A84A] rounded-lg p-8 max-w-sm w-full shadow-2xl relative">
+            <button onclick="closeOTPModal()" class="absolute top-4 right-4 text-slate-400 hover:text-[#183B5B] transition-colors">✕</button>
+            <h3 class="text-xl font-bold text-[#183B5B] font-cinzel mb-2 text-center">Verify Your Email</h3>
+            <p class="text-slate-600 text-sm text-center mb-6">Enter the 6-digit code sent to your email to activate your account.</p>
+            <input type="text" id="otp-input" maxlength="6" class="w-full text-center text-2xl tracking-[0.4em] font-bold text-[#183B5B] border-b-2 border-[#D6A84A] bg-transparent outline-none py-2 mb-6" placeholder="------">
+            <div class="flex flex-col gap-3">
+                <button onclick="verifyOTP()" id="btn-verify-otp" class="w-full py-2 bg-[#183B5B] text-[#D6A84A] font-bold font-cinzel rounded hover:bg-[#244D75] transition-colors flex justify-center items-center">Verify Code</button>
+                <button onclick="resendOTP()" id="btn-resend-otp" class="w-full py-2 text-sm text-slate-500 hover:text-[#183B5B] font-medium transition-colors">Resend Code</button>
+            </div>
+        </div>
+    </div>
+    </div>
+
     <script src="public_loader.js"></script>
 </body>
 </html>

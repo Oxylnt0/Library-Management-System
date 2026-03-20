@@ -17,47 +17,119 @@
             try {
                 console.log(`Fetching data for User ID: ${scannedUserId} (Action: ${scanType})`);
                 
-                // 1. Fetch User Details
-                const userRes = await db.execute({
-                    sql: "SELECT first_name, last_name FROM USER WHERE user_id = ?",
-                    args: [scannedUserId]
-                });
-
-                if (userRes.rows.length === 0) {
-                    window.showCustomAlert("User not found!");
-                    return;
+                let isGuardian = false;
+                let actualId = scannedUserId;
+                const rawId = scannedUserId;
+                
+                if (typeof scannedUserId === 'string') {
+                    if (scannedUserId.startsWith('G-')) {
+                        isGuardian = true;
+                        actualId = scannedUserId.substring(2);
+                    } else if (scannedUserId.startsWith('U-')) {
+                        actualId = scannedUserId.substring(2);
+                    }
                 }
-                const user = userRes.rows[0];
+
+                // 1. Fetch User Details
+                let user;
+                if (isGuardian) {
+                    const userRes = await db.execute({
+                        sql: "SELECT first_name, last_name FROM GUARDIAN_NAME WHERE guardian_id = ?",
+                        args: [actualId]
+                    });
+                    if (userRes.rows.length === 0) {
+                        window.showCustomAlert("Guardian not found!");
+                        return;
+                    }
+                    user = userRes.rows[0];
+                    user.isGuardian = true;
+                } else {
+                    const userRes = await db.execute({
+                        sql: "SELECT first_name, last_name FROM USER WHERE user_id = ?",
+                        args: [actualId]
+                    });
+                    if (userRes.rows.length === 0) {
+                        window.showCustomAlert("User not found!");
+                        return;
+                    }
+                    user = userRes.rows[0];
+                }
 
                 if (scanType === 'borrow') {
                     // A. Fetch Pending Holds (Kiosk Requests)
-                    const holdsRes = await db.execute({
-                        sql: `SELECT bt.borrow_id, bc.book_id, DATETIME(bt.borrow_date || ' ' || bt.borrow_time, '+30 minutes') as expires_at, b.title 
-                              FROM BORROW_TRANSACTION bt
-                              JOIN BOOK_COPY bc ON bt.material_id = bc.material_id
-                              JOIN BOOK b ON bc.book_id = b.book_id
-                              WHERE bt.user_id = ? AND bt.status = 'Pending'
-                              UNION ALL
-                              SELECT bt.borrow_id, pc.periodical_id as book_id, DATETIME(bt.borrow_date || ' ' || bt.borrow_time, '+30 minutes') as expires_at, p.title
-                              FROM BORROW_TRANSACTION bt
-                              JOIN PERIODICAL_COPY pc ON bt.material_id = pc.material_id
-                              JOIN PERIODICAL p ON pc.periodical_id = p.periodical_id
-                              WHERE bt.user_id = ? AND bt.status = 'Pending'`,
-                        args: [scannedUserId, scannedUserId]
-                    });
+                    let holdsRes;
+                    if (isGuardian) {
+                        holdsRes = await db.execute({
+                            sql: `SELECT bt.borrow_id, bc.book_id, DATETIME(bt.borrow_date || ' ' || bt.borrow_time, '+30 minutes') as expires_at, b.title, u.first_name as child_name
+                                  FROM BORROW_TRANSACTION bt
+                                  JOIN BOOK_COPY bc ON bt.material_id = bc.material_id
+                                  JOIN BOOK b ON bc.book_id = b.book_id
+                                  JOIN USER u ON bt.user_id = u.user_id
+                                  WHERE u.guardian_id = ? AND bt.status = 'Pending'
+                                  UNION ALL
+                                  SELECT bt.borrow_id, pc.periodical_id as book_id, DATETIME(bt.borrow_date || ' ' || bt.borrow_time, '+30 minutes') as expires_at, p.title, u.first_name as child_name
+                                  FROM BORROW_TRANSACTION bt
+                                  JOIN PERIODICAL_COPY pc ON bt.material_id = pc.material_id
+                                  JOIN PERIODICAL p ON pc.periodical_id = p.periodical_id
+                                  JOIN USER u ON bt.user_id = u.user_id
+                                  WHERE u.guardian_id = ? AND bt.status = 'Pending'`,
+                            args: [actualId, actualId]
+                        });
+                    } else {
+                        holdsRes = await db.execute({
+                            sql: `SELECT bt.borrow_id, bc.book_id, DATETIME(bt.borrow_date || ' ' || bt.borrow_time, '+30 minutes') as expires_at, b.title, NULL as child_name 
+                                  FROM BORROW_TRANSACTION bt
+                                  JOIN BOOK_COPY bc ON bt.material_id = bc.material_id
+                                  JOIN BOOK b ON bc.book_id = b.book_id
+                                  WHERE bt.user_id = ? AND bt.status = 'Pending'
+                                  UNION ALL
+                                  SELECT bt.borrow_id, pc.periodical_id as book_id, DATETIME(bt.borrow_date || ' ' || bt.borrow_time, '+30 minutes') as expires_at, p.title, NULL as child_name
+                                  FROM BORROW_TRANSACTION bt
+                                  JOIN PERIODICAL_COPY pc ON bt.material_id = pc.material_id
+                                  JOIN PERIODICAL p ON pc.periodical_id = p.periodical_id
+                                  WHERE bt.user_id = ? AND bt.status = 'Pending'`,
+                            args: [actualId, actualId]
+                        });
+                    }
 
-                    renderBorrowModal(user, scannedUserId, holdsRes.rows);
+                    renderBorrowModal(user, rawId, holdsRes.rows);
                 } else if (scanType === 'return') {
                     // Fetch Active Loans
-                    const loanResult = await db.execute({
-                        sql: `SELECT bt.borrow_id, bt.material_id, bc.book_id, bt.borrow_date, bt.due_date, b.title, b.author, b.image_url 
-                              FROM BORROW_TRANSACTION bt 
-                              JOIN BOOK_COPY bc ON bt.material_id = bc.material_id
-                              JOIN BOOK b ON bc.book_id = b.book_id 
-                              WHERE bt.user_id = ? AND bt.status IN ('Borrowed', 'Overdue')`,
-                        args: [scannedUserId]
-                    });
-                    await renderReturnModal(user, scannedUserId, loanResult.rows);
+                    let loanResult;
+                    if (isGuardian) {
+                        loanResult = await db.execute({
+                            sql: `SELECT bt.borrow_id, bt.material_id, bc.book_id, bt.borrow_date, bt.due_date, b.title, b.author, b.image_url, u.first_name as child_name 
+                                  FROM BORROW_TRANSACTION bt 
+                                  JOIN BOOK_COPY bc ON bt.material_id = bc.material_id
+                                  JOIN BOOK b ON bc.book_id = b.book_id 
+                                  JOIN USER u ON bt.user_id = u.user_id
+                                  WHERE u.guardian_id = ? AND bt.status IN ('Borrowed', 'Overdue')
+                                  UNION ALL
+                                  SELECT bt.borrow_id, bt.material_id, pc.periodical_id as book_id, bt.borrow_date, bt.due_date, p.title, p.publisher as author, p.image_url, u.first_name as child_name
+                                  FROM BORROW_TRANSACTION bt 
+                                  JOIN PERIODICAL_COPY pc ON bt.material_id = pc.material_id
+                                  JOIN PERIODICAL p ON pc.periodical_id = p.periodical_id 
+                                  JOIN USER u ON bt.user_id = u.user_id
+                                  WHERE u.guardian_id = ? AND bt.status IN ('Borrowed', 'Overdue')`,
+                            args: [actualId, actualId]
+                        });
+                    } else {
+                        loanResult = await db.execute({
+                            sql: `SELECT bt.borrow_id, bt.material_id, bc.book_id, bt.borrow_date, bt.due_date, b.title, b.author, b.image_url, NULL as child_name 
+                                  FROM BORROW_TRANSACTION bt 
+                                  JOIN BOOK_COPY bc ON bt.material_id = bc.material_id
+                                  JOIN BOOK b ON bc.book_id = b.book_id 
+                                  WHERE bt.user_id = ? AND bt.status IN ('Borrowed', 'Overdue')
+                                  UNION ALL
+                                  SELECT bt.borrow_id, bt.material_id, pc.periodical_id as book_id, bt.borrow_date, bt.due_date, p.title, p.publisher as author, p.image_url, NULL as child_name
+                                  FROM BORROW_TRANSACTION bt 
+                                  JOIN PERIODICAL_COPY pc ON bt.material_id = pc.material_id
+                                  JOIN PERIODICAL p ON pc.periodical_id = p.periodical_id 
+                                  WHERE bt.user_id = ? AND bt.status IN ('Borrowed', 'Overdue')`,
+                            args: [actualId, actualId]
+                        });
+                    }
+                    await renderReturnModal(user, rawId, loanResult.rows);
                 }
             } catch (error) {
                 console.error("Error:", error);
@@ -70,8 +142,8 @@
             const content = document.getElementById('modal-content');
             
             // Set Header
-            document.getElementById('modal-user-name').innerText = `${user.first_name} ${user.last_name}`;
-            document.getElementById('modal-user-id').innerText = `User ID: ${userId}`;
+            document.getElementById('modal-user-name').innerText = `${user.first_name} ${user.last_name} ${user.isGuardian ? '(Guardian)' : ''}`;
+            document.getElementById('modal-user-id').innerText = `${user.isGuardian ? 'Guardian ID' : 'User ID'}: ${userId}`;
 
             content.innerHTML = '';
 
@@ -91,8 +163,9 @@
                             <div>
                                 <p class="font-bold text-slate-800 text-sm">${h.title}</p>
                                 <p class="text-xs text-slate-500">Expires: ${new Date(h.expires_at).toLocaleTimeString()}</p>
+                                ${h.child_name ? `<p class="text-xs font-bold text-blue-600 mt-1">For: ${h.child_name}</p>` : ''}
                             </div>
-                            <button onclick="confirmBorrow(${h.borrow_id}, ${userId})" class="px-3 py-1.5 bg-blue-600 text-white text-xs font-bold rounded hover:bg-blue-700 transition shadow-sm">Accept</button>
+                            <button onclick="confirmBorrow(${h.borrow_id}, '${userId}')" class="px-3 py-1.5 bg-blue-600 text-white text-xs font-bold rounded hover:bg-blue-700 transition shadow-sm">Accept</button>
                         </div>`;
                 });
                 holdsSection.appendChild(list);
@@ -107,8 +180,8 @@
             const content = document.getElementById('modal-content');
             
             // Set Header
-            document.getElementById('modal-user-name').innerText = `${user.first_name} ${user.last_name}`;
-            document.getElementById('modal-user-id').innerText = `User ID: ${userId}`;
+            document.getElementById('modal-user-name').innerText = `${user.first_name} ${user.last_name} ${user.isGuardian ? '(Guardian)' : ''}`;
+            document.getElementById('modal-user-id').innerText = `${user.isGuardian ? 'Guardian ID' : 'User ID'}: ${userId}`;
 
             content.innerHTML = '<div class="flex justify-center py-10"><div class="spinner text-[#183B5B]"></div></div>';
             modal.classList.remove('hidden');
@@ -191,6 +264,7 @@
                             <div class="flex-1">
                                 <h4 class="font-bold text-[#183B5B] text-lg">${borrow.title}</h4>
                                 <p class="text-sm text-slate-600 mb-2">${borrow.author || 'Unknown Author'}</p>
+                                ${borrow.child_name ? `<p class="text-xs font-bold text-blue-600 mb-2 bg-blue-50 inline-block px-2 py-1 rounded">For: ${borrow.child_name}</p>` : ''}
                                 <div class="flex flex-wrap gap-2 text-xs mb-3">
                                     <div class="px-2 py-1 rounded bg-slate-100 border border-slate-200">
                                         <span class="text-slate-500">Borrowed:</span> 
@@ -213,7 +287,7 @@
                                         <p class="text-xl font-bold text-red-600" id="total-fine-${borrow.borrow_id}">₱${overdueFee.toFixed(2)}</p>
                                         <input type="hidden" id="base-overdue-${borrow.borrow_id}" value="${overdueFee}">
                                     </div>
-                                    <button onclick="processReturn(${borrow.borrow_id}, ${borrow.material_id}, ${userId})" 
+                                    <button onclick="processReturn(${borrow.borrow_id}, ${borrow.material_id}, '${userId}')" 
                                         class="bg-[#183B5B] hover:bg-[#2E5F87] text-white px-6 py-2 rounded-lg font-bold shadow-md transition-colors">
                                         Confirm Return
                                     </button>
@@ -375,7 +449,7 @@
 
                     const adminId = localStorage.getItem('adminId');
                     if (adminId) {
-                        await logAdminAction(adminId, 'RETURN_BOOK', 'BORROW_TRANSACTION', borrowId, `Admin processed return for user ${userId}`);
+                        await logAdminAction(adminId, 'RETURN_BOOK', 'BORROW_TRANSACTION', borrowId, `Admin processed return for ID ${userId}`);
                     }
 
                     window.showCustomAlert("Book returned successfully.", () => {

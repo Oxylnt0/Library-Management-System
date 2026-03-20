@@ -198,6 +198,7 @@ async function createAllTables() {
             otp_id INTEGER PRIMARY KEY AUTOINCREMENT,
             email VARCHAR(255) NOT NULL,
             otp_code VARCHAR(6) NOT NULL,
+            purpose VARCHAR(50) DEFAULT 'Registration',
             expires_at DATETIME NOT NULL,
             is_used INTEGER DEFAULT 0 CHECK (is_used IN (0, 1)),
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP

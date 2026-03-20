@@ -185,14 +185,29 @@
         </div>
     </div>
 
+    <!-- Reject Modal -->
+    <div id="reject-modal" class="hidden fixed inset-0 bg-black/50 z-[60] flex items-center justify-center backdrop-blur-sm">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-md p-6 transform transition-all scale-100">
+            <h3 class="text-xl font-bold text-red-600 mb-2">Reject Account Application</h3>
+            <p class="text-sm text-slate-600 mb-4">Please specify the reason for rejecting this user. This will be emailed to them.</p>
+            <input type="hidden" id="reject-user-id">
+            <input type="hidden" id="reject-account-type">
+            <textarea id="reject-reason" class="w-full p-3 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-red-600 outline-none mb-4" rows="4" placeholder="e.g. Invalid ID uploaded, address does not match..."></textarea>
+            <div class="flex justify-end gap-3">
+                <button onclick="closeRejectModal()" class="px-4 py-2 bg-slate-100 text-slate-700 rounded-lg font-bold hover:bg-slate-200 transition">Cancel</button>
+                <button onclick="confirmRejectUser()" class="px-4 py-2 bg-red-600 text-white rounded-lg font-bold hover:bg-red-700 transition">Confirm Rejection</button>
+            </div>
+        </div>
+    </div>
+
     <!-- User Details Modal -->
     <div id="user-details-modal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center backdrop-blur-sm">
-        <div class="bg-white rounded-xl shadow-2xl w-full max-w-lg overflow-hidden transform transition-all scale-100">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-xl overflow-hidden transform transition-all scale-100 max-h-[90vh] flex flex-col">
             <div class="bg-[#183B5B] p-4 text-white flex justify-between items-center">
                 <h3 class="font-bold text-lg">User Details</h3>
                 <button onclick="window.closeUserDetailsModal()" class="text-white/70 hover:text-white">&times;</button>
             </div>
-            <div class="p-6 space-y-4 text-sm text-slate-600">
+            <div class="p-6 space-y-4 text-sm text-slate-600 overflow-y-auto">
                 <div class="flex items-center gap-4 mb-6">
                     <div id="detail-initials" class="w-16 h-16 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center text-xl font-bold"></div>
                     <div>
@@ -230,6 +245,10 @@
                     <p class="text-xs font-bold text-red-600 uppercase mb-1">Suspension Details</p>
                     <p id="detail-suspend-reason" class="text-sm text-red-800 mb-1"></p>
                     <p id="detail-suspend-end" class="text-xs text-red-500"></p>
+                </div>
+                <div id="detail-children-box" class="hidden mt-6 border-t border-slate-100 pt-4">
+                    <p class="text-xs font-bold text-slate-400 uppercase mb-3">Linked Child Accounts</p>
+                    <div id="detail-children-list" class="space-y-2"></div>
                 </div>
             </div>
             <div class="p-4 border-t border-slate-100 flex justify-end">
@@ -299,7 +318,7 @@
 
                     // Filter
                     let matchesFilter = true;
-                    if (currentFilter === 'child') matchesFilter = user.guardian_id !== null;
+                    if (currentFilter === 'child') matchesFilter = user.account_type === 'User';
                     if (currentFilter === 'pending') matchesFilter = user.status === 'Pending';
                     if (currentFilter === 'active') matchesFilter = user.status === 'Active';
                     if (currentFilter === 'suspended') matchesFilter = user.status === 'Suspended' || user.status === 'Banned';
@@ -355,10 +374,10 @@
                     if (user.status === 'Pending') {
                         actionButtons = `
                             <div class="flex justify-end gap-2">
-                                <button ${isAssistant ? 'disabled="true"' : ''} onclick="updateUserStatus(${user.user_id}, 'Active')" class="p-2 rounded-full bg-green-100 text-green-600 ${isAssistant ? 'opacity-50 cursor-not-allowed' : 'hover:bg-green-200 transition-colors'}" title="${isAssistant ? 'Restricted' : 'Accept'}">
+                                <button ${isAssistant ? 'disabled="true"' : ''} onclick="updateUserStatus(${user.user_id}, '${user.account_type}', 'Active')" class="p-2 rounded-full bg-green-100 text-green-600 ${isAssistant ? 'opacity-50 cursor-not-allowed' : 'hover:bg-green-200 transition-colors'}" title="${isAssistant ? 'Restricted' : 'Accept'}">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
                                 </button>
-                                <button ${isAssistant ? 'disabled="true"' : ''} onclick="updateUserStatus(${user.user_id}, 'Rejected')" class="p-2 rounded-full bg-red-100 text-red-600 ${isAssistant ? 'opacity-50 cursor-not-allowed' : 'hover:bg-red-200 transition-colors'}" title="${isAssistant ? 'Restricted' : 'Reject'}">
+                                <button ${isAssistant ? 'disabled="true"' : ''} onclick="openRejectModal(${user.user_id}, '${user.account_type}')" class="p-2 rounded-full bg-red-100 text-red-600 ${isAssistant ? 'opacity-50 cursor-not-allowed' : 'hover:bg-red-200 transition-colors'}" title="${isAssistant ? 'Restricted' : 'Reject'}">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                                 </button>
                             </div>`;
@@ -368,7 +387,7 @@
                                 <button ${isAssistant ? 'disabled="true" title="Restricted"' : ''} onclick="openSuspendModal(${user.user_id})" class="text-xs font-bold text-amber-600 border border-amber-200 px-3 py-1 rounded-full ${isAssistant ? 'opacity-50 cursor-not-allowed' : 'hover:bg-amber-50 transition-colors'}">
                                     Suspend
                                 </button>
-                                <button ${isAssistant ? 'disabled="true" title="Restricted"' : ''} onclick="updateUserStatus(${user.user_id}, 'Banned')" class="text-xs font-bold text-red-600 border border-red-200 px-3 py-1 rounded-full ${isAssistant ? 'opacity-50 cursor-not-allowed' : 'hover:bg-red-50 transition-colors'}">
+                                <button ${isAssistant ? 'disabled="true" title="Restricted"' : ''} onclick="updateUserStatus(${user.user_id}, '${user.account_type}', 'Banned')" class="text-xs font-bold text-red-600 border border-red-200 px-3 py-1 rounded-full ${isAssistant ? 'opacity-50 cursor-not-allowed' : 'hover:bg-red-50 transition-colors'}">
                                     Ban
                                 </button>
                             </div>`;
@@ -381,27 +400,27 @@
                                 <a href="admin_fines.html" class="text-xs font-bold text-blue-600 hover:bg-blue-50 border border-blue-200 px-3 py-1 rounded-full transition-colors flex items-center justify-center">
                                     Pay Fines
                                 </a>
-                                ${user.status !== 'Banned' ? `<button ${isAssistant ? 'disabled="true" title="Restricted"' : ''} onclick="updateUserStatus(${user.user_id}, 'Banned')" class="text-xs font-bold text-red-600 border border-red-200 px-3 py-1 rounded-full ${isAssistant ? 'opacity-50 cursor-not-allowed' : 'hover:bg-red-50 transition-colors'}">Ban</button>` : ''}
+                                ${user.status !== 'Banned' ? `<button ${isAssistant ? 'disabled="true" title="Restricted"' : ''} onclick="updateUserStatus(${user.user_id}, '${user.account_type}', 'Banned')" class="text-xs font-bold text-red-600 border border-red-200 px-3 py-1 rounded-full ${isAssistant ? 'opacity-50 cursor-not-allowed' : 'hover:bg-red-50 transition-colors'}">Ban</button>` : ''}
                             </div>`;
                         } else {
                             actionButtons = `
                             <div class="flex justify-end gap-2">
-                                <button ${isAssistant ? 'disabled="true" title="Restricted"' : ''} onclick="updateUserStatus(${user.user_id}, 'Active')" class="text-xs font-bold text-green-600 border border-green-200 px-3 py-1 rounded-full ${isAssistant ? 'opacity-50 cursor-not-allowed' : 'hover:bg-green-50 transition-colors'}">
+                                <button ${isAssistant ? 'disabled="true" title="Restricted"' : ''} onclick="updateUserStatus(${user.user_id}, '${user.account_type}', 'Active')" class="text-xs font-bold text-green-600 border border-green-200 px-3 py-1 rounded-full ${isAssistant ? 'opacity-50 cursor-not-allowed' : 'hover:bg-green-50 transition-colors'}">
                                     Activate
                                 </button>
-                                ${user.status !== 'Banned' ? `<button ${isAssistant ? 'disabled="true" title="Restricted"' : ''} onclick="updateUserStatus(${user.user_id}, 'Banned')" class="text-xs font-bold text-red-600 border border-red-200 px-3 py-1 rounded-full ${isAssistant ? 'opacity-50 cursor-not-allowed' : 'hover:bg-red-50 transition-colors'}">Ban</button>` : ''}
+                                ${user.status !== 'Banned' ? `<button ${isAssistant ? 'disabled="true" title="Restricted"' : ''} onclick="updateUserStatus(${user.user_id}, '${user.account_type}', 'Banned')" class="text-xs font-bold text-red-600 border border-red-200 px-3 py-1 rounded-full ${isAssistant ? 'opacity-50 cursor-not-allowed' : 'hover:bg-red-50 transition-colors'}">Ban</button>` : ''}
                             </div>`;
                         }
                     }
                     
                     const row = `
-                        <tr class="hover:bg-slate-50 transition-colors cursor-pointer" onclick="if(!event.target.closest('button') && !event.target.closest('a')) window.openUserDetails(${user.user_id})">
+                        <tr class="hover:bg-slate-50 transition-colors cursor-pointer" onclick="if(!event.target.closest('button') && !event.target.closest('a')) window.openUserDetails(${user.user_id}, '${user.account_type}')">
                             <td class="p-4">
                                 <div class="flex items-center gap-3">
                                     <div class="w-10 h-10 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center font-bold">${initials}</div>
                                     <div>
                                         <div class="font-bold text-slate-800">${user.first_name} ${user.last_name}</div>
-                                        <div class="text-xs text-slate-500 font-mono">ID: ${user.user_id}</div>
+                                        <div class="text-xs text-slate-500 font-mono">${user.account_type} ID: ${user.user_id}</div>
                                     </div>
                                 </div>
                             </td>
@@ -425,7 +444,7 @@
             }
         }
 
-        window.updateUserStatus = async function(userId, status) {
+        window.updateUserStatus = async function(userId, accountType, status) {
             if (localStorage.getItem('adminRole') === 'Assistant Librarian') {
                 window.showCustomAlert("Restricted: You do not have permission to perform this action.");
                 return;
@@ -437,16 +456,13 @@
             else if (status === 'Suspended') actionText = 'SUSPEND';
             else if (status === 'Banned') actionText = 'PERMANENTLY BAN';
 
-            // If Suspend is clicked here (via Activate button logic), bypass modal
-            // But our UI now points Suspend button to openSuspendModal.
-            // This function handles Approve, Reject, and Reactivate.
             window.showCustomConfirm(`Are you sure you want to ${actionText} this user?`, async () => {
                 const adminId = localStorage.getItem('adminId');
                 try {
                     const response = await fetch('http://localhost:3000/api/admin/user/status', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ userId, status, adminId })
+                        body: JSON.stringify({ userId, accountType, status, adminId })
                     });
                     const result = await response.json();
                     window.showCustomAlert(result.message, () => loadUsers());
@@ -455,6 +471,35 @@
                 }
             });
         };
+
+        window.openRejectModal = function(userId, accountType) {
+            document.getElementById('reject-user-id').value = userId;
+            document.getElementById('reject-account-type').value = accountType;
+            document.getElementById('reject-reason').value = '';
+            document.getElementById('reject-modal').classList.remove('hidden');
+        }
+        window.closeRejectModal = function() {
+            document.getElementById('reject-modal').classList.add('hidden');
+        }
+
+        window.confirmRejectUser = async function() {
+            const userId = document.getElementById('reject-user-id').value;
+            const accountType = document.getElementById('reject-account-type').value;
+            const reason = document.getElementById('reject-reason').value.trim();
+            const adminId = localStorage.getItem('adminId');
+
+            if (!reason) { window.showCustomAlert("Please enter a rejection reason."); return; }
+
+            try {
+                const response = await fetch('http://localhost:3000/api/admin/user/status', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ userId, accountType, status: 'Rejected', reason, adminId })
+                });
+                const result = await response.json();
+                window.showCustomAlert(result.message, () => { closeRejectModal(); loadUsers(); });
+            } catch (error) { window.showCustomAlert("Error: " + error.message); }
+        }
 
         // --- SUSPENSION MODAL LOGIC ---
         window.openSuspendModal = function(userId) {
@@ -500,14 +545,14 @@
             }
         }
 
-        window.openUserDetails = function(userId) {
-            const user = allUsers.find(u => u.user_id === userId);
+        window.openUserDetails = async function(userId, accountType) {
+            const user = allUsers.find(u => u.user_id === userId && u.account_type === accountType);
             if(!user) return;
 
             const middleInitial = user.middle_initial ? ` ${user.middle_initial}` : '';
             document.getElementById('detail-name').innerText = `${user.first_name}${middleInitial} ${user.last_name}`;
             document.getElementById('detail-initials').innerText = ((user.first_name?.[0] || '') + (user.last_name?.[0] || '')).toUpperCase();
-            document.getElementById('detail-role').innerText = user.guardian_id ? 'Child Patron' : 'Adult Patron';
+            document.getElementById('detail-role').innerText = user.account_type === 'Guardian' ? 'Guardian Patron' : 'Adult Patron';
             
             document.getElementById('detail-email').innerText = user.email || 'N/A';
             document.getElementById('detail-contact').innerText = user.contact_number || 'N/A';
@@ -535,6 +580,32 @@
                 document.getElementById('detail-suspend-end').innerText = user.ban_end_date ? `Ends: ${new Date(user.ban_end_date).toLocaleDateString()}` : 'Ends: Indefinite';
             } else {
                 susBox.classList.add('hidden');
+            }
+
+            const childrenBox = document.getElementById('detail-children-box');
+            const childrenList = document.getElementById('detail-children-list');
+            
+            if (user.account_type === 'Guardian') {
+                childrenList.innerHTML = '<span class="text-xs text-slate-400">Loading children...</span>';
+                childrenBox.classList.remove('hidden');
+                try {
+                    const res = await fetch(`http://localhost:3000/api/admin/guardian/${user.user_id}/children`);
+                    const data = await res.json();
+                    if (data.success && data.data.length > 0) {
+                        childrenList.innerHTML = data.data.map(child => `
+                            <div class="flex justify-between items-center p-2 bg-slate-50 rounded border border-slate-100">
+                                <span class="font-bold text-slate-700">${child.first_name} ${child.last_name}</span>
+                                <span class="text-xs bg-slate-200 text-slate-600 px-2 rounded-full">${child.relationship || 'Child'}</span>
+                            </div>
+                        `).join('');
+                    } else {
+                        childrenList.innerHTML = '<span class="text-xs text-slate-400 italic">No linked children found.</span>';
+                    }
+                } catch (e) {
+                    childrenList.innerHTML = '<span class="text-xs text-red-400">Failed to load.</span>';
+                }
+            } else {
+                childrenBox.classList.add('hidden');
             }
 
             document.getElementById('user-details-modal').classList.remove('hidden');

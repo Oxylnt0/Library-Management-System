@@ -140,17 +140,20 @@ async function sendAdminWelcomeEmail(email, name, role) {
   }
 }
 
-async function sendOtpEmail(email, otp) {
+async function sendOtpEmail(email, otp, purpose = 'Password Reset') {
   try {
     console.log(`⏳ Sending OTP to: ${email}...`);
+    
+    let title = purpose === 'Registration' ? 'Email Verification' : 'Password Reset Request';
+    let desc = purpose === 'Registration' ? 'Your email verification code is:' : 'Your One-Time Password (OTP) is:';
 
     const mailOptions = {
       from: `"Puerto Palabra Library System" <${process.env.EMAIL_USER}>`,
       to: email,
-      subject: "Password Reset OTP - Puerto Palabra",
+      subject: `${title} - Puerto Palabra`,
       html: `<div style="font-family: Arial, sans-serif; padding: 20px; border: 1px solid #ddd; border-radius: 8px;">
-               <h2 style="color: #183B5B;">Password Reset Request</h2>
-               <p>Your One-Time Password (OTP) is:</p>
+               <h2 style="color: #183B5B;">${title}</h2>
+               <p>${desc}</p>
                <h1 style="color: #D6A84A; letter-spacing: 5px;">${otp}</h1>
                <p>This code expires in 10 minutes. If you did not request this, please ignore this email.</p>
              </div>`
@@ -165,7 +168,7 @@ async function sendOtpEmail(email, otp) {
   }
 }
 
-async function sendAccountStatusEmail(email, name, status) {
+async function sendAccountStatusEmail(email, name, status, reason = null) {
   try {
     console.log(`⏳ Sending Status Email to: ${email}...`);
     
@@ -183,7 +186,10 @@ async function sendAccountStatusEmail(email, name, status) {
         subject = "Account Registration Update - Puerto Palabra";
         color = "#C05640";
         headerText = "Registration Update";
-        message = "We regret to inform you that your account registration has been rejected.";
+        message = "We regret to inform you that your account registration has been declined.";
+        if (reason) {
+            message += `<br><br><strong>Reason:</strong> ${reason}`;
+        }
     } else if (status === 'Pending') {
         subject = "Registration Received - Puerto Palabra";
         color = "#D6A84A";

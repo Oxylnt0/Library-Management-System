@@ -217,15 +217,28 @@
             loadUserProfile();
         });
 
+        function getAccountTarget() {
+            const guardianSessionRaw = localStorage.getItem('guardianSession');
+            if (guardianSessionRaw) {
+                try {
+                    const session = JSON.parse(guardianSessionRaw);
+                    if (session && session.profile) {
+                        return { id: session.profile.guardian_id, role: 'guardian' };
+                    }
+                } catch (e) {}
+            }
+            return { id: localStorage.getItem('userId'), role: localStorage.getItem('userRole') };
+        }
+
         async function loadUserProfile() {
-            const userId = localStorage.getItem('userId');
+            const { id: userId, role: userRole } = getAccountTarget();
             if (!userId) {
                 window.location.href = 'login.html';
                 return;
             }
 
             try {
-                const response = await fetch(`http://localhost:3000/api/user/${userId}`);
+                const response = await fetch(`http://localhost:3000/api/user/${userId}?role=${userRole}`);
                 const result = await response.json();
 
                 if (result.success) {
@@ -258,13 +271,14 @@
         }
 
         async function updateProfile() {
-            const userId = localStorage.getItem('userId');
+            const { id: userId, role: userRole } = getAccountTarget();
             const data = {
                 first_name: document.getElementById('input-fname').value,
                 last_name: document.getElementById('input-lname').value,
                 email: document.getElementById('input-email').value,
                 contact_number: document.getElementById('input-contact').value,
-                address: document.getElementById('input-address').value
+                address: document.getElementById('input-address').value,
+                role: userRole
             };
 
             try {
@@ -316,7 +330,7 @@
         }
 
         async function updatePassword() {
-            const userId = localStorage.getItem('userId');
+            const { id: userId, role: userRole } = getAccountTarget();
             const newPassword = document.getElementById('input-new-pass').value;
             const confirmPassword = document.getElementById('input-confirm-pass').value;
 
@@ -339,7 +353,7 @@
                 const response = await fetch(`http://localhost:3000/api/user/${userId}/password`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ newPassword })
+                    body: JSON.stringify({ newPassword, role: userRole })
                 });
                 const result = await response.json();
                 showCustomAlert(result.message);
@@ -353,12 +367,14 @@
         }
 
         async function resendQrCode() {
-            const userId = localStorage.getItem('userId');
+            const { id: userId, role: userRole } = getAccountTarget();
             if (!confirm("Resend your Digital Library Card QR code to your email?")) return;
 
             try {
                 const response = await fetch(`http://localhost:3000/api/user/${userId}/resend-qr`, {
-                    method: 'POST'
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ role: userRole })
                 });
                 const result = await response.json();
                 showCustomAlert(result.message);
