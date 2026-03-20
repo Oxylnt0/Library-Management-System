@@ -357,6 +357,7 @@
                         localStorage.setItem('userId', result.user.user_id);
                         localStorage.setItem('userRole', result.role);
                         localStorage.setItem('userName', result.user.first_name);
+                        localStorage.removeItem('guardianSession'); // Clear any stale guardian data
 
                         showCustomAlert("Login Successful! Welcome " + result.user.first_name, () => {
                             window.location.href = '../user_html/user_dashboard.html'; 

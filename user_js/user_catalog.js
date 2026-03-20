@@ -341,6 +341,11 @@
 
     // --- COPIES SELECTION LOGIC ---
     window.openUserCopiesModal = async function(bookId, title) {
+        const userStatus = localStorage.getItem('userStatus');
+        if (userStatus === 'Suspended') {
+            return window.showCustomAlert("Your account is currently suspended. Please settle your fines to restore borrowing privileges.");
+        }
+
         const modal = document.getElementById('user-copies-modal');
         const tbody = document.getElementById('user-copies-table-body');
         document.getElementById('user-copies-modal-title').innerText = title;
@@ -361,14 +366,19 @@
             }
 
             result.data.forEach(copy => {
+                const isFrontDesk = copy.location === 'Front Desk';
+                const btnText = isFrontDesk ? 'Request for Use' : 'Hold Copy';
+                const btnColor = isFrontDesk ? 'bg-amber-600 text-white hover:bg-amber-700' : 'bg-[#183B5B] text-[#D6A84A] hover:bg-[#2E5F87]';
+                const borrowType = isFrontDesk ? 'Inside Library' : 'Outside Library';
+
                 tbody.innerHTML += `
                     <tr class="hover:bg-slate-50 transition-colors">
                         <td class="p-3 font-mono text-slate-600">${copy.material_id}</td>
                         <td class="p-3 text-slate-700 font-medium">${copy.condition}</td>
                         <td class="p-3 text-slate-700">${copy.location || 'N/A'}</td>
                         <td class="p-3 text-right">
-                            <button onclick="borrowSpecificCopy(${copy.material_id}, this)" class="px-4 py-1.5 bg-[#183B5B] text-[#D6A84A] text-xs font-bold rounded-full hover:bg-[#2E5F87] transition-colors shadow-sm whitespace-nowrap">
-                                Hold Copy
+                            <button onclick="borrowSpecificCopy(${copy.material_id}, '${borrowType}', this)" class="px-4 py-1.5 ${btnColor} text-xs font-bold rounded-full transition-colors shadow-sm whitespace-nowrap">
+                                ${btnText}
                             </button>
                         </td>
                     </tr>
@@ -384,7 +394,7 @@
         if (modal) modal.classList.add('hidden');
     }
 
-    window.borrowSpecificCopy = async function(materialId, btnElement) {
+    window.borrowSpecificCopy = async function(materialId, borrowType, btnElement) {
         const userId = sessionStorage.getItem('userId') || localStorage.getItem('userId');
         const userRole = localStorage.getItem('userRole');
         if (!userId) {
@@ -405,13 +415,17 @@
             const response = await fetch(`http://localhost:3000/api/borrow/kiosk`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ material_id: materialId, user_id: userId })
+                body: JSON.stringify({ material_id: materialId, user_id: userId, borrow_type: borrowType })
             });
             
             const result = await response.json();
             
             if (result.success) {
-                window.showCustomAlert("Hold placed! Please proceed to the front desk within 30 minutes to claim your specific copy.", () => {
+                const msg = borrowType === 'Inside Library' 
+                    ? "Request placed! Please proceed to the front desk to use this copy inside the library."
+                    : "Hold placed! Please proceed to the front desk within 30 minutes to claim your specific copy.";
+                    
+                window.showCustomAlert(msg, () => {
                     closeUserCopiesModal();
                     loadBooks(); // Refresh UI to update counts
                 });
@@ -441,6 +455,12 @@
             window.showCustomAlert("Please log in to perform this action.");
             return;
         }
+        
+        const userStatus = localStorage.getItem('userStatus');
+        if (userStatus === 'Suspended') {
+            return window.showCustomAlert("Your account is currently suspended. Please settle your fines to restore privileges.");
+        }
+
         if (userRole === 'guardian') {
             window.showCustomAlert("Guardians act as a manager for their linked accounts. Please log out and select a Child Profile to place a hold.");
             return;

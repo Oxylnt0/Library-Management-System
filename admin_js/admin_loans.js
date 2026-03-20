@@ -98,14 +98,14 @@
                     let loanResult;
                     if (isGuardian) {
                         loanResult = await db.execute({
-                            sql: `SELECT bt.borrow_id, bt.material_id, bc.book_id, bt.borrow_date, bt.due_date, b.title, b.author, b.image_url, u.first_name as child_name 
+                            sql: `SELECT bt.borrow_id, bt.material_id, bc.book_id, bt.borrow_date, bt.due_date, bt.borrow_type, b.title, b.author, b.image_url, u.first_name as child_name 
                                   FROM BORROW_TRANSACTION bt 
                                   JOIN BOOK_COPY bc ON bt.material_id = bc.material_id
                                   JOIN BOOK b ON bc.book_id = b.book_id 
                                   JOIN USER u ON bt.user_id = u.user_id
                                   WHERE u.guardian_id = ? AND bt.status IN ('Borrowed', 'Overdue')
                                   UNION ALL
-                                  SELECT bt.borrow_id, bt.material_id, pc.periodical_id as book_id, bt.borrow_date, bt.due_date, p.title, p.publisher as author, p.image_url, u.first_name as child_name
+                                  SELECT bt.borrow_id, bt.material_id, pc.periodical_id as book_id, bt.borrow_date, bt.due_date, bt.borrow_type, p.title, p.publisher as author, p.image_url, u.first_name as child_name
                                   FROM BORROW_TRANSACTION bt 
                                   JOIN PERIODICAL_COPY pc ON bt.material_id = pc.material_id
                                   JOIN PERIODICAL p ON pc.periodical_id = p.periodical_id 
@@ -115,13 +115,13 @@
                         });
                     } else {
                         loanResult = await db.execute({
-                            sql: `SELECT bt.borrow_id, bt.material_id, bc.book_id, bt.borrow_date, bt.due_date, b.title, b.author, b.image_url, NULL as child_name 
+                            sql: `SELECT bt.borrow_id, bt.material_id, bc.book_id, bt.borrow_date, bt.due_date, bt.borrow_type, b.title, b.author, b.image_url, NULL as child_name 
                                   FROM BORROW_TRANSACTION bt 
                                   JOIN BOOK_COPY bc ON bt.material_id = bc.material_id
                                   JOIN BOOK b ON bc.book_id = b.book_id 
                                   WHERE bt.user_id = ? AND bt.status IN ('Borrowed', 'Overdue')
                                   UNION ALL
-                                  SELECT bt.borrow_id, bt.material_id, pc.periodical_id as book_id, bt.borrow_date, bt.due_date, p.title, p.publisher as author, p.image_url, NULL as child_name
+                                  SELECT bt.borrow_id, bt.material_id, pc.periodical_id as book_id, bt.borrow_date, bt.due_date, bt.borrow_type, p.title, p.publisher as author, p.image_url, NULL as child_name
                                   FROM BORROW_TRANSACTION bt 
                                   JOIN PERIODICAL_COPY pc ON bt.material_id = pc.material_id
                                   JOIN PERIODICAL p ON pc.periodical_id = p.periodical_id 
@@ -227,6 +227,11 @@
                     const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24)); 
                     const isOverdue = diffDays > 0;
                     const overdueFee = isOverdue ? (diffDays * overdueSetting.fine_amount) : 0;
+                    
+                    const dayOfWeek = dueDate.getDay();
+                    const closeTime = dayOfWeek === 6 ? '4:00 PM' : '6:00 PM';
+                    let loanPeriodText = borrow.borrow_type === 'Inside Library' ? 'Same Day' : `${loanPeriod} Days`;
+                    let dueDisplay = borrow.borrow_type === 'Inside Library' ? `Today by ${closeTime}` : new Date(borrow.due_date).toLocaleDateString();
 
                     let damageOptionsHtml = `
                         <div class="mt-3 bg-white p-3 rounded-lg border border-slate-200">
@@ -272,11 +277,11 @@
                                     </div>
                                     <div class="px-2 py-1 rounded bg-slate-100 border border-slate-200">
                                         <span class="text-slate-500">Due:</span> 
-                                        <span class="font-bold ${isOverdue ? 'text-red-600' : 'text-slate-700'}">${new Date(borrow.due_date).toLocaleDateString()}</span>
+                                        <span class="font-bold ${isOverdue ? 'text-red-600' : 'text-slate-700'}">${dueDisplay}</span>
                                     </div>
                                     <div class="px-2 py-1 rounded bg-slate-100 border border-slate-200">
                                         <span class="text-slate-500">Loan Period:</span> 
-                                        <span class="font-bold text-slate-700">${loanPeriod} Days</span>
+                                        <span class="font-bold text-slate-700">${loanPeriodText}</span>
                                     </div>
                                 </div>
                                 ${isOverdue ? `<div class="w-full text-center px-2 py-1 rounded bg-red-100 border border-red-200 text-red-700 font-bold text-xs mb-3">${diffDays} Days Overdue</div>` : ''}
@@ -319,12 +324,15 @@
         async function approveCheckout(reservationId, userId, bookId) {
             try {
                 const copyRes = await db.execute({
-                    sql: "SELECT material_id FROM BOOK_COPY WHERE book_id = ? AND status = 'Available' LIMIT 1",
+                    sql: "SELECT material_id, location FROM BOOK_COPY WHERE book_id = ? AND status = 'Available' LIMIT 1",
                     args: [bookId]
                 });
                 if (copyRes.rows.length === 0) throw new Error("No copies available.");
 
                 const materialId = copyRes.rows[0].material_id;
+                const isFrontDesk = copyRes.rows[0].location === 'Front Desk';
+                const bType = isFrontDesk ? 'Inside Library' : 'Outside Library';
+                const dueSql = isFrontDesk ? "DATE('now', '+8 hours')" : "DATE('now', '+8 hours', '+7 days')";
 
                 // Step 1: Mark Reservation as Fulfilled
                 await db.execute({
@@ -335,9 +343,9 @@
                 // Step 2: Create Borrow Transaction
                 await db.execute({
                     sql: `INSERT INTO BORROW_TRANSACTION 
-                        (user_id, book_id, material_id, borrow_date, borrow_time, due_date, status, borrow_type) 
-                        VALUES (?, ?, ?, DATE('now', '+8 hours'), TIME('now', '+8 hours'), DATE('now', '+8 hours', '+7 days'), 'Borrowed', 'Outside Library')`,
-                    args: [userId, bookId, materialId]
+                        (user_id, book_id, material_id, borrow_date, borrow_time, due_date, status, borrow_type)
+                        VALUES (?, ?, ?, DATE('now', '+8 hours'), TIME('now', '+8 hours'), ${dueSql}, 'Borrowed', ?)`,
+                    args: [userId, bookId, materialId, bType]
                 });
 
                 // Step 3: Update Book Status
@@ -362,9 +370,16 @@
         // Function to confirm a Kiosk Hold (Pending Borrow Transaction)
         async function confirmBorrow(borrowId, userId) {
             try {
+                const txRes = await db.execute({
+                    sql: "SELECT borrow_type FROM BORROW_TRANSACTION WHERE borrow_id = ?",
+                    args: [borrowId]
+                });
+                const bType = txRes.rows[0]?.borrow_type || 'Outside Library';
+                const dueSql = bType === 'Inside Library' ? "DATE('now', '+8 hours')" : "DATE('now', '+8 hours', '+7 days')";
+
                 await db.execute({
                     sql: `UPDATE BORROW_TRANSACTION 
-                          SET status = 'Borrowed', borrow_date = DATE('now', '+8 hours'), borrow_time = TIME('now', '+8 hours'), due_date = DATE('now', '+8 hours', '+7 days'), expires_at = NULL 
+                          SET status = 'Borrowed', borrow_date = DATE('now', '+8 hours'), borrow_time = TIME('now', '+8 hours'), due_date = ${dueSql}, expires_at = NULL 
                           WHERE borrow_id = ?`,
                     args: [borrowId]
                 });

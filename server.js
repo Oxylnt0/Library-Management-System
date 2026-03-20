@@ -184,17 +184,16 @@ app.post('/api/checkout', async (req, res) => {
     const { reservationId, userId, bookId } = req.body;
 
     try {
-        // Fetch material_id
-        const bookRes = await db.execute({
-            sql: "SELECT material_id, available_copies FROM BOOK WHERE book_id = ?",
+        const copyRes = await db.execute({
+            sql: "SELECT material_id, location FROM BOOK_COPY WHERE book_id = ? AND status = 'Available' LIMIT 1",
             args: [bookId]
         });
-        if (bookRes.rows.length === 0) return res.status(404).json({ success: false, message: "Book not found." });
+        if (copyRes.rows.length === 0) return res.status(400).json({ success: false, message: "No copies available." });
 
-        const materialId = bookRes.rows[0].material_id;
-        const currentCopies = bookRes.rows[0].available_copies;
-
-        if (currentCopies <= 0) return res.status(400).json({ success: false, message: "No copies available." });
+        const materialId = copyRes.rows[0].material_id;
+        const isFrontDesk = copyRes.rows[0].location === 'Front Desk';
+        const bType = isFrontDesk ? 'Inside Library' : 'Outside Library';
+        const dueSql = isFrontDesk ? "DATE('now', '+8 hours')" : "DATE('now', '+8 hours', '+7 days')";
 
         // Step 1: Mark Reservation as Fulfilled
         await db.execute({
@@ -203,19 +202,17 @@ app.post('/api/checkout', async (req, res) => {
         });
 
         // Step 2: Create Borrow Transaction
-        // Using SQLite's DATE('now') for current date and DATE('now', '+7 days') for due date
         await db.execute({
             sql: `INSERT INTO BORROW_TRANSACTION 
                   (user_id, book_id, material_id, borrow_date, due_date, status, borrow_type) 
-                  VALUES (?, ?, ?, DATE('now', '+8 hours'), DATE('now', '+8 hours', '+7 days'), 'Borrowed', 'Outside Library')`,
-            args: [userId, bookId, materialId]
+                  VALUES (?, ?, ?, DATE('now', '+8 hours'), ${dueSql}, 'Borrowed', ?)`,
+            args: [userId, bookId, materialId, bType]
         });
 
         // Step 3: Update Book Status
-        const newStatus = (currentCopies - 1 === 0) ? 'Borrowed' : 'Available';
         await db.execute({
-            sql: "UPDATE BOOK SET available_copies = available_copies - 1, status = ? WHERE book_id = ?",
-            args: [newStatus, bookId]
+            sql: "UPDATE BOOK_COPY SET status = 'Borrowed' WHERE material_id = ?",
+            args: [materialId]
         });
 
         res.json({ success: true, message: "Checkout processed successfully." });
@@ -667,9 +664,18 @@ app.get('/api/books/:id/copies', async (req, res) => {
 
 // 10. POST /api/borrow/kiosk
 app.post('/api/borrow/kiosk', async (req, res) => {
-    const { material_id, user_id } = req.body;
+    const { material_id, user_id, borrow_type } = req.body;
+    const bType = borrow_type || 'Outside Library';
     
     try {
+        const userCheck = await db.execute({
+            sql: "SELECT status FROM USER WHERE user_id = ? UNION ALL SELECT status FROM GUARDIAN_NAME WHERE guardian_id = ?",
+            args: [user_id, user_id]
+        });
+        if (userCheck.rows.length > 0 && userCheck.rows[0].status === 'Suspended') {
+            return res.status(403).json({ success: false, message: "Your account is suspended. Please settle your fines." });
+        }
+
         const copyRes = await db.execute({
             sql: "SELECT bc.material_id, b.title, b.book_id FROM BOOK_COPY bc JOIN BOOK b ON bc.book_id = b.book_id WHERE bc.material_id = ? AND bc.status = 'Available'",
             args: [material_id]
@@ -683,8 +689,8 @@ app.post('/api/borrow/kiosk', async (req, res) => {
         // 2. Create Pending Transaction
         const transRes = await db.execute({
             sql: `INSERT INTO BORROW_TRANSACTION (user_id, book_id, material_id, borrow_date, borrow_time, status, borrow_type) 
-                  VALUES (?, ?, ?, DATE('now', '+8 hours'), TIME('now', '+8 hours'), 'Pending', 'Outside Library') RETURNING borrow_id`,
-            args: [user_id, bookId, material_id]
+                  VALUES (?, ?, ?, DATE('now', '+8 hours'), TIME('now', '+8 hours'), 'Pending', ?) RETURNING borrow_id`,
+            args: [user_id, bookId, material_id, bType]
         });
 
         const borrowId = transRes.rows[0].borrow_id;
@@ -756,6 +762,14 @@ app.post('/api/borrow/extend', async (req, res) => {
         const tx = resTx.rows[0];
         const currentCount = tx.extension_count || 0;
         
+        const userCheck = await db.execute({
+            sql: "SELECT status FROM USER WHERE user_id = ?",
+            args: [tx.user_id]
+        });
+        if (userCheck.rows.length > 0 && userCheck.rows[0].status === 'Suspended') {
+            return res.status(403).json({ success: false, message: "Your account is suspended. You cannot extend loans." });
+        }
+
         if (currentCount >= 2) return res.status(400).json({ success: false, message: "Maximum extension limit (2) reached." });
 
         const daysToAdd = currentCount === 0 ? 4 : 2;
@@ -777,6 +791,14 @@ app.post('/api/waitlist', async (req, res) => {
     const { book_id, material_type, user_id } = req.body;
 
     try {
+        const userCheck = await db.execute({
+            sql: "SELECT status FROM USER WHERE user_id = ? UNION ALL SELECT status FROM GUARDIAN_NAME WHERE guardian_id = ?",
+            args: [user_id, user_id]
+        });
+        if (userCheck.rows.length > 0 && userCheck.rows[0].status === 'Suspended') {
+            return res.status(403).json({ success: false, message: "Your account is suspended. Please settle your fines." });
+        }
+
         let matRes;
         let bookTitle;
         if (material_type === 'Book') {
@@ -917,10 +939,11 @@ app.get('/api/fines', async (req, res) => {
         // Automatic Suspension Logic: Run before fetching fines
         // Find users with Unpaid fines who are not yet Suspended/Banned
         const candidates = await db.execute(`
-            SELECT DISTINCT u.user_id 
+            SELECT DISTINCT u.user_id, COALESCE(u.email, g.email) as email, u.first_name 
             FROM FINE f 
             JOIN BORROW_TRANSACTION b ON f.borrow_id = b.borrow_id 
             JOIN USER u ON b.user_id = u.user_id 
+            LEFT JOIN GUARDIAN_NAME g ON u.guardian_id = g.guardian_id
             WHERE f.status = 'Unpaid' AND u.status NOT IN ('Suspended', 'Banned')
         `);
 
@@ -935,11 +958,86 @@ app.get('/api/fines', async (req, res) => {
             });
 
             // 2. Insert Ban Records
-            for (const id of ids) {
+            for (const row of candidates.rows) {
                 await db.execute({
                     sql: "INSERT INTO BAN_TERMINATION (user_id, reason, ban_date, end_date) VALUES (?, 'Automatic Suspension: Unpaid Fines', DATE('now', '+8 hours'), NULL)",
-                    args: [id]
+                    args: [row.user_id]
                 });
+                if (row.email) {
+                    sendAccountStatusEmail(row.email, row.first_name, 'Suspended', 'Automatic Suspension: Unpaid Fines. Please settle your balance to reactivate your account.').catch(e => console.error("Auto Suspend Email Error:", e));
+                }
+            }
+        }
+
+        // Automatic Ban Logic: Find users with materials borrowed > 3 months ago
+        const banCandidates = await db.execute(`
+            SELECT DISTINCT u.user_id, COALESCE(u.email, g.email) as email, u.first_name 
+            FROM BORROW_TRANSACTION b 
+            JOIN USER u ON b.user_id = u.user_id 
+            LEFT JOIN GUARDIAN_NAME g ON u.guardian_id = g.guardian_id
+            WHERE b.status IN ('Borrowed', 'Overdue') 
+              AND b.borrow_date <= date('now', '+8 hours', '-3 months')
+              AND u.status != 'Banned'
+        `);
+
+        if (banCandidates.rows.length > 0) {
+            const banIds = banCandidates.rows.map(r => r.user_id);
+            const banPlaceholders = banIds.map(() => '?').join(',');
+
+            await db.execute({
+                sql: `UPDATE USER SET status = 'Banned' WHERE user_id IN (${banPlaceholders})`,
+                args: banIds
+            });
+
+            for (const row of banCandidates.rows) {
+                await db.execute({
+                    sql: "INSERT INTO BAN_TERMINATION (user_id, reason, ban_date, end_date) VALUES (?, 'Automatic Ban: Material unreturned for over 3 months', DATE('now', '+8 hours'), NULL)",
+                    args: [row.user_id]
+                });
+                if (row.email) {
+                    sendAccountStatusEmail(row.email, row.first_name, 'Banned', 'Automatic Ban: Material unreturned for over 3 months.').catch(e => console.error("Auto Ban Email Error:", e));
+                }
+            }
+        }
+
+        // Automatic Suspension Logic: Unreturned "Inside Library" materials past closing time
+        const insideCandidates = await db.execute(`
+            SELECT DISTINCT u.user_id, COALESCE(u.email, g.email) as email, u.first_name 
+            FROM BORROW_TRANSACTION b 
+            JOIN USER u ON b.user_id = u.user_id 
+            LEFT JOIN GUARDIAN_NAME g ON u.guardian_id = g.guardian_id
+            WHERE b.status IN ('Borrowed', 'Overdue') 
+              AND b.borrow_type = 'Inside Library'
+              AND u.status NOT IN ('Suspended', 'Banned')
+              AND (
+                  b.due_date < date('now', '+8 hours')
+                  OR (
+                      b.due_date = date('now', '+8 hours') AND 
+                      time('now', '+8 hours') >= CASE 
+                          WHEN strftime('%w', b.due_date) = '6' THEN '16:00:00'
+                          ELSE '18:00:00'
+                      END
+                  )
+              )
+        `);
+
+        if (insideCandidates.rows.length > 0) {
+            const insideIds = insideCandidates.rows.map(r => r.user_id);
+            const insidePlaceholders = insideIds.map(() => '?').join(',');
+
+            await db.execute({
+                sql: `UPDATE USER SET status = 'Suspended' WHERE user_id IN (${insidePlaceholders})`,
+                args: insideIds
+            });
+
+            for (const row of insideCandidates.rows) {
+                await db.execute({
+                    sql: "INSERT INTO BAN_TERMINATION (user_id, reason, ban_date, end_date) VALUES (?, 'Automatic Suspension: Unreturned Library Use Only Material', DATE('now', '+8 hours'), NULL)",
+                    args: [row.user_id]
+                });
+                if (row.email) {
+                    sendAccountStatusEmail(row.email, row.first_name, 'Suspended', 'Automatic Suspension: Unreturned "Inside Library" material past closing time. Please return the material immediately to the front desk.').catch(e => console.error("Auto Suspend Email Error:", e));
+                }
             }
         }
 
@@ -1199,9 +1297,9 @@ app.get('/api/user/:id', async (req, res) => {
     const { id } = req.params;
     const { role } = req.query;
     try {
-        let sql = "SELECT user_id, first_name, last_name, email, contact_number, address FROM USER WHERE user_id = ?";
+        let sql = "SELECT user_id, first_name, last_name, email, contact_number, address, status FROM USER WHERE user_id = ?";
         if (role === 'guardian') {
-            sql = "SELECT guardian_id as user_id, first_name, last_name, email, contact_number, address FROM GUARDIAN_NAME WHERE guardian_id = ?";
+            sql = "SELECT guardian_id as user_id, first_name, last_name, email, contact_number, address, status FROM GUARDIAN_NAME WHERE guardian_id = ?";
         }
         const result = await db.execute({ sql, args: [id] });
 
@@ -2251,10 +2349,11 @@ app.delete('/api/announcements/:id', async (req, res) => {
 app.post('/api/admin/process-suspensions', async (req, res) => {
     try {
         const candidates = await db.execute(`
-            SELECT DISTINCT u.user_id 
+            SELECT DISTINCT u.user_id, COALESCE(u.email, g.email) as email, u.first_name 
             FROM FINE f 
             JOIN BORROW_TRANSACTION b ON f.borrow_id = b.borrow_id 
             JOIN USER u ON b.user_id = u.user_id 
+            LEFT JOIN GUARDIAN_NAME g ON u.guardian_id = g.guardian_id
             WHERE f.status = 'Unpaid' AND u.status NOT IN ('Suspended', 'Banned')
         `);
 
@@ -2267,14 +2366,89 @@ app.post('/api/admin/process-suspensions', async (req, res) => {
                 args: ids
             });
 
-            for (const id of ids) {
+            for (const row of candidates.rows) {
                 await db.execute({
                     sql: "INSERT INTO BAN_TERMINATION (user_id, reason, ban_date, end_date) VALUES (?, 'Automatic Suspension: Unpaid Fines', DATE('now', '+8 hours'), NULL)",
-                    args: [id]
+                    args: [row.user_id]
                 });
+                if (row.email) {
+                    sendAccountStatusEmail(row.email, row.first_name, 'Suspended', 'Automatic Suspension: Unpaid Fines. Please settle your balance to reactivate your account.').catch(e => console.error("Auto Suspend Email Error:", e));
+                }
             }
         }
-        res.json({ success: true, count: candidates.rows.length });
+
+        const banCandidates = await db.execute(`
+            SELECT DISTINCT u.user_id, COALESCE(u.email, g.email) as email, u.first_name 
+            FROM BORROW_TRANSACTION b 
+            JOIN USER u ON b.user_id = u.user_id 
+            LEFT JOIN GUARDIAN_NAME g ON u.guardian_id = g.guardian_id
+            WHERE b.status IN ('Borrowed', 'Overdue') 
+              AND b.borrow_date <= date('now', '+8 hours', '-3 months')
+              AND u.status != 'Banned'
+        `);
+
+        if (banCandidates.rows.length > 0) {
+            const banIds = banCandidates.rows.map(r => r.user_id);
+            const banPlaceholders = banIds.map(() => '?').join(',');
+
+            await db.execute({
+                sql: `UPDATE USER SET status = 'Banned' WHERE user_id IN (${banPlaceholders})`,
+                args: banIds
+            });
+
+            for (const row of banCandidates.rows) {
+                await db.execute({
+                    sql: "INSERT INTO BAN_TERMINATION (user_id, reason, ban_date, end_date) VALUES (?, 'Automatic Ban: Material unreturned for over 3 months', DATE('now', '+8 hours'), NULL)",
+                    args: [row.user_id]
+                });
+                if (row.email) {
+                    sendAccountStatusEmail(row.email, row.first_name, 'Banned', 'Automatic Ban: Material unreturned for over 3 months.').catch(e => console.error("Auto Ban Email Error:", e));
+                }
+            }
+        }
+
+        // Automatic Suspension Logic: Unreturned "Inside Library" materials past closing time
+        const insideCandidates = await db.execute(`
+            SELECT DISTINCT u.user_id, COALESCE(u.email, g.email) as email, u.first_name 
+            FROM BORROW_TRANSACTION b 
+            JOIN USER u ON b.user_id = u.user_id 
+            LEFT JOIN GUARDIAN_NAME g ON u.guardian_id = g.guardian_id
+            WHERE b.status IN ('Borrowed', 'Overdue') 
+              AND b.borrow_type = 'Inside Library'
+              AND u.status NOT IN ('Suspended', 'Banned')
+              AND (
+                  b.due_date < date('now', '+8 hours')
+                  OR (
+                      b.due_date = date('now', '+8 hours') AND 
+                      time('now', '+8 hours') >= CASE 
+                          WHEN strftime('%w', b.due_date) = '6' THEN '16:00:00'
+                          ELSE '18:00:00'
+                      END
+                  )
+              )
+        `);
+
+        if (insideCandidates.rows.length > 0) {
+            const insideIds = insideCandidates.rows.map(r => r.user_id);
+            const insidePlaceholders = insideIds.map(() => '?').join(',');
+
+            await db.execute({
+                sql: `UPDATE USER SET status = 'Suspended' WHERE user_id IN (${insidePlaceholders})`,
+                args: insideIds
+            });
+
+            for (const row of insideCandidates.rows) {
+                await db.execute({
+                    sql: "INSERT INTO BAN_TERMINATION (user_id, reason, ban_date, end_date) VALUES (?, 'Automatic Suspension: Unreturned Library Use Only Material', DATE('now', '+8 hours'), NULL)",
+                    args: [row.user_id]
+                });
+                if (row.email) {
+                    sendAccountStatusEmail(row.email, row.first_name, 'Suspended', 'Automatic Suspension: Unreturned "Inside Library" material past closing time. Please return the material immediately to the front desk.').catch(e => console.error("Auto Suspend Email Error:", e));
+                }
+            }
+        }
+
+        res.json({ success: true, count: candidates.rows.length + banCandidates.rows.length + insideCandidates.rows.length });
     } catch (error) {
         console.error("Auto Suspend Error:", error);
         res.status(500).json({ success: false, message: error.message });

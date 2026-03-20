@@ -150,6 +150,7 @@ async function updateTopbarUserInfo() {
 
         if (result.success) {
             const user = result.data;
+            localStorage.setItem('userStatus', user.status);
             const topName = document.getElementById('topbar-user-name');
             const topId = document.getElementById('topbar-user-id');
             const topInit = document.getElementById('topbar-user-initials');

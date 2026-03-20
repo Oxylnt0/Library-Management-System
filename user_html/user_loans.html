@@ -278,6 +278,7 @@
                         bt.return_date,
                         bt.status,
                         bt.extension_count,
+                        bt.borrow_type,
                         b.title,
                         b.author,
                         b.dewey_decimal,
@@ -295,6 +296,7 @@
                         bt.return_date,
                         bt.status,
                         bt.extension_count,
+                        bt.borrow_type,
                         p.title,
                         p.publisher as author,
                         NULL as dewey_decimal,
@@ -360,7 +362,14 @@
                     if (loan.status === 'Pending' && loan.expires_at) {
                         dueDateStr = "Expires: " + new Date(loan.expires_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
                     } else if (loan.due_date) {
-                        dueDateStr = new Date(loan.due_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+                        if (loan.borrow_type === 'Inside Library') {
+                            const d = new Date(loan.due_date);
+                            const day = d.getDay();
+                            const closeTime = day === 6 ? '4:00 PM' : '6:00 PM';
+                            dueDateStr = `Today by ${closeTime}`;
+                        } else {
+                            dueDateStr = new Date(loan.due_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+                        }
                     }
                     
                     const returnDateStr = loan.return_date ? new Date(loan.return_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '-';
@@ -383,7 +392,9 @@
                         actionButtons = `<button onclick="cancelHold(${loan.borrow_id})" class="px-4 py-1.5 bg-red-50 border border-red-200 text-red-600 text-xs font-bold rounded-full hover:bg-red-100 transition-colors shadow-sm">Cancel Hold</button>`;
                     } else if (loan.status !== 'Returned') {
                         if (!isOverdue) {
-                            if (loan.extension_count < 2) {
+                            if (loan.borrow_type === 'Inside Library') {
+                                actionButtons += `<button class="px-4 py-1.5 bg-slate-100 border border-slate-200 text-slate-400 text-xs font-bold rounded-full cursor-not-allowed ml-3" disabled title="Library use only cannot be extended">No Extension</button>`;
+                            } else if (loan.extension_count < 2) {
                                 // Pass raw due_date for calculation consistency
                                 actionButtons += `<button onclick="window.openExtensionPanel(${loan.borrow_id}, '${safeTitle}', '${dueDateStr}', ${loan.extension_count || 0})" class="px-4 py-1.5 bg-white/80 border border-white/30 text-[#183B5B] text-xs font-bold rounded-full hover:bg-[#183B5B] hover:text-[#D6A84A] transition-colors shadow-sm ml-3">Request Extension</button>`;
                             } else {

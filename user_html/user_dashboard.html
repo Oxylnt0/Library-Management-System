@@ -360,7 +360,13 @@
                         barColor = 'bg-[#C05640]';
                         percent = 100;
                     } else if (diffDays === 0) {
-                        statusText = 'Due today';
+                        if (loan.borrow_type === 'Inside Library') {
+                            const day = dueDate.getDay();
+                            const closeTime = day === 6 ? '4:00 PM' : '6:00 PM';
+                            statusText = `Due today by ${closeTime}`;
+                        } else {
+                            statusText = 'Due today';
+                        }
                         statusColor = 'text-[#C05640]';
                         barColor = 'bg-[#C05640]';
                     } else {

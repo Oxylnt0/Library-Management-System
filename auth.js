@@ -173,7 +173,6 @@ async function login(email, password) {
             if (user.email && user.email_verified === 0) return { success: false, requiresOtp: true, email: user.email, message: "Email not verified. Please verify your email." };
             if (user.status === 'Pending') return { success: false, message: "Email verified! Please wait for a Librarian to approve your account." };
             if (user.status === 'Rejected') return { success: false, message: `Your account request was declined. Reason: ${user.status_note || 'Please visit the library for assistance.'}` };
-            if (user.status === 'Suspended') return { success: false, message: "Account is suspended." };
             if (user.status === 'Banned') return { success: false, message: "Account is permanently banned." };
             await logUserAction(user.user_id, 'LOGIN', 'USER', user.user_id, 'User logged in successfully');
             return { success: true, role: 'user', user };
@@ -190,7 +189,6 @@ async function login(email, password) {
             if (guardian.email && guardian.email_verified === 0) return { success: false, requiresOtp: true, email: guardian.email, message: "Email not verified. Please verify your email." };
             if (guardian.status === 'Pending') return { success: false, message: "Email verified! Please wait for a Librarian to approve your account." };
             if (guardian.status === 'Rejected') return { success: false, message: `Your account request was declined. Reason: ${guardian.status_note || 'Please visit the library for assistance.'}` };
-            if (guardian.status === 'Suspended') return { success: false, message: "Account is suspended." };
             if (guardian.status === 'Banned') return { success: false, message: "Account is permanently banned." };
             await logGuardianAction(guardian.guardian_id, 'LOGIN', 'GUARDIAN_NAME', guardian.guardian_id, 'Guardian logged in successfully');
             

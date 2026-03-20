@@ -195,6 +195,22 @@ async function sendAccountStatusEmail(email, name, status, reason = null) {
         color = "#D6A84A";
         headerText = "Registration Received";
         message = "We have received your registration request. Please wait while our administrators review your account. You will receive an email with your Digital Library Card once approved.";
+    } else if (status === 'Banned') {
+        subject = "Account Banned - Puerto Palabra";
+        color = "#8B0000";
+        headerText = "Account Permanently Banned";
+        message = "We regret to inform you that your library account has been permanently banned due to severe policy violations.";
+        if (reason) {
+            message += `<br><br><strong>Reason:</strong> ${reason}`;
+        }
+    } else if (status === 'Suspended') {
+        subject = "Account Suspended - Puerto Palabra";
+        color = "#C05640";
+        headerText = "Account Temporarily Suspended";
+        message = "Your library account has been suspended.";
+        if (reason) {
+            message += `<br><br><strong>Reason:</strong> ${reason}`;
+        }
     } else {
         message = `Your account status has been updated to: ${status}.`;
     }
