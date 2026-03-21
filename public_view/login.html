@@ -296,12 +296,11 @@
                         <button id="btn-login" onclick="handleLogin()" class="w-full px-8 py-3 rounded-full bg-[#D6A84A] text-black font-bold text-sm hover:bg-[#F0C66B] hover:text-black shadow-md transition-transform duration-300 transform hover:scale-105 animate-shimmer-bg flex items-center justify-center">
                             Login
                         </button>
-                    </div>
 
-                    <div class="text-center text-sm text-slate-500 mt-auto">
-                        <p>Don't have an account?</p>
-                        <a href="register.html" class="nav-link text-[#183B5B] font-bold hover:text-[#D6A84A] transition-colors">Register Here</a>
-                        <button onclick="openRecoveryModal()" class="block w-full text-center text-[#183B5B] font-bold hover:text-[#D6A84A] transition-colors mt-2">Forgot Password or Email?</button>
+                        <div class="text-center text-sm text-slate-500 pt-2">
+                            <p>Don't have an account? <a href="register.html" class="text-[#183B5B] font-bold hover:text-[#D6A84A] transition-colors ml-1">Register Here</a></p>
+                            <button onclick="openRecoveryModal()" class="block w-full text-center text-[#183B5B] font-bold hover:text-[#D6A84A] transition-colors mt-4">Forgot Password or Email?</button>
+                        </div>
                     </div>
                 </div>
                 <div class="back">
@@ -738,100 +737,103 @@
     </script>
 
     <!-- Recovery Modal -->
-    <div id="recovery-modal" class="fixed inset-0 z-[100] hidden flex items-center justify-center bg-black/60 backdrop-blur-sm">
-        <div class="bg-white rounded-xl shadow-2xl w-full max-w-md p-6 relative">
-            <button onclick="closeRecoveryModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600">✕</button>
+    <div id="recovery-modal" class="fixed inset-0 z-[100] hidden flex items-center justify-center bg-black/50 backdrop-blur-sm transition-opacity duration-300">
+        <div class="bg-[#fdfbf7] border-2 border-[#D6A84A] rounded-lg p-8 max-w-md w-full shadow-2xl transform scale-100 transition-transform duration-300 relative overflow-hidden">
+            <div class="absolute top-0 left-0 w-16 h-16 border-t-4 border-l-4 border-[#183B5B]/20 rounded-tl-lg pointer-events-none"></div>
+            <div class="absolute bottom-0 right-0 w-16 h-16 border-b-4 border-r-4 border-[#183B5B]/20 rounded-br-lg pointer-events-none"></div>
+
+            <button onclick="closeRecoveryModal()" class="absolute top-4 right-4 text-slate-400 hover:text-[#183B5B] transition-colors z-10 text-xl leading-none">✕</button>
             
             <!-- Step: Choice -->
-            <div id="step-choice" class="recovery-step">
-                <h3 class="text-xl font-bold text-[#183B5B] mb-4 text-center">Account Recovery</h3>
-                <div class="space-y-3">
-                    <button onclick="startForgotEmail()" class="w-full p-4 border border-slate-200 rounded-lg hover:bg-slate-50 text-left">
-                        <div class="font-bold text-[#183B5B]">Forgot Email?</div>
-                        <div class="text-xs text-slate-500">Recover using your personal details & security questions.</div>
+            <div id="step-choice" class="recovery-step relative z-10">
+                <h3 class="text-xl font-bold text-[#183B5B] font-cinzel mb-6 text-center">Account Recovery</h3>
+                <div class="space-y-4">
+                    <button onclick="startForgotEmail()" class="w-full p-4 border border-[#D6A84A]/50 rounded-lg bg-white hover:border-[#D6A84A] hover:bg-[#D6A84A]/5 transition-all text-left shadow-sm">
+                        <div class="font-bold text-[#183B5B] font-cinzel">Forgot Email?</div>
+                        <div class="text-xs text-slate-500 mt-1">Recover using your personal details & security questions.</div>
                     </button>
-                    <button onclick="startForgotPassword()" class="w-full p-4 border border-slate-200 rounded-lg hover:bg-slate-50 text-left">
-                        <div class="font-bold text-[#183B5B]">Forgot Password?</div>
-                        <div class="text-xs text-slate-500">Reset via Email OTP or Security Questions.</div>
+                    <button onclick="startForgotPassword()" class="w-full p-4 border border-[#D6A84A]/50 rounded-lg bg-white hover:border-[#D6A84A] hover:bg-[#D6A84A]/5 transition-all text-left shadow-sm">
+                        <div class="font-bold text-[#183B5B] font-cinzel">Forgot Password?</div>
+                        <div class="text-xs text-slate-500 mt-1">Reset via Email OTP or Security Questions.</div>
                     </button>
                 </div>
             </div>
 
             <!-- Flow 1: Email Search -->
-            <div id="step-email-search" class="recovery-step hidden space-y-4">
-                <h3 class="text-lg font-bold text-[#183B5B]">Find Your Account</h3>
-                <input type="text" id="rec-fname" placeholder="First Name" class="w-full p-2 border rounded">
-                <input type="text" id="rec-lname" placeholder="Last Name" class="w-full p-2 border rounded">
-                <input type="date" id="rec-dob" class="w-full p-2 border rounded">
-                <button onclick="searchUserForEmail()" class="w-full bg-[#183B5B] text-white py-2 rounded">Search</button>
+            <div id="step-email-search" class="recovery-step hidden space-y-4 relative z-10">
+                <h3 class="text-lg font-bold text-[#183B5B] font-cinzel text-center mb-4">Find Your Account</h3>
+                <input type="text" id="rec-fname" placeholder="First Name" class="w-full p-3 border border-slate-300 rounded bg-white focus:outline-none focus:border-[#D6A84A]">
+                <input type="text" id="rec-lname" placeholder="Last Name" class="w-full p-3 border border-slate-300 rounded bg-white focus:outline-none focus:border-[#D6A84A]">
+                <input type="date" id="rec-dob" class="w-full p-3 border border-slate-300 rounded bg-white focus:outline-none focus:border-[#D6A84A]">
+                <button onclick="searchUserForEmail()" class="w-full py-3 bg-[#183B5B] text-[#D6A84A] font-bold font-cinzel rounded hover:bg-[#244D75] transition-colors shadow-md mt-2">Search</button>
             </div>
 
             <!-- Flow 1: Email Challenge -->
-            <div id="step-email-challenge" class="recovery-step hidden space-y-4">
-                <h3 class="text-lg font-bold text-[#183B5B]">Security Check</h3>
+            <div id="step-email-challenge" class="recovery-step hidden space-y-4 relative z-10">
+                <h3 class="text-lg font-bold text-[#183B5B] font-cinzel text-center mb-4">Security Check</h3>
                 <div>
                     <label class="text-xs font-bold text-slate-500" id="q1-text-email"></label>
-                    <input type="text" id="rec-ans1-email" class="w-full p-2 border rounded mt-1">
+                    <input type="text" id="rec-ans1-email" class="w-full p-3 border border-slate-300 rounded bg-white mt-1 focus:outline-none focus:border-[#D6A84A]">
                 </div>
                 <div>
                     <label class="text-xs font-bold text-slate-500" id="q2-text-email"></label>
-                    <input type="text" id="rec-ans2-email" class="w-full p-2 border rounded mt-1">
+                    <input type="text" id="rec-ans2-email" class="w-full p-3 border border-slate-300 rounded bg-white mt-1 focus:outline-none focus:border-[#D6A84A]">
                 </div>
-                <button onclick="verifyEmailChallenge()" class="w-full bg-[#183B5B] text-white py-2 rounded">Verify Answers</button>
+                <button onclick="verifyEmailChallenge()" class="w-full py-3 bg-[#183B5B] text-[#D6A84A] font-bold font-cinzel rounded hover:bg-[#244D75] transition-colors shadow-md mt-2">Verify Answers</button>
             </div>
 
             <!-- Flow 1: Email Result -->
-            <div id="step-email-result" class="recovery-step hidden text-center space-y-4">
-                <div class="text-4xl">📧</div>
-                <h3 class="text-lg font-bold text-[#183B5B]">Email Found!</h3>
+            <div id="step-email-result" class="recovery-step hidden text-center space-y-4 relative z-10">
+                <div class="text-5xl mb-2">📧</div>
+                <h3 class="text-lg font-bold text-[#183B5B] font-cinzel">Email Found!</h3>
                 <p class="text-slate-600">Your registered email is:</p>
-                <p class="text-xl font-mono font-bold text-[#D6A84A]" id="revealed-email"></p>
-                <button onclick="closeRecoveryModal()" class="w-full bg-slate-200 text-slate-700 py-2 rounded">Back to Login</button>
+                <p class="text-xl font-mono font-bold text-[#D6A84A] bg-white p-3 rounded border border-[#D6A84A]/30" id="revealed-email"></p>
+                <button onclick="closeRecoveryModal()" class="w-full py-3 bg-slate-200 text-slate-700 font-bold font-cinzel rounded hover:bg-slate-300 transition-colors mt-2">Back to Login</button>
             </div>
 
             <!-- Flow 2: Password Init -->
-            <div id="step-pass-init" class="recovery-step hidden space-y-4">
-                <h3 class="text-lg font-bold text-[#183B5B]">Reset Password</h3>
-                <input type="email" id="rec-email-input" placeholder="Enter your email address" class="w-full p-2 border rounded">
-                <button id="btn-send-otp" onclick="sendOtp()" class="w-full bg-[#183B5B] text-white py-2 rounded">Send Code</button>
+            <div id="step-pass-init" class="recovery-step hidden space-y-4 relative z-10">
+                <h3 class="text-lg font-bold text-[#183B5B] font-cinzel text-center mb-4">Reset Password</h3>
+                <input type="email" id="rec-email-input" placeholder="Enter your email address" class="w-full p-3 border border-slate-300 rounded bg-white focus:outline-none focus:border-[#D6A84A]">
+                <button id="btn-send-otp" onclick="sendOtp()" class="w-full py-3 bg-[#183B5B] text-[#D6A84A] font-bold font-cinzel rounded hover:bg-[#244D75] transition-colors shadow-md mt-2">Send Code</button>
             </div>
 
             <!-- Flow 2: OTP Check -->
-            <div id="step-pass-otp" class="recovery-step hidden space-y-4">
-                <h3 class="text-lg font-bold text-[#183B5B]">Enter Code</h3>
-                <p class="text-xs text-slate-500">We sent a 6-digit code to your email.</p>
-                <input type="text" id="rec-otp-input" placeholder="123456" class="w-full p-2 border rounded text-center text-xl tracking-widest">
-                <button onclick="verifyOtp()" class="w-full bg-[#183B5B] text-white py-2 rounded">Verify Code</button>
-                <div class="text-center pt-2 border-t">
-                    <button onclick="switchToQuestions()" class="text-xs text-red-500 font-bold hover:underline">I can't access my email</button>
+            <div id="step-pass-otp" class="recovery-step hidden space-y-4 relative z-10">
+                <h3 class="text-lg font-bold text-[#183B5B] font-cinzel text-center mb-2">Enter Code</h3>
+                <p class="text-xs text-slate-500 text-center mb-4">We sent a 6-digit code to your email.</p>
+                <input type="text" id="rec-otp-input" placeholder="------" class="w-full p-3 border border-slate-300 rounded bg-white text-center text-2xl tracking-widest font-bold focus:outline-none focus:border-[#D6A84A] text-[#183B5B]">
+                <button onclick="verifyOtp()" class="w-full py-3 bg-[#183B5B] text-[#D6A84A] font-bold font-cinzel rounded hover:bg-[#244D75] transition-colors shadow-md mt-2">Verify Code</button>
+                <div class="text-center pt-4 mt-2 border-t border-slate-200">
+                    <button onclick="switchToQuestions()" class="text-xs text-slate-500 font-bold hover:text-[#183B5B] transition-colors underline">I can't access my email</button>
                 </div>
             </div>
 
             <!-- Flow 2: Password Challenge (Fallback) -->
-            <div id="step-pass-challenge" class="recovery-step hidden space-y-4">
-                <h3 class="text-lg font-bold text-[#183B5B]">Security Questions</h3>
-                <p class="text-xs text-slate-500">Answer correctly to reset your password.</p>
+            <div id="step-pass-challenge" class="recovery-step hidden space-y-4 relative z-10">
+                <h3 class="text-lg font-bold text-[#183B5B] font-cinzel text-center mb-2">Security Questions</h3>
+                <p class="text-xs text-slate-500 text-center mb-4">Answer correctly to reset your password.</p>
                 <div>
                     <label class="text-xs font-bold text-slate-500" id="q1-text-pass"></label>
-                    <input type="text" id="rec-ans1-pass" class="w-full p-2 border rounded mt-1">
+                    <input type="text" id="rec-ans1-pass" class="w-full p-3 border border-slate-300 rounded bg-white mt-1 focus:outline-none focus:border-[#D6A84A]">
                 </div>
                 <div>
                     <label class="text-xs font-bold text-slate-500" id="q2-text-pass"></label>
-                    <input type="text" id="rec-ans2-pass" class="w-full p-2 border rounded mt-1">
+                    <input type="text" id="rec-ans2-pass" class="w-full p-3 border border-slate-300 rounded bg-white mt-1 focus:outline-none focus:border-[#D6A84A]">
                 </div>
-                <button onclick="verifyPassChallenge()" class="w-full bg-[#183B5B] text-white py-2 rounded">Verify & Reset</button>
+                <button onclick="verifyPassChallenge()" class="w-full py-3 bg-[#183B5B] text-[#D6A84A] font-bold font-cinzel rounded hover:bg-[#244D75] transition-colors shadow-md mt-2">Verify & Reset</button>
             </div>
 
             <!-- Flow 2: New Password -->
-            <div id="step-pass-reset" class="recovery-step hidden space-y-4">
-                <h3 class="text-lg font-bold text-[#183B5B]">Create New Password</h3>
+            <div id="step-pass-reset" class="recovery-step hidden space-y-4 relative z-10">
+                <h3 class="text-lg font-bold text-[#183B5B] font-cinzel text-center mb-4">Create New Password</h3>
                 <div class="relative">
-                    <input type="password" id="rec-new-pass" placeholder="New Password" class="w-full p-2 border rounded pr-10" oninput="checkRecoveryPasswordStrength(this.value)">
-                    <button type="button" onclick="togglePassword('rec-new-pass')" class="absolute right-3 top-2.5 opacity-50 hover:opacity-100 transition-opacity">
+                    <input type="password" id="rec-new-pass" placeholder="New Password" class="w-full p-3 border border-slate-300 rounded bg-white pr-10 focus:outline-none focus:border-[#D6A84A]" oninput="checkRecoveryPasswordStrength(this.value)">
+                    <button type="button" onclick="togglePassword('rec-new-pass')" class="absolute right-3 top-3.5 opacity-50 hover:opacity-100 transition-opacity">
                         <img src="../Assets/Icons/show_pass.png" alt="Show" class="w-5 h-5">
                     </button>
                 </div>
-                <div id="rec-password-strength" class="mt-2 text-xs text-slate-500 hidden bg-slate-50 p-3 rounded-lg border border-slate-200">
+                <div id="rec-password-strength" class="mt-2 text-xs text-slate-500 hidden bg-white p-3 rounded border border-slate-200 shadow-sm">
                     <p class="font-bold mb-2 text-[#183B5B]">Password Requirements:</p>
                     <ul class="space-y-1">
                         <li id="rec-req-length" class="flex items-center gap-2 text-slate-500"><span class="w-1.5 h-1.5 rounded-full bg-slate-300"></span> At least 12 characters</li>
@@ -841,12 +843,12 @@
                     </ul>
                 </div>
                 <div class="relative">
-                    <input type="password" id="rec-confirm-pass" placeholder="Confirm New Password" class="w-full p-2 border rounded pr-10">
-                    <button type="button" onclick="togglePassword('rec-confirm-pass')" class="absolute right-3 top-2.5 opacity-50 hover:opacity-100 transition-opacity">
+                    <input type="password" id="rec-confirm-pass" placeholder="Confirm New Password" class="w-full p-3 border border-slate-300 rounded bg-white pr-10 focus:outline-none focus:border-[#D6A84A]">
+                    <button type="button" onclick="togglePassword('rec-confirm-pass')" class="absolute right-3 top-3.5 opacity-50 hover:opacity-100 transition-opacity">
                         <img src="../Assets/Icons/show_pass.png" alt="Show" class="w-5 h-5">
                     </button>
                 </div>
-                <button onclick="submitNewPassword()" class="w-full bg-green-600 text-white py-2 rounded">Update Password</button>
+                <button onclick="submitNewPassword()" class="w-full py-3 bg-[#183B5B] text-[#D6A84A] font-bold font-cinzel rounded hover:bg-[#244D75] transition-colors shadow-md mt-2">Update Password</button>
             </div>
 
         </div>
@@ -884,14 +886,20 @@
 
     <!-- OTP Modal -->
     <div id="otp-modal" class="fixed inset-0 z-[100] hidden flex items-center justify-center bg-black/50 backdrop-blur-sm transition-opacity duration-300">
-        <div class="bg-[#fdfbf7] border-2 border-[#D6A84A] rounded-lg p-8 max-w-sm w-full shadow-2xl relative">
-            <button onclick="closeOTPModal()" class="absolute top-4 right-4 text-slate-400 hover:text-[#183B5B] transition-colors">✕</button>
-            <h3 class="text-xl font-bold text-[#183B5B] font-cinzel mb-2 text-center">Verify Your Email</h3>
-            <p class="text-slate-600 text-sm text-center mb-6">Enter the 6-digit code sent to your email to activate your account.</p>
-            <input type="text" id="otp-input" maxlength="6" class="w-full text-center text-2xl tracking-[0.4em] font-bold text-[#183B5B] border-b-2 border-[#D6A84A] bg-transparent outline-none py-2 mb-6" placeholder="------">
-            <div class="flex flex-col gap-3">
-                <button onclick="verifyOTP()" id="btn-verify-otp" class="w-full py-2 bg-[#183B5B] text-[#D6A84A] font-bold font-cinzel rounded hover:bg-[#244D75] transition-colors flex justify-center items-center">Verify Code</button>
-                <button onclick="resendOTP()" id="btn-resend-otp" class="w-full py-2 text-sm text-slate-500 hover:text-[#183B5B] font-medium transition-colors">Resend Code</button>
+        <div class="bg-[#fdfbf7] border-2 border-[#D6A84A] rounded-lg p-8 max-w-sm w-full shadow-2xl transform scale-100 transition-transform duration-300 relative overflow-hidden">
+            <div class="absolute top-0 left-0 w-16 h-16 border-t-4 border-l-4 border-[#183B5B]/20 rounded-tl-lg pointer-events-none"></div>
+            <div class="absolute bottom-0 right-0 w-16 h-16 border-b-4 border-r-4 border-[#183B5B]/20 rounded-br-lg pointer-events-none"></div>
+            
+            <button onclick="closeOTPModal()" class="absolute top-4 right-4 text-slate-400 hover:text-[#183B5B] transition-colors z-10 text-xl leading-none">✕</button>
+            
+            <div class="relative z-10">
+                <h3 class="text-xl font-bold text-[#183B5B] font-cinzel mb-2 text-center">Verify Your Email</h3>
+                <p class="text-slate-600 text-sm text-center mb-6">Enter the 6-digit code sent to your email to activate your account.</p>
+                <input type="text" id="otp-input" maxlength="6" class="w-full text-center text-3xl tracking-[0.4em] font-bold text-[#183B5B] border-b-2 border-[#D6A84A] bg-transparent outline-none py-2 mb-6" placeholder="------">
+                <div class="flex flex-col gap-3">
+                    <button onclick="verifyOTP()" id="btn-verify-otp" class="w-full py-3 bg-[#183B5B] text-[#D6A84A] font-bold font-cinzel rounded hover:bg-[#244D75] transition-colors shadow-md flex justify-center items-center">Verify Code</button>
+                    <button onclick="resendOTP()" id="btn-resend-otp" class="w-full py-2 text-sm text-slate-500 hover:text-[#183B5B] font-medium transition-colors">Resend Code</button>
+                </div>
             </div>
         </div>
     </div>

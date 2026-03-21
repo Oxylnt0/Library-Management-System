@@ -268,14 +268,6 @@
                     WHERE c.book_condition NOT IN ('Outdated', 'Obsolete') 
                     AND c.status NOT IN ('Archived', 'Donated Outbound', 'Lost')
                     GROUP BY b.book_id
-                    UNION ALL
-                    SELECT p.periodical_id as item_id, 'Periodical' as material_type, p.title, p.publisher as author, p.image_url, MIN(m.date_added) as date_added 
-                    FROM PERIODICAL p
-                    JOIN PERIODICAL_COPY c ON p.periodical_id = c.periodical_id
-                    JOIN MATERIAL m ON c.material_id = m.material_id
-                    WHERE c.periodical_condition NOT IN ('Outdated', 'Obsolete') 
-                    AND c.status NOT IN ('Archived', 'Donated Outbound', 'Lost')
-                    GROUP BY p.periodical_id
                     ORDER BY date_added DESC, item_id DESC LIMIT 6
                 `;
                 const res = await db.execute(query);

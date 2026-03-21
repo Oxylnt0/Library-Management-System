@@ -733,6 +733,10 @@ video {
   top: 0.625rem;
 }
 
+.top-3\.5 {
+  top: 0.875rem;
+}
+
 .top-4 {
   top: 1rem;
 }
@@ -1789,6 +1793,10 @@ video {
   border-color: rgb(214 168 74 / 0.3);
 }
 
+.border-\[\#D6A84A\]\/50 {
+  border-color: rgb(214 168 74 / 0.5);
+}
+
 .border-\[\#e2e8f0\] {
   --tw-border-opacity: 1;
   border-color: rgb(226 232 240 / var(--tw-border-opacity, 1));
@@ -1919,6 +1927,11 @@ video {
 .border-l-amber-400 {
   --tw-border-opacity: 1;
   border-left-color: rgb(251 191 36 / var(--tw-border-opacity, 1));
+}
+
+.border-l-blue-400 {
+  --tw-border-opacity: 1;
+  border-left-color: rgb(96 165 250 / var(--tw-border-opacity, 1));
 }
 
 .bg-\[\#183B5B\] {
@@ -2052,6 +2065,10 @@ video {
 .bg-\[\#D6A84A\] {
   --tw-bg-opacity: 1;
   background-color: rgb(214 168 74 / var(--tw-bg-opacity, 1));
+}
+
+.bg-\[\#D6A84A\]\/10 {
+  background-color: rgb(214 168 74 / 0.1);
 }
 
 .bg-\[\#D6A84A\]\/20 {
@@ -2345,10 +2362,6 @@ video {
   background-color: rgb(254 252 232 / var(--tw-bg-opacity, 1));
 }
 
-.bg-\[\#D6A84A\]\/10 {
-  background-color: rgb(214 168 74 / 0.1);
-}
-
 .bg-\[url\(\'https\:\/\/www\.transparenttextures\.com\/patterns\/cubes\.png\'\)\] {
   background-image: url('https://www.transparenttextures.com/patterns/cubes.png');
 }
@@ -2630,6 +2643,10 @@ video {
   padding-left: 2.5rem;
 }
 
+.pl-12 {
+  padding-left: 3rem;
+}
+
 .pl-2 {
   padding-left: 0.5rem;
 }
@@ -2759,6 +2776,11 @@ video {
 .text-4xl {
   font-size: 2.25rem;
   line-height: 2.5rem;
+}
+
+.text-5xl {
+  font-size: 3rem;
+  line-height: 1;
 }
 
 .text-6xl {
@@ -3267,6 +3289,11 @@ video {
   filter: var(--tw-blur) var(--tw-brightness) var(--tw-contrast) var(--tw-grayscale) var(--tw-hue-rotate) var(--tw-invert) var(--tw-saturate) var(--tw-sepia) var(--tw-drop-shadow);
 }
 
+.drop-shadow-sm {
+  --tw-drop-shadow: drop-shadow(0 1px 1px rgb(0 0 0 / 0.05));
+  filter: var(--tw-blur) var(--tw-brightness) var(--tw-contrast) var(--tw-grayscale) var(--tw-hue-rotate) var(--tw-invert) var(--tw-saturate) var(--tw-sepia) var(--tw-drop-shadow);
+}
+
 .filter {
   filter: var(--tw-blur) var(--tw-brightness) var(--tw-contrast) var(--tw-grayscale) var(--tw-hue-rotate) var(--tw-invert) var(--tw-saturate) var(--tw-sepia) var(--tw-drop-shadow);
 }
@@ -3441,6 +3468,10 @@ video {
 
 .hover\:bg-\[\#D6A84A\]\/20:hover {
   background-color: rgb(214 168 74 / 0.2);
+}
+
+.hover\:bg-\[\#D6A84A\]\/5:hover {
+  background-color: rgb(214 168 74 / 0.05);
 }
 
 .hover\:bg-\[\#F0C66B\]:hover {
@@ -4005,6 +4036,10 @@ video {
 
   .lg\:flex-row {
     flex-direction: row;
+  }
+
+  .lg\:items-center {
+    align-items: center;
   }
 
   .lg\:p-8 {

@@ -383,6 +383,21 @@
             vertical-align: text-bottom;
             margin-right: 0.5rem;
         }
+
+        /* Custom Scrollbar */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 3px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
     </style>
 </head>
 
@@ -558,26 +573,48 @@
                         <h3 class="text-xl font-bold text-[#183B5B] font-cinzel mb-6 border-b border-[#D6A84A] pb-2">
                             Child Information</h3>
 
-                        <div class="flex gap-3">
-                            <div class="form-group flex-1">
-                                <label class="form-label">Last Name</label>
-                                <input type="text" id="child-lname" class="form-input" placeholder="Last Name">
-                            </div>
-                            <div class="form-group flex-1">
-                                <label class="form-label">First Name</label>
-                                <input type="text" id="child-fname" class="form-input" placeholder="First Name">
-                            </div>
-                            <div class="form-group w-12">
-                                <label class="form-label">M.I.</label>
-                                <input type="text" id="child-mi" class="form-input text-center" maxlength="2"
-                                    placeholder="M.I.">
+                        <div id="children-container" class="overflow-y-auto max-h-[300px] pr-2 space-y-4 custom-scrollbar">
+                            <div class="child-entry relative border border-slate-200 bg-slate-50/50 p-4 rounded-xl">
+                                <h4 class="text-xs font-bold text-[#183B5B] uppercase mb-3">Child 1</h4>
+                                <div class="flex gap-3 mb-3 items-end">
+                                    <div class="form-group flex-1 !mb-0">
+                                        <label class="form-label !text-[10px]">Last Name</label>
+                                        <input type="text" class="form-input child-lname text-sm" placeholder="Last Name" oninput="this.value = this.value.replace(/[^a-zA-ZñÑ\\s\\-\\.]/g, '');" onkeypress="handleChildEnter(event, this, '.child-fname')">
+                                    </div>
+                                    <div class="form-group flex-1 !mb-0">
+                                        <label class="form-label !text-[10px]">First Name</label>
+                                        <input type="text" class="form-input child-fname text-sm" placeholder="First Name" oninput="this.value = this.value.replace(/[^a-zA-ZñÑ\\s\\-\\.]/g, '');" onkeypress="handleChildEnter(event, this, '.child-mi')">
+                                    </div>
+                                    <div class="form-group w-12 !mb-0">
+                                        <label class="form-label !text-[10px]">M.I.</label>
+                                        <input type="text" class="form-input child-mi text-center text-sm" maxlength="2" placeholder="M.I." oninput="this.value = this.value.replace(/[^a-zA-ZñÑ\\s\\-\\.]/g, '');" onkeypress="handleChildEnter(event, this, '.child-rel')">
+                                    </div>
+                                </div>
+                                <div class="flex gap-3 items-end">
+                                    <div class="form-group flex-1 !mb-0">
+                                        <label class="form-label !text-[10px]">Relationship to Guardian</label>
+                                        <select class="form-input child-rel text-sm" onkeypress="handleChildEnter(event, this, '.child-dob')">
+                                            <option value="" disabled selected>Select</option>
+                                            <option value="Parent">Parent</option>
+                                            <option value="Guardian">Guardian</option>
+                                            <option value="Sibling">Sibling</option>
+                                            <option value="Relative">Relative</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group flex-1 !mb-0">
+                                        <label class="form-label !text-[10px]">Birth Date</label>
+                                        <input type="date" class="form-input child-dob text-sm" onchange="calculateChildAge(this)" onkeypress="handleChildEnter(event, this, 'NEXT_PAGE')">
+                                    </div>
+                                    <div class="form-group w-16 !mb-0">
+                                        <label class="form-label !text-[10px]">Age</label>
+                                        <input type="text" class="form-input child-age text-sm text-center bg-slate-100 cursor-not-allowed" readonly>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-
-                        <div class="form-group">
-                            <label class="form-label">Birth Date</label>
-                            <input type="date" id="child-dob" class="form-input">
-                        </div>
+                        <button type="button" onclick="addChildForm()" class="mt-4 text-xs font-bold text-[#183B5B] hover:text-[#2E5F87] flex items-center gap-1">
+                            <span class="text-lg leading-none">+</span> Add Another Child
+                        </button>
 
                         <div class="mt-auto text-right text-xs text-slate-400 italic" id="page-3-indicator">Page 3</div>
                     </div>
@@ -621,16 +658,6 @@
                                     <input type="text" id="guardian-mi" class="form-input text-center" maxlength="2"
                                         placeholder="M.I.">
                                 </div>
-                            </div>
-
-                            <div class="form-group">
-                                <label class="form-label">Relationship</label>
-                                <select id="guardian-rel" class="form-input">
-                                    <option value="" disabled selected>Select relationship</option>
-                                    <option value="Parent">Parent</option>
-                                    <option value="Sibling">Sibling</option>
-                                    <option value="Relative">Relative</option>
-                                </select>
                             </div>
 
                             <div class="form-group">
@@ -837,6 +864,114 @@
                 setValid(reqCapital, /[A-Z]/.test(password));
                 setValid(reqNumber, /\d/.test(password));
                 setValid(reqSpecial, /[^A-Za-z0-9]/.test(password));
+            }
+
+            window.addChildForm = function() {
+                const container = document.getElementById('children-container');
+                const childCount = container.querySelectorAll('.child-entry').length + 1;
+                
+                const entry = document.createElement('div');
+                entry.className = 'child-entry relative border border-slate-200 bg-slate-50/50 p-4 rounded-xl';
+                entry.innerHTML = `
+                    <div class="flex justify-between items-center mb-3">
+                        <h4 class="text-xs font-bold text-[#183B5B] uppercase">Child ${childCount}</h4>
+                        <button type="button" onclick="this.closest('.child-entry').remove(); updateChildLabels();" class="text-red-400 hover:text-red-600 text-xl leading-none" title="Remove">&times;</button>
+                    </div>
+                    <div class="flex gap-3 mb-3 items-end">
+                        <div class="form-group flex-1 !mb-0">
+                            <label class="form-label !text-[10px]">Last Name</label>
+                            <input type="text" class="form-input child-lname text-sm" placeholder="Last Name" oninput="this.value = this.value.replace(/[^a-zA-ZñÑ\\s\\-\\.]/g, '');" onkeypress="handleChildEnter(event, this, '.child-fname')">
+                        </div>
+                        <div class="form-group flex-1 !mb-0">
+                            <label class="form-label !text-[10px]">First Name</label>
+                            <input type="text" class="form-input child-fname text-sm" placeholder="First Name" oninput="this.value = this.value.replace(/[^a-zA-ZñÑ\\s\\-\\.]/g, '');" onkeypress="handleChildEnter(event, this, '.child-mi')">
+                        </div>
+                        <div class="form-group w-12 !mb-0">
+                            <label class="form-label !text-[10px]">M.I.</label>
+                            <input type="text" class="form-input child-mi text-center text-sm" maxlength="2" placeholder="M.I." oninput="this.value = this.value.replace(/[^a-zA-ZñÑ\\s\\-\\.]/g, '');" onkeypress="handleChildEnter(event, this, '.child-rel')">
+                        </div>
+                    </div>
+                    <div class="flex gap-3 items-end">
+                        <div class="form-group flex-1 !mb-0">
+                            <label class="form-label !text-[10px]">Relationship to Guardian</label>
+                            <select class="form-input child-rel text-sm" onkeypress="handleChildEnter(event, this, '.child-dob')">
+                                <option value="" disabled selected>Select</option>
+                                <option value="Parent">Parent</option>
+                                <option value="Guardian">Guardian</option>
+                                <option value="Sibling">Sibling</option>
+                                <option value="Relative">Relative</option>
+                            </select>
+                        </div>
+                        <div class="form-group flex-1 !mb-0">
+                            <label class="form-label !text-[10px]">Birth Date</label>
+                            <input type="date" class="form-input child-dob text-sm" onchange="calculateChildAge(this)" onkeypress="handleChildEnter(event, this, 'NEXT_PAGE')">
+                        </div>
+                        <div class="form-group w-16 !mb-0">
+                            <label class="form-label !text-[10px]">Age</label>
+                            <input type="text" class="form-input child-age text-sm text-center bg-slate-100 cursor-not-allowed" readonly>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(entry);
+                
+                const today = new Date();
+                const yyyy = today.getFullYear();
+                const mm = String(today.getMonth() + 1).padStart(2, '0');
+                const dd = String(today.getDate()).padStart(2, '0');
+                entry.querySelector('.child-dob').max = `${yyyy}-${mm}-${dd}`;
+                entry.querySelector('.child-dob').min = `${yyyy - 120}-${mm}-${dd}`;
+            }
+
+            window.updateChildLabels = function() {
+                const entries = document.querySelectorAll('.child-entry');
+                entries.forEach((entry, idx) => {
+                    const label = entry.querySelector('h4');
+                    if(label) label.innerText = `Child ${idx + 1}`;
+                });
+            }
+
+            window.calculateChildAge = function(inputElement) {
+                const entry = inputElement.closest('.child-entry');
+                const ageInput = entry.querySelector('.child-age');
+                if (inputElement.value) {
+                    const dob = new Date(inputElement.value);
+                    const today = new Date();
+                    let age = today.getFullYear() - dob.getFullYear();
+                    const m = today.getMonth() - dob.getMonth();
+                    if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) {
+                        age--;
+                    }
+                    if (ageInput) ageInput.value = age;
+                } else {
+                    if (ageInput) ageInput.value = '';
+                }
+            }
+
+            window.handleEnter = function(e, nextId) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    if (nextId === 'NEXT_PAGE') {
+                        turnPage(1);
+                    } else {
+                        const nextEl = document.getElementById(nextId);
+                        if (nextEl) nextEl.focus();
+                    }
+                }
+            }
+
+            window.handleChildEnter = function(e, element, nextSelector) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    if (nextSelector === 'NEXT_PAGE') {
+                        turnPage(1);
+                    } else {
+                        const entry = element.closest('.child-entry');
+                        if (entry) {
+                            const nextEl = entry.querySelector(nextSelector);
+                            if (nextEl) nextEl.focus();
+                        }
+                    }
+                }
             }
 
             window.selectFlow = function (flow) {
@@ -1151,7 +1286,6 @@
                             firstName: document.getElementById('guardian-fname').value,
                             lastName: document.getElementById('guardian-lname').value,
                             mi: document.getElementById('guardian-mi').value,
-                            relationship: document.getElementById('guardian-rel').value,
                             contact: document.getElementById('guardian-contact').value,
                             email: document.getElementById('guardian-email').value,
                             address: document.getElementById('guardian-address').value,
@@ -1164,14 +1298,15 @@
                             ]
                         };
 
-                        const childData = {
-                            firstName: document.getElementById('child-fname').value,
-                            lastName: document.getElementById('child-lname').value,
-                            mi: document.getElementById('child-mi').value,
-                            birthDate: document.getElementById('child-dob').value
-                        };
+                        const childrenData = Array.from(document.querySelectorAll('.child-entry')).map(entry => ({
+                            firstName: entry.querySelector('.child-fname').value.trim(),
+                            lastName: entry.querySelector('.child-lname').value.trim(),
+                            mi: entry.querySelector('.child-mi').value.trim(),
+                            birthDate: entry.querySelector('.child-dob').value,
+                            relationship: entry.querySelector('.child-rel').value
+                        }));
 
-                        const result = await registerGuardian(guardianData, childData);
+                        const result = await registerGuardian(guardianData, childrenData);
                         if (result.success) {
                             if (adminId) {
                                 await logAdminAction(adminId, 'ADD_USER', 'GUARDIAN_NAME', null, `Admin manually registered guardian: ${guardianData.email}`);

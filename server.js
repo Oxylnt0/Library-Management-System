@@ -1463,14 +1463,6 @@ app.get('/api/books/public', async (req, res) => {
                    WHERE c.book_condition NOT IN ('Outdated', 'Obsolete') 
                    AND c.status NOT IN ('Archived', 'Donated Outbound', 'Lost')
                    GROUP BY b.book_id
-                   UNION ALL
-                   SELECT p.periodical_id as item_id, 'Periodical' as material_type, p.title, p.publisher as author, p.image_url, p.age_restriction, MIN(m.date_added) as date_added 
-                   FROM PERIODICAL p
-                   JOIN PERIODICAL_COPY c ON p.periodical_id = c.periodical_id
-                   JOIN MATERIAL m ON c.material_id = m.material_id
-                   WHERE c.periodical_condition NOT IN ('Outdated', 'Obsolete') 
-                   AND c.status NOT IN ('Archived', 'Donated Outbound', 'Lost')
-                   GROUP BY p.periodical_id
                    ORDER BY date_added DESC, item_id DESC LIMIT 4`;
         }
 
@@ -1682,18 +1674,20 @@ app.get('/api/admin/audit-logs', async (req, res) => {
 app.get('/api/admin/users', async (req, res) => {
     try {
         const result = await db.execute(`
-            SELECT u.user_id, u.first_name, u.last_name, u.email, u.contact_number, u.status, u.date_created, u.email_verified, u.address, u.birth_date,
+            SELECT u.user_id, u.first_name, u.last_name, u.email, u.contact_number, u.status, u.date_created, u.email_verified, u.address, u.birth_date, u.relationship,
                    'User' as account_type,
-                   b.reason as ban_reason, b.end_date as ban_end_date
+                   b.reason as ban_reason, b.end_date as ban_end_date,
+                   u.guardian_id
             FROM USER u
             LEFT JOIN BAN_TERMINATION b ON u.user_id = b.user_id AND b.ban_id = (SELECT MAX(ban_id) FROM BAN_TERMINATION WHERE user_id = u.user_id)
-            WHERE u.guardian_id IS NULL AND (u.email_verified = 1 OR u.email IS NULL OR u.email = '' OR u.status != 'Pending')
+            WHERE (u.email_verified = 1 OR u.email IS NULL OR u.email = '' OR u.status != 'Pending')
             
             UNION ALL
             
-            SELECT g.guardian_id as user_id, g.first_name, g.last_name, g.email, g.contact_number, g.status, g.date_created, g.email_verified, g.address, g.birth_date,
+            SELECT g.guardian_id as user_id, g.first_name, g.last_name, g.email, g.contact_number, g.status, g.date_created, g.email_verified, g.address, g.birth_date, NULL as relationship,
                    'Guardian' as account_type,
-                   NULL as ban_reason, NULL as ban_end_date
+                   NULL as ban_reason, NULL as ban_end_date,
+                   NULL as guardian_id
             FROM GUARDIAN_NAME g
             WHERE (g.email_verified = 1 OR g.email IS NULL OR g.email = '' OR g.status != 'Pending')
             ORDER BY date_created DESC

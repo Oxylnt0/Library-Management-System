@@ -309,16 +309,22 @@
                 allUsers = result.data;
 
                 // 2. Client-Side Filtering & Sorting
-                let users = allUsers.filter(user => {
+                let parentUsers = allUsers.filter(user => !user.guardian_id); // Only primary users
+                let allChildren = allUsers.filter(user => user.guardian_id);
+
+                let filteredParents = parentUsers.filter(user => {
+                    let children = allChildren.filter(c => c.guardian_id === user.user_id && user.account_type === 'Guardian');
+                    
                     // Search
                     const matchesSearch = !currentSearchTerm || 
                         (user.first_name + ' ' + user.last_name).toLowerCase().includes(currentSearchTerm) ||
                         user.email?.toLowerCase().includes(currentSearchTerm) ||
-                        user.user_id.toString().includes(currentSearchTerm);
+                        user.user_id.toString().includes(currentSearchTerm) ||
+                        children.some(c => (c.first_name + ' ' + c.last_name).toLowerCase().includes(currentSearchTerm) || c.user_id.toString().includes(currentSearchTerm));
 
                     // Filter
                     let matchesFilter = true;
-                    if (currentFilter === 'child') matchesFilter = user.account_type === 'User';
+                    if (currentFilter === 'child') matchesFilter = children.length > 0 || user.account_type === 'User';
                     if (currentFilter === 'pending') matchesFilter = user.status === 'Pending';
                     if (currentFilter === 'active') matchesFilter = user.status === 'Active';
                     if (currentFilter === 'suspended') matchesFilter = user.status === 'Suspended' || user.status === 'Banned';
@@ -327,7 +333,7 @@
                 });
 
                 // Sorting
-                users.sort((a, b) => {
+                filteredParents.sort((a, b) => {
                     if (currentSort === 'newest') return b.user_id - a.user_id;
                     if (currentSort === 'oldest') return a.user_id - b.user_id;
                     if (currentSort === 'name_asc') return a.last_name.localeCompare(b.last_name);
@@ -337,15 +343,19 @@
 
                 tbody.innerHTML = '';
 
-                if (users.length === 0) {
+                if (filteredParents.length === 0) {
                     tbody.innerHTML = '<tr><td colspan="5" class="p-4 text-center">No users found.</td></tr>';
                     updateStats(0, 0);
                     return;
                 }
 
                 let suspendedCount = 0;
+                let displayedTotal = 0;
 
-                users.forEach(user => {
+                filteredParents.forEach(user => {
+                    displayedTotal++;
+                    const children = allChildren.filter(c => c.guardian_id === user.user_id && user.account_type === 'Guardian');
+                    
                     const isBanned = user.status === 'Suspended' || user.status === 'Banned';
                     if (isBanned) suspendedCount++;
 
@@ -433,10 +443,38 @@
                         </tr>
                     `;
                     tbody.insertAdjacentHTML('beforeend', row);
+
+                    // Render children
+                    children.forEach(child => {
+                        displayedTotal++;
+                        const childInitials = ((child.first_name?.[0] || '') + (child.last_name?.[0] || '')).toUpperCase();
+                        const childRow = `
+                            <tr class="bg-slate-50/50 hover:bg-slate-100 transition-colors cursor-pointer border-l-4 border-l-blue-400" onclick="if(!event.target.closest('button') && !event.target.closest('a')) window.openUserDetails(${child.user_id}, 'User')">
+                                <td class="p-4 pl-12">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-xs shadow-inner">${childInitials}</div>
+                                        <div>
+                                            <div class="font-bold text-slate-700 text-sm">${child.first_name} ${child.last_name}</div>
+                                            <div class="text-[10px] text-slate-500 font-mono">Child ID: ${child.user_id} • ${child.relationship || 'Dependent'}</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="p-4 text-slate-400 text-xs italic">Linked to Guardian</td>
+                                <td class="p-4 text-slate-400 text-xs italic">Linked to Guardian</td>
+                                <td class="p-4">
+                                    <span class="bg-slate-200 text-slate-600 px-2 py-0.5 rounded-full text-[10px] font-bold border border-slate-300">Child Account</span>
+                                </td>
+                                <td class="p-4 text-right">
+                                    <span class="text-xs text-slate-400 italic">Managed by Guardian</span>
+                                </td>
+                            </tr>
+                        `;
+                        tbody.insertAdjacentHTML('beforeend', childRow);
+                    });
                 });
 
-                updateStats(users.length, suspendedCount);
-                updateNewRegistrations(users.slice(0, 3));
+                updateStats(displayedTotal, suspendedCount);
+                updateNewRegistrations(parentUsers.slice(0, 3));
 
             } catch (err) {
                 console.error(err);
