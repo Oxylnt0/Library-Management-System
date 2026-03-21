@@ -1,7 +1,7 @@
 // email_service.js
 const nodemailer = require("nodemailer");
 const QRCode = require("qrcode");
-require("dotenv").config();
+require('./config.js');
 
 // 1. Configure the Email Transporter (Use your Gmail)
 const transporter = nodemailer.createTransport({

@@ -1,7 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
-require('dotenv').config();
+require('./config.js');
 const { db } = require('./db_config.js');
 const { sendAdminWelcomeEmail, sendOtpEmail, sendAccountStatusEmail, sendLibraryCard, sendDueSoonEmail, sendAnnouncementEmail } = require('./email_service.js');
 const { registerUser, registerGuardian, checkEmailExists, verifyRegistrationOTP, generateAndSendRegistrationOTP } = require('./auth.js');

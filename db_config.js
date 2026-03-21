@@ -1,23 +1,20 @@
+const { app } = require('electron');
+const path = require('path');
 const { createClient } = require("@libsql/client");
+const dotenv = require('dotenv');
 
-// =========================================================
-// CONFIGURATION
-// Get these details from your Turso Dashboard (turso.tech)
-// =========================================================
+// 1. Find the .env file whether we are in VS Code or Installed
+const isPackaged = app ? app.isPackaged : false;
+const envPath = isPackaged 
+  ? path.join(process.resourcesPath, '.env') 
+  : path.join(__dirname, '.env');
 
-const url = "libsql://puertopalabradb-oxylnt0.aws-ap-northeast-1.turso.io"; // Replace with your Database URL
-const authToken = "eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJhIjoicnciLCJpYXQiOjE3NzAxNzI0MjcsImlkIjoiNzhiN2YyZTMtNGU1OS00N2JkLWFiNDMtZGU2ZjdiNTMzZGRkIiwicmlkIjoiNGI4ZGM1YjYtMjU0YS00NGRiLWIxYjgtNTU4YTZlY2NlZjM4In0.ybuRGiwyBFuQJqm0bZE5UqEVm8ZMehD8L0-UivrjZJ4OkiUquvpe8GrDeXeGwG7OvsTlioDBY9wSxfnCT4y5BQ"; // Replace with your long Auth Token
+dotenv.config({ path: envPath });
 
-// =========================================================
-// CREATE CONNECTION
-// =========================================================
-
+// 2. Create the connection using the variables from .env
 const db = createClient({
-  url,
-  authToken,
+  url: process.env.TURSO_DATABASE_URL,
+  authToken: process.env.TURSO_AUTH_TOKEN,
 });
-
-// Use this 'db' object in other files to run queries like:
-// await db.execute("SELECT * FROM books");
 
 module.exports = { db };
