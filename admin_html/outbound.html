@@ -216,6 +216,7 @@
                     <th class="p-4 text-xs font-bold text-slate-500 uppercase border-b">Material Title</th>
                     <th class="p-4 text-xs font-bold text-slate-500 uppercase border-b">Category</th>
                     <th class="p-4 text-xs font-bold text-slate-500 uppercase border-b">Condition</th>
+                    <th class="p-4 text-xs font-bold text-slate-500 uppercase border-b">Qty</th>
                     <th class="p-4 text-xs font-bold text-slate-500 uppercase border-b">Recipient</th>
                     <th class="p-4 text-xs font-bold text-slate-500 uppercase border-b">Date Donated</th>
                 `;
@@ -225,7 +226,7 @@
                     <th class="p-4 text-xs font-bold text-slate-500 uppercase border-b">Material Title</th>
                     <th class="p-4 text-xs font-bold text-slate-500 uppercase border-b">Category</th>
                     <th class="p-4 text-xs font-bold text-slate-500 uppercase border-b">Condition</th>
-                    <th class="p-4 text-xs font-bold text-slate-500 uppercase border-b">Status</th>
+                    <th class="p-4 text-xs font-bold text-slate-500 uppercase border-b">Qty</th>
                     <th class="p-4 text-xs font-bold text-slate-500 uppercase border-b">Date Added</th>
                 `;
                 bindSelectAll();
@@ -257,12 +258,12 @@
                         </td>
                         <td class="p-4 border-b text-slate-600">${book.category}</td>
                         <td class="p-4 border-b">${condBadge}</td>
+                        <td class="p-4 border-b font-bold text-[#183B5B]">${book.quantity || 1}</td>
                         <td class="p-4 border-b text-slate-700">${recipient}</td>
                         <td class="p-4 border-b text-slate-500 text-xs">${dateStr}</td>
                     `;
                 } else {
                     const isChecked = selectedBooks.has(`${book.item_id}-${book.material_type}`);
-                    const statusBadge = `<span class="px-2 py-1 rounded text-xs font-bold ${book.status === 'Available' ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-500'}">${book.status}</span>`;
                     tr.innerHTML = `
                         <td class="p-4 border-b">
                             <input type="checkbox" class="book-checkbox w-4 h-4 rounded border-slate-300 text-[#183B5B] focus:ring-[#183B5B]" 
@@ -274,7 +275,7 @@
                         </td>
                         <td class="p-4 border-b text-slate-600">${book.category}</td>
                         <td class="p-4 border-b">${condBadge}</td>
-                        <td class="p-4 border-b">${statusBadge}</td>
+                        <td class="p-4 border-b font-bold text-[#183B5B]">${book.eligible_copies}</td>
                         <td class="p-4 border-b text-slate-500 text-xs">${new Date(book.date_added).toLocaleDateString()}</td>
                     `;
                 }
