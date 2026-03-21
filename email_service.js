@@ -236,4 +236,59 @@ async function sendAccountStatusEmail(email, name, status, reason = null) {
   }
 }
 
-module.exports = { sendLibraryCard, sendPaymentReceipt, sendAdminWelcomeEmail, sendOtpEmail, sendAccountStatusEmail };
+async function sendDueSoonEmail(email, name, bookTitle, dueDate) {
+  try {
+    console.log(`⏳ Sending Due Soon Reminder to: ${email}...`);
+    
+    const mailOptions = {
+      from: `"Puerto Palabra Library System" <${process.env.EMAIL_USER}>`,
+      to: email,
+      subject: "Reminder: Book Due Soon - Puerto Palabra",
+      html: `<div style="font-family: Arial, sans-serif; padding: 20px; border: 1px solid #ddd; border-radius: 8px;">
+               <h2 style="color: #D6A84A;">Friendly Reminder</h2>
+               <p>Dear ${name},</p>
+               <p>This is a quick reminder that the material <strong>"${bookTitle}"</strong> you borrowed is due on <strong>${dueDate}</strong>.</p>
+               <p>Please return it to the library on or before the due date to avoid any overdue fines, or request an extension from your dashboard if eligible.</p>
+               <p>Happy Reading,<br>Puerto Palabra Admin</p>
+             </div>`
+    };
+
+    await transporter.sendMail(mailOptions);
+    console.log("✅ Due Soon Reminder Email sent successfully.");
+    return true;
+  } catch (error) {
+    console.error("❌ Due Soon Email Error:", error);
+    return false;
+  }
+}
+
+async function sendAnnouncementEmail(email, name, title, content, priority) {
+  try {
+    console.log(`⏳ Sending Announcement Email to: ${email}...`);
+    
+    let headerColor = "#183B5B"; // Normal (Blue)
+    if (priority === 'High') headerColor = "#D6A84A"; // High (Gold)
+    if (priority === 'Urgent') headerColor = "#C05640"; // Urgent (Red)
+
+    const mailOptions = {
+      from: `"Puerto Palabra Library System" <${process.env.EMAIL_USER}>`,
+      to: email,
+      subject: `Library Announcement: ${title}`,
+      html: `<div style="font-family: Arial, sans-serif; padding: 20px; border: 1px solid #ddd; border-radius: 8px;">
+               <h2 style="color: ${headerColor};">${title}</h2>
+               <p>Dear ${name},</p>
+               <p style="white-space: pre-line;">${content}</p>
+               <p>Regards,<br>Puerto Palabra Admin</p>
+             </div>`
+    };
+
+    await transporter.sendMail(mailOptions);
+    console.log("✅ Announcement Email sent successfully.");
+    return true;
+  } catch (error) {
+    console.error("❌ Announcement Email Error:", error);
+    return false;
+  }
+}
+
+module.exports = { sendLibraryCard, sendPaymentReceipt, sendAdminWelcomeEmail, sendOtpEmail, sendAccountStatusEmail, sendDueSoonEmail, sendAnnouncementEmail };

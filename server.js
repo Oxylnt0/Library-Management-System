@@ -3,12 +3,15 @@ const cors = require('cors');
 const path = require('path');
 require('dotenv').config();
 const { db } = require('./db_config.js');
-const { sendAdminWelcomeEmail, sendOtpEmail, sendAccountStatusEmail, sendLibraryCard } = require('./email_service.js');
+const { sendAdminWelcomeEmail, sendOtpEmail, sendAccountStatusEmail, sendLibraryCard, sendDueSoonEmail, sendAnnouncementEmail } = require('./email_service.js');
 const { registerUser, registerGuardian, checkEmailExists, verifyRegistrationOTP, generateAndSendRegistrationOTP } = require('./auth.js');
 const { logUserAction, logAdminAction } = require('./audit_service.js');
 
 const app = express();
 const PORT = 3000;
+
+// Ensure schema is updated for email reminders (Silently fails if already added)
+db.execute("ALTER TABLE BORROW_TRANSACTION ADD COLUMN reminder_sent INTEGER DEFAULT 0").catch(() => {});
 
 // Middleware
 app.use(cors());
@@ -621,6 +624,32 @@ app.post('/api/books/copies/add', async (req, res) => {
     }
 });
 
+// 8.6 PUT /api/books/copies/update (Update physical copies)
+app.put('/api/books/copies/update', async (req, res) => {
+    const { material_type, updates, adminId } = req.body; // updates: [{ material_id, condition, location }]
+
+    try {
+        const table = material_type === 'Book' ? 'BOOK_COPY' : 'PERIODICAL_COPY';
+        const condField = material_type === 'Book' ? 'book_condition' : 'periodical_condition';
+
+        for (const update of updates) {
+            await db.execute({
+                sql: `UPDATE ${table} SET ${condField} = ?, location = ? WHERE material_id = ?`,
+                args: [update.condition, update.location, update.material_id]
+            });
+        }
+
+        if (adminId) {
+            await logAdminAction(adminId, 'UPDATE_COPIES', 'MATERIAL', null, `Updated ${updates.length} physical copies for ${material_type}`);
+        }
+
+        res.json({ success: true, message: "Copies updated successfully." });
+    } catch (error) {
+        console.error("Update Copies Error:", error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
 // 9. GET /api/donations/stats
 app.get('/api/donations/stats', async (req, res) => {
     try {
@@ -1037,6 +1066,50 @@ app.get('/api/fines', async (req, res) => {
                 });
                 if (row.email) {
                     sendAccountStatusEmail(row.email, row.first_name, 'Suspended', 'Automatic Suspension: Unreturned "Inside Library" material past closing time. Please return the material immediately to the front desk.').catch(e => console.error("Auto Suspend Email Error:", e));
+                }
+            }
+        }
+
+        // Automatic Due Soon Reminders (<= 3 days)
+        const reminderCandidates = await db.execute(`
+            SELECT b.borrow_id, COALESCE(u.email, g.email) as email, u.first_name, bk.title as book_title, b.due_date 
+            FROM BORROW_TRANSACTION b 
+            JOIN USER u ON b.user_id = u.user_id 
+            LEFT JOIN GUARDIAN_NAME g ON u.guardian_id = g.guardian_id
+            JOIN BOOK_COPY bc ON b.material_id = bc.material_id
+            JOIN BOOK bk ON bc.book_id = bk.book_id
+            WHERE b.status = 'Borrowed' 
+              AND b.due_date <= date('now', '+8 hours', '+3 days')
+              AND b.due_date >= date('now', '+8 hours')
+              AND b.reminder_sent = 0
+              AND b.borrow_type != 'Inside Library'
+            UNION ALL
+            SELECT b.borrow_id, COALESCE(u.email, g.email) as email, u.first_name, p.title as book_title, b.due_date 
+            FROM BORROW_TRANSACTION b 
+            JOIN USER u ON b.user_id = u.user_id 
+            LEFT JOIN GUARDIAN_NAME g ON u.guardian_id = g.guardian_id
+            JOIN PERIODICAL_COPY pc ON b.material_id = pc.material_id
+            JOIN PERIODICAL p ON pc.periodical_id = p.periodical_id
+            WHERE b.status = 'Borrowed' 
+              AND b.due_date <= date('now', '+8 hours', '+3 days')
+              AND b.due_date >= date('now', '+8 hours')
+              AND b.reminder_sent = 0
+              AND b.borrow_type != 'Inside Library'
+        `);
+
+        if (reminderCandidates.rows.length > 0) {
+            const remIds = reminderCandidates.rows.map(r => r.borrow_id);
+            const remPlaceholders = remIds.map(() => '?').join(',');
+
+            await db.execute({
+                sql: `UPDATE BORROW_TRANSACTION SET reminder_sent = 1 WHERE borrow_id IN (${remPlaceholders})`,
+                args: remIds
+            });
+
+            for (const row of reminderCandidates.rows) {
+                if (row.email) {
+                    const dueDateStr = new Date(row.due_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+                    sendDueSoonEmail(row.email, row.first_name, row.book_title, dueDateStr).catch(e => console.error("Due Soon Email Error:", e));
                 }
             }
         }
@@ -1581,13 +1654,13 @@ app.get('/api/admin/audit-logs', async (req, res) => {
         let queries = [];
 
         if (filter === 'all' || filter === 'admin') {
-            queries.push(`SELECT 'Admin' as role, admin_id as actor_id, action, details, DATETIME(date_time, '+8 hours') as date_time FROM ADMIN_AUDIT_LOG`);
+            queries.push(`SELECT 'Admin' as role, COALESCE(a.full_name, 'Unknown Admin') as actor_name, l.action, l.details, DATETIME(l.date_time, '+8 hours') as date_time FROM ADMIN_AUDIT_LOG l LEFT JOIN ADMIN a ON l.admin_id = a.admin_id`);
         }
         if (filter === 'all' || filter === 'user') {
-            queries.push(`SELECT 'User' as role, user_id as actor_id, action, details, DATETIME(date_time, '+8 hours') as date_time FROM USER_AUDIT_LOG`);
+            queries.push(`SELECT 'User' as role, COALESCE(u.first_name || ' ' || u.last_name, 'Unknown User') as actor_name, l.action, l.details, DATETIME(l.date_time, '+8 hours') as date_time FROM USER_AUDIT_LOG l LEFT JOIN USER u ON l.user_id = u.user_id`);
         }
         if (filter === 'all' || filter === 'guardian') {
-            queries.push(`SELECT 'Guardian' as role, guardian_id as actor_id, action, details, DATETIME(date_time, '+8 hours') as date_time FROM GUARDIAN_AUDIT_LOG`);
+            queries.push(`SELECT 'Guardian' as role, COALESCE(g.first_name || ' ' || g.last_name, 'Unknown Guardian') as actor_name, l.action, l.details, DATETIME(l.date_time, '+8 hours') as date_time FROM GUARDIAN_AUDIT_LOG l LEFT JOIN GUARDIAN_NAME g ON l.guardian_id = g.guardian_id`);
         }
 
         if (queries.length === 0) {
@@ -2170,8 +2243,8 @@ app.get('/api/reports/view', async (req, res) => {
                        FROM BORROW_TRANSACTION bt 
                        JOIN BOOK_COPY bc ON bt.material_id = bc.material_id
                        JOIN BOOK bk ON bc.book_id = bk.book_id 
+                       WHERE 1=1 ${dateFilter('bt.borrow_date')}
                        GROUP BY bk.book_id ORDER BY borrow_count DESC LIMIT 50`;
-                args = [];
                 break;
 
             // 2. Inventory
@@ -2212,15 +2285,16 @@ app.get('/api/reports/view', async (req, res) => {
 
             // 4. Users
             case 'registration_queue':
-                sql = `SELECT 'User' as type, first_name || ' ' || last_name as name, email, date_created FROM USER WHERE status = 'Pending'
-                       UNION ALL
-                       SELECT 'Guardian' as type, first_name || ' ' || last_name as name, email, date_created FROM GUARDIAN_NAME WHERE status = 'Pending'`;
-                args = [];
+                sql = `SELECT * FROM (
+                           SELECT 'User' as type, first_name || ' ' || last_name as name, email, date_created FROM USER WHERE status = 'Pending'
+                           UNION ALL
+                           SELECT 'Guardian' as type, first_name || ' ' || last_name as name, email, date_created FROM GUARDIAN_NAME WHERE status = 'Pending'
+                       ) WHERE 1=1 ${dateFilter('date_created')}`;
                 break;
             case 'disciplinary':
                 sql = `SELECT u.first_name || ' ' || u.last_name as user, b.reason, b.ban_date, b.end_date 
-                       FROM BAN_TERMINATION b JOIN USER u ON b.user_id = u.user_id`;
-                args = [];
+                       FROM BAN_TERMINATION b JOIN USER u ON b.user_id = u.user_id
+                       WHERE 1=1 ${dateFilter('b.ban_date')}`;
                 break;
             
             // 5. Audits
@@ -2313,12 +2387,26 @@ app.get('/api/announcements', async (req, res) => {
 
 // POST /api/announcements (Create)
 app.post('/api/announcements', async (req, res) => {
-    const { admin_id, title, content } = req.body;
+    const { admin_id, title, content, priority, status, valid_until } = req.body;
     try {
         await db.execute({
-            sql: "INSERT INTO ANNOUNCEMENT (admin_id, title, content) VALUES (?, ?, ?)",
-            args: [admin_id, title, content]
+            sql: "INSERT INTO ANNOUNCEMENT (admin_id, title, content, priority, status, valid_until) VALUES (?, ?, ?, ?, ?, ?)",
+            args: [admin_id, title, content, priority || 'Normal', status || 'Published', valid_until || null]
         });
+
+        // Send Email if Published
+        if (status === 'Published') {
+            const usersRes = await db.execute(`
+                SELECT email, first_name FROM USER WHERE status = 'Active' AND email IS NOT NULL AND email != ''
+                UNION ALL
+                SELECT email, first_name FROM GUARDIAN_NAME WHERE status = 'Active' AND email IS NOT NULL AND email != ''
+            `);
+            
+            usersRes.rows.forEach(user => {
+                sendAnnouncementEmail(user.email, user.first_name, title, content, priority || 'Normal').catch(() => {});
+            });
+        }
+
         res.json({ success: true, message: "Announcement created successfully." });
     } catch (e) { res.status(500).json({ success: false, message: e.message }); }
 });
@@ -2326,12 +2414,29 @@ app.post('/api/announcements', async (req, res) => {
 // PUT /api/announcements/:id (Update)
 app.put('/api/announcements/:id', async (req, res) => {
     const { id } = req.params;
-    const { title, content } = req.body;
+    const { title, content, priority, status, valid_until } = req.body;
     try {
+        const oldRes = await db.execute({ sql: "SELECT status FROM ANNOUNCEMENT WHERE announcement_id = ?", args: [id] });
+        const oldStatus = oldRes.rows[0]?.status;
+
         await db.execute({
-            sql: "UPDATE ANNOUNCEMENT SET title = ?, content = ? WHERE announcement_id = ?",
-            args: [title, content, id]
+            sql: "UPDATE ANNOUNCEMENT SET title = ?, content = ?, priority = ?, status = ?, valid_until = ? WHERE announcement_id = ?",
+            args: [title, content, priority || 'Normal', status || 'Published', valid_until || null, id]
         });
+
+        // Send Email if it was just changed to Published from Draft
+        if (status === 'Published' && oldStatus !== 'Published') {
+            const usersRes = await db.execute(`
+                SELECT email, first_name FROM USER WHERE status = 'Active' AND email IS NOT NULL AND email != ''
+                UNION ALL
+                SELECT email, first_name FROM GUARDIAN_NAME WHERE status = 'Active' AND email IS NOT NULL AND email != ''
+            `);
+            
+            usersRes.rows.forEach(user => {
+                sendAnnouncementEmail(user.email, user.first_name, title, content, priority || 'Normal').catch(() => {});
+            });
+        }
+
         res.json({ success: true, message: "Announcement updated successfully." });
     } catch (e) { res.status(500).json({ success: false, message: e.message }); }
 });
@@ -2444,6 +2549,50 @@ app.post('/api/admin/process-suspensions', async (req, res) => {
                 });
                 if (row.email) {
                     sendAccountStatusEmail(row.email, row.first_name, 'Suspended', 'Automatic Suspension: Unreturned "Inside Library" material past closing time. Please return the material immediately to the front desk.').catch(e => console.error("Auto Suspend Email Error:", e));
+                }
+            }
+        }
+
+        // Automatic Due Soon Reminders (<= 3 days)
+        const reminderCandidates = await db.execute(`
+            SELECT b.borrow_id, COALESCE(u.email, g.email) as email, u.first_name, bk.title as book_title, b.due_date 
+            FROM BORROW_TRANSACTION b 
+            JOIN USER u ON b.user_id = u.user_id 
+            LEFT JOIN GUARDIAN_NAME g ON u.guardian_id = g.guardian_id
+            JOIN BOOK_COPY bc ON b.material_id = bc.material_id
+            JOIN BOOK bk ON bc.book_id = bk.book_id
+            WHERE b.status = 'Borrowed' 
+              AND b.due_date <= date('now', '+8 hours', '+3 days')
+              AND b.due_date >= date('now', '+8 hours')
+              AND b.reminder_sent = 0
+              AND b.borrow_type != 'Inside Library'
+            UNION ALL
+            SELECT b.borrow_id, COALESCE(u.email, g.email) as email, u.first_name, p.title as book_title, b.due_date 
+            FROM BORROW_TRANSACTION b 
+            JOIN USER u ON b.user_id = u.user_id 
+            LEFT JOIN GUARDIAN_NAME g ON u.guardian_id = g.guardian_id
+            JOIN PERIODICAL_COPY pc ON b.material_id = pc.material_id
+            JOIN PERIODICAL p ON pc.periodical_id = p.periodical_id
+            WHERE b.status = 'Borrowed' 
+              AND b.due_date <= date('now', '+8 hours', '+3 days')
+              AND b.due_date >= date('now', '+8 hours')
+              AND b.reminder_sent = 0
+              AND b.borrow_type != 'Inside Library'
+        `);
+
+        if (reminderCandidates.rows.length > 0) {
+            const remIds = reminderCandidates.rows.map(r => r.borrow_id);
+            const remPlaceholders = remIds.map(() => '?').join(',');
+
+            await db.execute({
+                sql: `UPDATE BORROW_TRANSACTION SET reminder_sent = 1 WHERE borrow_id IN (${remPlaceholders})`,
+                args: remIds
+            });
+
+            for (const row of reminderCandidates.rows) {
+                if (row.email) {
+                    const dueDateStr = new Date(row.due_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+                    sendDueSoonEmail(row.email, row.first_name, row.book_title, dueDateStr).catch(e => console.error("Due Soon Email Error:", e));
                 }
             }
         }

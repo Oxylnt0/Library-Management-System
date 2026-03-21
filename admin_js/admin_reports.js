@@ -1,6 +1,7 @@
 (() => {
     let currentData = [];
     let currentReportTitle = "";
+    let currentReportId = "";
     let currentColumns = [];
 
     const reportConfig = {
@@ -62,6 +63,7 @@
                 });
                 // Highlight this one
                 btn.className = 'px-4 py-2 rounded-full text-xs font-bold border transition-colors bg-[#183B5B] text-[#D6A84A] border-[#183B5B]';
+                currentReportId = rep.id;
                 loadReportData(rep.id, rep.title);
             };
             selector.appendChild(btn);
@@ -179,7 +181,7 @@
                 // Simple formatting
                 if (col === 'date_time') {
                     try { val = new Date(val).toLocaleString(); } catch(e){}
-                } else if (col.includes('date') || col.includes('at')) {
+                } else if (col.includes('date') || col.endsWith('_at')) {
                     try { val = new Date(val).toLocaleDateString(); } catch(e){}
                 }
                 if (col.includes('amount') || col.includes('price') || col.includes('revenue')) {
@@ -253,6 +255,13 @@
         if (startEl && endEl) {
             startEl.valueAsDate = firstDay;
             endEl.valueAsDate = date;
+            
+            // Auto-reload report when date is changed
+            const reloadCurrent = () => {
+                if (currentReportId) loadReportData(currentReportId, currentReportTitle);
+            };
+            startEl.addEventListener('change', reloadCurrent);
+            endEl.addEventListener('change', reloadCurrent);
         }
 
         // Load default tab

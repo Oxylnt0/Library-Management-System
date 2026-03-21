@@ -1169,10 +1169,12 @@
         window.currentCopiesContext = { itemId: null, type: null, title: null };
         window.dbCopies = [];
         window.unsavedCopies = [];
+        window.editedCopies = {};
 
         async function openCopiesModal(itemId, type, title) {
             window.currentCopiesContext = { itemId, type, title };
             window.unsavedCopies = []; // Reset unsaved rows
+            window.editedCopies = {}; // Reset edited rows
             
             document.getElementById('copies-modal-title').innerText = title;
             const tbody = document.getElementById('copies-table-body');
@@ -1205,25 +1207,6 @@
                 return;
             }
 
-            // 1. Render Database Copies
-            window.dbCopies.forEach(copy => {
-                let statusColor = 'text-green-600 bg-green-50';
-                if (copy.status === 'Borrowed') statusColor = 'text-amber-600 bg-amber-50';
-                else if (copy.status !== 'Available') statusColor = 'text-slate-600 bg-slate-100';
-
-                tbody.innerHTML += `
-                    <tr class="hover:bg-slate-50 transition-colors border-b border-slate-100">
-                        <td class="p-3 font-mono text-slate-600">${copy.material_id}</td>
-                        <td class="p-3"><span class="px-2 py-0.5 rounded text-xs font-bold ${statusColor}">${copy.status}</span></td>
-                        <td class="p-3 text-slate-700 font-medium">${copy.condition}</td>
-                        <td class="p-3 text-slate-700">${copy.location || 'N/A'}</td>
-                        <td class="p-3 text-slate-600">${copy.source}</td>
-                        <td class="p-3 text-slate-500 text-xs">${new Date(copy.date_added).toLocaleDateString()}</td>
-                        <td class="p-3"></td>
-                    </tr>
-                `;
-            });
-
             // Helper for dynamic Location dropdown
             const getLocOptions = (selected) => {
                 const opts = [
@@ -1250,6 +1233,37 @@
                 });
                 return html;
             }
+
+            // 1. Render Database Copies
+            window.dbCopies.forEach(copy => {
+                let statusColor = 'text-green-600 bg-green-50';
+                if (copy.status === 'Borrowed') statusColor = 'text-amber-600 bg-amber-50';
+                else if (copy.status !== 'Available') statusColor = 'text-slate-600 bg-slate-100';
+
+                tbody.innerHTML += `
+                    <tr class="hover:bg-slate-50 transition-colors border-b border-slate-100">
+                        <td class="p-3 font-mono text-slate-600">${copy.material_id}</td>
+                        <td class="p-3"><span class="px-2 py-0.5 rounded text-xs font-bold ${statusColor}">${copy.status}</span></td>
+                        <td class="p-3">
+                            <select class="p-1 border border-slate-300 rounded text-xs outline-none bg-white" onchange="updateExistingCopy(${copy.material_id}, 'condition', this.value)">
+                                <option value="New" ${copy.condition==='New'?'selected':''}>New</option>
+                                <option value="Moderate Damage" ${copy.condition==='Moderate Damage'?'selected':''}>Moderate Damage</option>
+                                <option value="Severe Damage" ${copy.condition==='Severe Damage'?'selected':''}>Severe Damage</option>
+                                <option value="Outdated" ${copy.condition==='Outdated'?'selected':''}>Outdated</option>
+                                <option value="Obsolete" ${copy.condition==='Obsolete'?'selected':''}>Obsolete</option>
+                            </select>
+                        </td>
+                        <td class="p-3">
+                            <select class="p-1 border border-slate-300 rounded text-[10px] max-w-[150px] outline-none bg-white" onchange="updateExistingCopy(${copy.material_id}, 'location', this.value)">
+                                ${getLocOptions(copy.location)}
+                            </select>
+                        </td>
+                        <td class="p-3 text-slate-600">${copy.source}</td>
+                        <td class="p-3 text-slate-500 text-xs">${new Date(copy.date_added).toLocaleDateString()}</td>
+                        <td class="p-3"></td>
+                    </tr>
+                `;
+            });
 
             // 2. Render Unsaved Copies
             window.unsavedCopies.forEach((copy, idx) => {
@@ -1329,8 +1343,16 @@
             renderAllCopies();
         }
 
+        window.updateExistingCopy = function(materialId, field, value) {
+            if (!window.editedCopies[materialId]) {
+                const copy = window.dbCopies.find(c => c.material_id === materialId);
+                window.editedCopies[materialId] = { condition: copy.condition, location: copy.location };
+            }
+            window.editedCopies[materialId][field] = value;
+        }
+
         window.saveNewCopies = async function() {
-            if (window.unsavedCopies.length === 0) {
+            if (window.unsavedCopies.length === 0 && Object.keys(window.editedCopies).length === 0) {
                 closeModal('copies-modal');
                 return;
             }
@@ -1338,27 +1360,44 @@
             const adminId = localStorage.getItem('adminId');
 
             try {
-                const response = await fetch('http://localhost:3000/api/books/copies/add', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        item_id: window.currentCopiesContext.itemId,
-                        material_type: window.currentCopiesContext.type,
-                        copies: window.unsavedCopies,
-                        adminId: adminId
-                    })
-                });
-
-                const result = await response.json();
-                if (result.success) {
-                    window.showCustomAlert(result.message, () => {
-                        // Refresh the modal to show newly generated DB IDs
-                        openCopiesModal(window.currentCopiesContext.itemId, window.currentCopiesContext.type, window.currentCopiesContext.title);
-                        loadBooks(); // Refresh background grid stats
+                let addedResult = null;
+                if (window.unsavedCopies.length > 0) {
+                    const response = await fetch('http://localhost:3000/api/books/copies/add', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            item_id: window.currentCopiesContext.itemId,
+                            material_type: window.currentCopiesContext.type,
+                            copies: window.unsavedCopies,
+                            adminId: adminId
+                        })
                     });
-                } else {
-                    throw new Error(result.message);
+                    addedResult = await response.json();
+                    if (!addedResult.success) throw new Error(addedResult.message);
                 }
+
+                if (Object.keys(window.editedCopies).length > 0) {
+                    const updates = Object.entries(window.editedCopies).map(([id, data]) => ({
+                        material_id: id,
+                        ...data
+                    }));
+                    const response = await fetch('http://localhost:3000/api/books/copies/update', {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            material_type: window.currentCopiesContext.type,
+                            updates: updates,
+                            adminId: adminId
+                        })
+                    });
+                    const result = await response.json();
+                    if (!result.success) throw new Error(result.message);
+                }
+
+                window.showCustomAlert(addedResult ? addedResult.message : "Changes saved successfully.", () => {
+                    openCopiesModal(window.currentCopiesContext.itemId, window.currentCopiesContext.type, window.currentCopiesContext.title);
+                    loadBooks(); // Refresh background grid stats
+                });
             } catch (error) {
                 window.showCustomAlert("Failed to save copies: " + error.message);
             }

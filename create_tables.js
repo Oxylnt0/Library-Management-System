@@ -139,9 +139,9 @@ async function createAllTables() {
             copy_id INTEGER PRIMARY KEY AUTOINCREMENT,
             book_id INT NOT NULL,
             material_id INT NOT NULL,
-            book_source VARCHAR(50) DEFAULT 'Purchased',
-            book_condition VARCHAR(50) DEFAULT 'New',
-            status VARCHAR(20) DEFAULT 'Available',
+            book_source VARCHAR(50) NOT NULL CHECK (book_source IN ('Purchased', 'Donated')),
+            book_condition VARCHAR(50) DEFAULT 'New' CHECK (book_condition IN ('New', 'Moderate Damage', 'Severe Damage', 'Outdated', 'Obsolete')),
+            status VARCHAR(20) DEFAULT 'Available' CHECK (status IN ('Available', 'Borrowed', 'Archived', 'Lost', 'Donated Outbound')),
             location VARCHAR(100),
             date_added DATE DEFAULT CURRENT_DATE,
             FOREIGN KEY (book_id) REFERENCES BOOK(book_id) ON DELETE CASCADE,
@@ -155,9 +155,9 @@ async function createAllTables() {
             publication_date DATE,
             issue_no VARCHAR(50) NOT NULL,
             volume_no VARCHAR(50),
-            periodical_source VARCHAR(50) DEFAULT 'Purchased' CHECK (periodical_source IN ('Purchased', 'Donated')),
-            periodical_condition VARCHAR(50) DEFAULT 'New',
-            status VARCHAR(20) DEFAULT 'Available',
+            periodical_source VARCHAR(50) NOT NULL CHECK (periodical_source IN ('Purchased', 'Donated')),
+            periodical_condition VARCHAR(50) DEFAULT 'New' CHECK (periodical_condition IN ('New', 'Moderate Damage', 'Severe Damage', 'Outdated', 'Obsolete')),
+            status VARCHAR(20) DEFAULT 'Available' CHECK (status IN ('Available', 'Borrowed', 'Archived', 'Lost', 'Donated Outbound')),
             location VARCHAR(100),
             date_added DATE DEFAULT CURRENT_DATE,
             FOREIGN KEY (periodical_id) REFERENCES PERIODICAL(periodical_id) ON DELETE CASCADE,
@@ -205,13 +205,16 @@ async function createAllTables() {
         );
 
         CREATE TABLE ANNOUNCEMENT (
-            announcement_id INTEGER PRIMARY KEY AUTOINCREMENT,
-            admin_id INT NOT NULL,
-            title VARCHAR(255) NOT NULL,
-            content TEXT NOT NULL,
-            date_posted DATETIME DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (admin_id) REFERENCES ADMIN(admin_id)
-        );
+                announcement_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                admin_id INT NOT NULL,
+                title VARCHAR(255) NOT NULL,
+                content TEXT NOT NULL,
+                priority VARCHAR(20) DEFAULT 'Normal' CHECK (priority IN ('Normal', 'High', 'Urgent')),
+                status VARCHAR(20) DEFAULT 'Published' CHECK (status IN ('Draft', 'Published', 'Archived')),
+                date_posted DATETIME DEFAULT CURRENT_TIMESTAMP,
+                valid_until DATETIME,
+                FOREIGN KEY (admin_id) REFERENCES ADMIN(admin_id)
+            );
 
         CREATE TABLE SECURITY_QUESTIONS (
             security_id INTEGER PRIMARY KEY AUTOINCREMENT,

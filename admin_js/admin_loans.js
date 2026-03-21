@@ -426,7 +426,7 @@
                     // Check for damage selection
                     const radios = document.getElementsByName(`damage_${borrowId}`);
                     let damageAmount = 0;
-                    let damageType = null;
+                    let damageType = 'None';
 
                     if (radios.length > 0) {
                         for (const r of radios) {
@@ -448,11 +448,26 @@
                         args: [borrowId]
                     });
 
-                    // Update Book Status
-                    await db.execute({
-                        sql: "UPDATE BOOK_COPY SET status = 'Available' WHERE material_id = ?",
+                    // Update Book/Periodical Status and Condition
+                    const matRes = await db.execute({
+                        sql: "SELECT material_type FROM MATERIAL WHERE material_id = ?",
                         args: [materialId]
                     });
+                    const matType = matRes.rows[0]?.material_type || 'Book';
+                    const table = matType === 'Book' ? 'BOOK_COPY' : 'PERIODICAL_COPY';
+                    const condField = matType === 'Book' ? 'book_condition' : 'periodical_condition';
+
+                    if (damageType && damageType !== 'None') {
+                        await db.execute({
+                            sql: `UPDATE ${table} SET status = 'Available', ${condField} = ? WHERE material_id = ?`,
+                            args: [damageType, materialId]
+                        });
+                    } else {
+                        await db.execute({
+                            sql: `UPDATE ${table} SET status = 'Available' WHERE material_id = ?`,
+                            args: [materialId]
+                        });
+                    }
 
                     // Insert Fines
                     if (overdueAmount > 0) {
