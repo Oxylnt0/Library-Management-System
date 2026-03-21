@@ -119,7 +119,7 @@
 <body class="text-slate-800 h-screen overflow-hidden flex flex-col bg-[#e6e0d4] relative">
 
     <!-- Background Image -->
-    <div class="fixed inset-0 z-0 pointer-events-none bg-cover bg-center bg-no-repeat" style="background-image: url('../assets/background.png');"></div>
+    <div class="fixed inset-0 z-0 pointer-events-none bg-cover bg-center bg-no-repeat" style="background-image: url('../Assets/background.png');"></div>
 
     <div id="page-container" class="flex flex-col flex-1 overflow-hidden transition-opacity duration-500 ease-in-out opacity-100">
         <!-- ================= NAVBAR ================= -->
@@ -130,7 +130,7 @@
             <div class="w-full px-8 flex justify-between items-center relative z-10">
                 <!-- Left: Logo -->
                 <div class="flex items-center gap-3 cursor-pointer w-1/4" onclick="showSection('home')">
-                    <img src="../assets/library_logo.jpg" class="w-10 h-10 rounded-full border-2 border-[#D4AF37]" alt="Logo">
+                    <img src="../Assets/library_logo.jpg" class="w-10 h-10 rounded-full border-2 border-[#D4AF37]" alt="Logo">
                     <span class="font-cinzel font-bold text-lg tracking-wide text-[#D4AF37] whitespace-nowrap">Puerto Palabra Library</span>
                 </div>
 
@@ -768,7 +768,7 @@
                 return `
                     <div class="group cursor-pointer" onclick="openBookDetails(${book.item_id}, '${book.material_type}')">
                         <div class="rounded-xl aspect-[2/3] overflow-hidden shadow-md group-hover:shadow-xl group-hover:-translate-y-1 transition-all bg-gray-200 relative">
-                            <img src="${book.image_url || '../assets/book_placeholder.png'}" 
+                            <img src="${book.image_url || '../Assets/book_placeholder.png'}" 
                                 onerror="this.src='https://placehold.co/200x300?text=No+Cover'"
                                 class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
                             ${book.age_restriction ? `<div class="absolute top-2 left-2 bg-red-600 text-white text-[10px] font-bold px-2 py-1 rounded shadow-sm">${book.age_restriction}+</div>` : ''}
@@ -895,7 +895,7 @@
                     <div class="${cardBg} rounded-xl shadow-sm border p-4 flex flex-col gap-4 hover:shadow-md transition-shadow group h-full">
                         <div class="flex gap-4 flex-1">
                             <div class="w-24 h-36 bg-slate-200 rounded-lg border flex-shrink-0 flex items-center justify-center text-xs text-slate-400 overflow-hidden relative">
-                                <img src="${book.image_url || '../assets/default_book.png'}" 
+                                <img src="${book.image_url || '../Assets/default_book.png'}" 
                                     class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                                     onerror="this.src='https://placehold.co/200x300?text=No+Cover'">
                                 ${book.age_restriction ? `<div class="absolute top-1 left-1 bg-red-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded shadow-sm">${book.age_restriction}+</div>` : ''}
@@ -1042,7 +1042,7 @@
                 const content = `
                     <div class="flex flex-col md:flex-row gap-8">
                         <div class="w-full md:w-1/3 flex-shrink-0">
-                            <img src="${book.image_url || '../assets/book_placeholder.png'}" class="w-full rounded-lg shadow-lg object-cover aspect-[2/3]" onerror="this.src='https://placehold.co/200x300?text=No+Cover'">
+                            <img src="${book.image_url || '../Assets/book_placeholder.png'}" class="w-full rounded-lg shadow-lg object-cover aspect-[2/3]" onerror="this.src='https://placehold.co/200x300?text=No+Cover'">
                             <div class="mt-4 text-center">
                                 <span class="px-3 py-1 rounded-full text-sm font-bold ${book.available_copies > 0 ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}">${book.available_copies > 0 ? 'Available' : 'Borrowed'}</span>
                             </div>

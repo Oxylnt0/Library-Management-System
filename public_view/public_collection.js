@@ -55,7 +55,7 @@ function renderBooks(books) {
     }
 
     books.forEach(book => {
-        const imageUrl = book.image_url || '../assets/book_placeholder.png'; // Fallback image
+        const imageUrl = book.image_url || '../Assets/book_placeholder.png'; // Fallback image
         
         const card = document.createElement('div');
         card.className = 'group cursor-pointer';

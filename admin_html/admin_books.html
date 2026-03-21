@@ -20,7 +20,7 @@
 <body class="text-slate-800 h-screen overflow-hidden bg-[#e6e0d4]">
 
     <!-- Background Image -->
-    <div class="fixed inset-0 z-0 pointer-events-none bg-cover bg-center bg-no-repeat" style="background-image: url('../assets/background.png');"></div>
+    <div class="fixed inset-0 z-0 pointer-events-none bg-cover bg-center bg-no-repeat" style="background-image: url('../Assets/background.png');"></div>
 
     <!-- APP LAYOUT -->
     <div class="flex h-screen w-screen overflow-hidden relative z-10">
@@ -671,8 +671,8 @@
       {
         const path = require('path');
         // Adjust path to point to root db_config.js using process.cwd() for reliability
-        const { db } = require(path.join(process.cwd(), 'db_config.js'));
-        const { logAdminAction } = require(path.join(process.cwd(), 'audit_service.js'));
+        const { db } = require('../db_config.js');
+        const { logAdminAction } = require('../audit_service.js');
 
         let isArchivedView = false;
         let currentSearchTerm = '';

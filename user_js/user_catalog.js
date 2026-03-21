@@ -185,7 +185,7 @@
             card.innerHTML = `
                 <div class="flex gap-4 flex-1 cursor-pointer" onclick="openBookDetails(${book.item_id}, '${book.material_type}')">
                     <div class="w-24 h-36 bg-slate-200 rounded-lg border flex-shrink-0 flex items-center justify-center text-xs text-slate-400 overflow-hidden relative">
-                        <img src="${book.image_url || '../assets/default_book.png'}" 
+                        <img src="${book.image_url || '../Assets/default_book.png'}" 
                             class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                             onerror="this.src='https://placehold.co/200x300?text=No+Cover'">
                         ${book.age_restriction ? `<div class="absolute top-1 left-1 bg-red-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded shadow-sm">${book.age_restriction}+</div>` : ''}

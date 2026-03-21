@@ -1,7 +1,7 @@
 const path = require('path');
-const { db } = require(path.join(process.cwd(), 'db_config.js'));
-const { sendAccountStatusEmail, sendOtpEmail } = require(path.join(process.cwd(), 'email_service.js'));
-const { logUserAction, logGuardianAction } = require(path.join(process.cwd(), 'audit_service.js'));
+const { db } = require('./db_config.js');
+const { sendAccountStatusEmail, sendOtpEmail } = require('./email_service.js');
+const { logUserAction, logGuardianAction } = require('./audit_service.js');
 
 async function generateAndSendRegistrationOTP(email) {
     // Delete old registration OTPs for this email to prevent clogging

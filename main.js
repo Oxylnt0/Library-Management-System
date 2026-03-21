@@ -1,6 +1,10 @@
 const { app, BrowserWindow } = require('electron');
 const path = require('path');
 
+const resourcePath = app.isPackaged 
+  ? process.resourcesPath 
+  : __dirname;
+
 // Start the Backend Express Server automatically
 require('./server.js');
 

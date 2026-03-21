@@ -230,7 +230,7 @@
 <body class="text-slate-800 min-h-screen flex flex-col bg-[#e6e0d4] relative overflow-hidden">
 
     <!-- Background Image -->
-    <div class="fixed inset-0 z-0 pointer-events-none bg-cover bg-center bg-no-repeat" style="background-image: url('../assets/background.png');"></div>
+    <div class="fixed inset-0 z-0 pointer-events-none bg-cover bg-center bg-no-repeat" style="background-image: url('../Assets/background.png');"></div>
 
     <!-- Water Particles -->
     <div class="fixed inset-0 z-0 pointer-events-none overflow-hidden">
@@ -259,7 +259,7 @@
 
             <!-- Left Base (Inside Front Cover) -->
             <div class="paper left-base">
-                <img src="../assets/library_logo.jpg" alt="Logo" class="w-32 h-32 object-cover rounded-full border-4 border-[#D6A84A] shadow-xl mb-6">
+                <img src="../Assets/library_logo.jpg" alt="Logo" class="w-32 h-32 object-cover rounded-full border-4 border-[#D6A84A] shadow-xl mb-6">
                 <h2 class="text-3xl font-bold text-[#183B5B] font-cinzel text-center mb-2">Welcome Back</h2>
                 <p class="text-center text-slate-600 italic">"A library is a harbor for the mind."</p>
                 <div class="mt-8 text-sm text-[#183B5B]/70 text-center">
@@ -317,7 +317,7 @@
     <script>
       {
         const path = require('path');
-        const { login } = require(path.join(process.cwd(), 'auth.js'));
+        const { login } = require('../auth.js');
 
         function showCustomAlert(message, callback) {
             const alertBox = document.getElementById('custom-alert');

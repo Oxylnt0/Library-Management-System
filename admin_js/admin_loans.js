@@ -1,8 +1,8 @@
 (() => {
     try {
         const path = require('path');
-        const { db } = require(path.join(process.cwd(), 'db_config.js'));
-        const { logAdminAction } = require(path.join(process.cwd(), 'audit_service.js'));
+        const { db } = require('../db_config.js');
+        const { logAdminAction } = require('../audit_service.js');
 
         // Initialize
         let historyData = [];

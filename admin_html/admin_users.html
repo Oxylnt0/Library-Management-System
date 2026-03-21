@@ -20,7 +20,7 @@
 <body class="text-slate-800 h-screen overflow-hidden bg-[#e6e0d4]">
 
     <!-- Background Image -->
-    <div class="fixed inset-0 z-0 pointer-events-none bg-cover bg-center bg-no-repeat" style="background-image: url('../assets/background.png');"></div>
+    <div class="fixed inset-0 z-0 pointer-events-none bg-cover bg-center bg-no-repeat" style="background-image: url('../Assets/background.png');"></div>
 
     <div class="flex h-screen w-screen overflow-hidden relative z-10">
 
@@ -260,7 +260,7 @@
     <script>
       {
         const path = require('path');
-        const { db } = require(path.join(process.cwd(), 'db_config.js'));
+        const { db } = require('../db_config.js');
 
         let allUsers = []; // Store users for client-side filtering
         let currentSearchTerm = '';
@@ -357,7 +357,8 @@
                     const children = allChildren.filter(c => c.guardian_id === user.user_id && user.account_type === 'Guardian');
                     
                     const isBanned = user.status === 'Suspended' || user.status === 'Banned';
-                    if (isBanned) suspendedCount++;
+                    const isFinancial = user.ban_reason && user.ban_reason.includes('Unpaid Fines');
+                    if (isBanned && isFinancial) suspendedCount++;
 
                     let statusHtml = '';
                     if (user.status === 'Pending') {

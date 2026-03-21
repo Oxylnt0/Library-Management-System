@@ -709,6 +709,21 @@ app.post('/api/borrow/kiosk', async (req, res) => {
             return res.status(403).json({ success: false, message: "Your account is suspended. Please settle your fines." });
         }
 
+        // Enforce Max Books Limit
+        const limitCheckRes = await db.execute({
+            sql: `SELECT 
+                    (SELECT COUNT(*) FROM BORROW_TRANSACTION WHERE user_id = ? AND status IN ('Pending', 'Borrowed', 'Overdue')) +
+                    (SELECT COUNT(*) FROM RESERVATION WHERE user_id = ? AND status IN ('Pending', 'Approved')) as total_active`,
+            args: [user_id, user_id]
+        });
+        const totalActive = limitCheckRes.rows[0].total_active || 0;
+        const policyRes = await db.execute("SELECT policy_value FROM LENDING_POLICIES WHERE policy_name = 'Max Books per Student'");
+        const maxBooks = policyRes.rows[0]?.policy_value || 3;
+
+        if (totalActive >= maxBooks) {
+            return res.status(403).json({ success: false, message: `You have reached the maximum limit of ${maxBooks} concurrent materials.` });
+        }
+
         const copyRes = await db.execute({
             sql: "SELECT bc.material_id, b.title, b.book_id FROM BOOK_COPY bc JOIN BOOK b ON bc.book_id = b.book_id WHERE bc.material_id = ? AND bc.status = 'Available'",
             args: [material_id]
@@ -830,6 +845,21 @@ app.post('/api/waitlist', async (req, res) => {
         });
         if (userCheck.rows.length > 0 && userCheck.rows[0].status === 'Suspended') {
             return res.status(403).json({ success: false, message: "Your account is suspended. Please settle your fines." });
+        }
+
+        // Enforce Max Books Limit
+        const limitCheckRes = await db.execute({
+            sql: `SELECT 
+                    (SELECT COUNT(*) FROM BORROW_TRANSACTION WHERE user_id = ? AND status IN ('Pending', 'Borrowed', 'Overdue')) +
+                    (SELECT COUNT(*) FROM RESERVATION WHERE user_id = ? AND status IN ('Pending', 'Approved')) as total_active`,
+            args: [user_id, user_id]
+        });
+        const totalActive = limitCheckRes.rows[0].total_active || 0;
+        const policyRes = await db.execute("SELECT policy_value FROM LENDING_POLICIES WHERE policy_name = 'Max Books per Student'");
+        const maxBooks = policyRes.rows[0]?.policy_value || 3;
+
+        if (totalActive >= maxBooks) {
+            return res.status(403).json({ success: false, message: `You have reached the maximum limit of ${maxBooks} concurrent materials.` });
         }
 
         let matRes;
@@ -977,7 +1007,7 @@ app.get('/api/fines', async (req, res) => {
             JOIN BORROW_TRANSACTION b ON f.borrow_id = b.borrow_id 
             JOIN USER u ON b.user_id = u.user_id 
             LEFT JOIN GUARDIAN_NAME g ON u.guardian_id = g.guardian_id
-            WHERE f.status = 'Unpaid' AND u.status NOT IN ('Suspended', 'Banned')
+            WHERE f.status = 'Unpaid' AND b.borrow_type = 'Outside Library' AND u.status NOT IN ('Suspended', 'Banned')
         `);
 
         if (candidates.rows.length > 0) {
@@ -1266,7 +1296,7 @@ app.post('/api/fines/pay', async (req, res) => {
                 const countRes = await db.execute({
                     sql: `SELECT COUNT(*) as count FROM FINE f 
                           JOIN BORROW_TRANSACTION b ON f.borrow_id = b.borrow_id 
-                          WHERE b.user_id = ? AND f.status = 'Unpaid'`,
+                          WHERE b.user_id = ? AND f.status = 'Unpaid' AND b.borrow_type = 'Outside Library'`,
                     args: [userId]
                 });
 
@@ -2457,7 +2487,7 @@ app.post('/api/admin/process-suspensions', async (req, res) => {
             JOIN BORROW_TRANSACTION b ON f.borrow_id = b.borrow_id 
             JOIN USER u ON b.user_id = u.user_id 
             LEFT JOIN GUARDIAN_NAME g ON u.guardian_id = g.guardian_id
-            WHERE f.status = 'Unpaid' AND u.status NOT IN ('Suspended', 'Banned')
+            WHERE f.status = 'Unpaid' AND b.borrow_type = 'Outside Library' AND u.status NOT IN ('Suspended', 'Banned')
         `);
 
         if (candidates.rows.length > 0) {

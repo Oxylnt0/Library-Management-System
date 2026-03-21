@@ -1,5 +1,5 @@
 const path = require('path');
-const { db } = require(path.join(process.cwd(), 'db_config.js'));
+const { db } = require('./db_config.js');
 
 async function logUserAction(userId, action, targetTable, targetId, details) {
     try {
