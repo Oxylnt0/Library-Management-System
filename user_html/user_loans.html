@@ -329,9 +329,19 @@
                     today.setHours(0,0,0,0);
                     dueDate.setHours(0,0,0,0);
                     
-                    const isOverdue = loan.status === 'Overdue' || (loan.status !== 'Returned' && loan.status !== 'Pending' && today > dueDate);
+                    let isOverdue = loan.status === 'Overdue' || (loan.status !== 'Returned' && loan.status !== 'Pending' && today > dueDate);
                     const diffDays = Math.round((dueDate - today) / (1000 * 60 * 60 * 24));
-                    const isDueSoon = !isOverdue && loan.status !== 'Returned' && diffDays <= 3;
+                    
+                    if (diffDays === 0 && loan.status !== 'Returned' && loan.status !== 'Pending') {
+                        const now = new Date();
+                        const day = dueDate.getDay();
+                        const closeHour = day === 6 ? 16 : 18;
+                        if (now.getHours() >= closeHour) {
+                            isOverdue = true;
+                        }
+                    }
+                    
+                    const isDueSoon = !isOverdue && loan.status !== 'Returned' && loan.status !== 'Pending' && diffDays >= 0 && diffDays <= 3;
                     
                     let statusLabel = 'On Time';
                     let statusClasses = 'bg-[#5B8C5A]/10 text-[#5B8C5A] border-[#5B8C5A]/20';
@@ -362,11 +372,10 @@
                     if (loan.status === 'Pending' && loan.expires_at) {
                         dueDateStr = "Expires: " + new Date(loan.expires_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
                     } else if (loan.due_date) {
-                        if (loan.borrow_type === 'Inside Library') {
-                            const d = new Date(loan.due_date);
-                            const day = d.getDay();
+                        if (diffDays === 0) {
+                            const day = dueDate.getDay();
                             const closeTime = day === 6 ? '4:00 PM' : '6:00 PM';
-                            dueDateStr = `Today by ${closeTime}`;
+                            dueDateStr = isOverdue ? `Overdue (was due by ${closeTime})` : `Today by ${closeTime}`;
                         } else {
                             dueDateStr = new Date(loan.due_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
                         }

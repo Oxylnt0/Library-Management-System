@@ -342,23 +342,30 @@
                     const diffTime = dueDate - today;
                     const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
                     
+                    let isOverdue = loan.status === 'Overdue' || diffDays < 0;
+
+                    if (diffDays === 0 && loan.status !== 'Returned' && loan.status !== 'Pending') {
+                        const now = new Date();
+                        const day = dueDate.getDay();
+                        const closeHour = day === 6 ? 16 : 18;
+                        if (now.getHours() >= closeHour) {
+                            isOverdue = true;
+                        }
+                    }
+
                     let statusText = '';
                     let statusColor = '';
                     let barColor = '';
 
-                    if (diffDays < 0) {
-                        statusText = `Overdue by ${Math.abs(diffDays)} days`;
+                    if (isOverdue) {
+                        statusText = diffDays < 0 ? `Overdue by ${Math.abs(diffDays)} days` : 'Overdue today';
                         statusColor = 'text-[#C05640]';
                         barColor = 'bg-[#C05640]';
                         percent = 100;
                     } else if (diffDays === 0) {
-                        if (loan.borrow_type === 'Inside Library') {
-                            const day = dueDate.getDay();
-                            const closeTime = day === 6 ? '4:00 PM' : '6:00 PM';
-                            statusText = `Due today by ${closeTime}`;
-                        } else {
-                            statusText = 'Due today';
-                        }
+                        const day = dueDate.getDay();
+                        const closeTime = day === 6 ? '4:00 PM' : '6:00 PM';
+                        statusText = `Due today by ${closeTime}`;
                         statusColor = 'text-[#C05640]';
                         barColor = 'bg-[#C05640]';
                     } else {

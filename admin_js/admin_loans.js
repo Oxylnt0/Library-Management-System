@@ -498,22 +498,31 @@
         async function fetchOverdueBooks() {
             try {
                 const overdueRes = await db.execute({
-                    sql: `SELECT bt.due_date as date_field, b.title, u.first_name, u.last_name 
+                    sql: `SELECT bt.user_id, bt.status, bt.borrow_type, bt.due_date as date_field, b.title, u.first_name, u.last_name 
                           FROM BORROW_TRANSACTION bt 
                           JOIN BOOK_COPY bc ON bt.material_id = bc.material_id
                           JOIN BOOK b ON bc.book_id = b.book_id 
                           JOIN USER u ON bt.user_id = u.user_id 
-                          WHERE bt.status = 'Overdue' OR (bt.status = 'Borrowed' AND bt.due_date < DATE('now', '+8 hours'))
+                          WHERE bt.status IN ('Borrowed', 'Overdue')
                           UNION ALL
-                          SELECT bt.due_date as date_field, p.title, u.first_name, u.last_name 
+                          SELECT bt.user_id, bt.status, bt.borrow_type, bt.due_date as date_field, p.title, u.first_name, u.last_name 
                           FROM BORROW_TRANSACTION bt 
                           JOIN PERIODICAL_COPY pc ON bt.material_id = pc.material_id
                           JOIN PERIODICAL p ON pc.periodical_id = p.periodical_id 
                           JOIN USER u ON bt.user_id = u.user_id 
-                          WHERE bt.status = 'Overdue' OR (bt.status = 'Borrowed' AND bt.due_date < DATE('now', '+8 hours'))`
+                          WHERE bt.status IN ('Borrowed', 'Overdue')`
                 });
                 overdueData = overdueRes.rows;
                 applyFilters();
+                
+                setTimeout(() => {
+                    const tabs = document.querySelectorAll('button');
+                    tabs.forEach(tab => {
+                        if (tab.innerText.trim() === 'Overdue Books' || tab.innerText.includes('Overdue')) {
+                            if (!tab.innerText.includes('Active')) tab.innerText = 'Active & Overdue';
+                        }
+                    });
+                }, 100);
             } catch (error) {
                 console.error("Error fetching overdue books:", error);
             }
@@ -568,10 +577,23 @@
                         <td class="p-4 text-slate-500">${new Date(item.date_field).toLocaleDateString()}</td>
                     `;
                 } else {
+                    let isOverdue = item.status === 'Overdue';
+                    if (!isOverdue && item.date_field) {
+                        const d1 = new Date(item.date_field); d1.setHours(0,0,0,0);
+                        const d2 = new Date(); d2.setHours(0,0,0,0);
+                        isOverdue = d1 < d2;
+                    }
+                    const dateColor = isOverdue ? 'text-red-600' : 'text-slate-600';
+                    const actionBtn = item.borrow_type === 'Inside Library' ? `<button onclick="onUserQrScanned('U-${item.user_id}', 'return')" class="px-3 py-1.5 bg-[#183B5B] text-[#D6A84A] text-xs font-bold rounded-full hover:bg-[#2E5F87] transition shadow-sm ml-3 whitespace-nowrap">Process Return</button>` : '';
                     row.innerHTML = `
                         <td class="p-4 font-medium text-slate-800">${item.first_name} ${item.last_name}</td>
                         <td class="p-4 text-slate-600">${item.title}</td>
-                        <td class="p-4 text-red-600 font-bold">${new Date(item.date_field).toLocaleDateString()}</td>
+                        <td class="p-4">
+                            <div class="flex items-center justify-between">
+                                <span class="${dateColor} font-bold">${new Date(item.date_field).toLocaleDateString()}</span>
+                                ${actionBtn}
+                            </div>
+                        </td>
                     `;
                 }
                 tbody.appendChild(row);

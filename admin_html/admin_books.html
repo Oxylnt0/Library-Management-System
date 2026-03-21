@@ -545,7 +545,7 @@
                     <div class="bg-white rounded-xl shadow-2xl w-full max-w-4xl p-6 transform transition-all scale-100 max-h-[90vh] flex flex-col">
                         <div class="flex justify-between items-start mb-4 shrink-0">
                             <div>
-                                <h3 class="text-2xl font-cinzel text-[#183B5B]">Material Availability</h3>
+                                <h3 class="text-2xl font-cinzel text-[#183B5B]">Physical Inventory</h3>
                                 <p class="text-sm text-slate-500 font-bold" id="copies-modal-title">Book Title</p>
                             </div>
                             <button onclick="closeModal('copies-modal')" class="text-slate-400 hover:text-slate-600">
@@ -903,7 +903,7 @@
                             <div class="flex items-center gap-2">
                                 <button onclick="openCopiesModal(${itemId}, '${item.material_type}', '${safeTitle}')"
                                     class="text-xs font-bold bg-blue-50 text-blue-700 hover:bg-blue-100 px-3 py-1.5 rounded-full transition-colors shadow-sm border border-blue-100">
-                                    Availability
+                                    Manage Copies
                                 </button>
                                 <button onclick="openBookDetails(${itemId}, '${item.material_type}')"
                                     class="text-xs font-bold bg-slate-100 text-slate-600 hover:bg-slate-200 px-3 py-1.5 rounded-full transition-colors shadow-sm border border-slate-200">
