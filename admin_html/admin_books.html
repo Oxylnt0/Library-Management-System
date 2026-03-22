@@ -1191,9 +1191,9 @@
             try {
                 let sql = "";
                 if (type === 'Book') {
-                    sql = "SELECT material_id, status, book_condition as condition, location, book_source as source, date_added FROM BOOK_COPY WHERE book_id = ?";
+                    sql = "SELECT material_id, status, book_condition as condition, location, book_source as source, date_added FROM BOOK_COPY WHERE book_id = ? AND status != 'Donated Outbound'";
                 } else {
-                    sql = "SELECT material_id, status, periodical_condition as condition, location, periodical_source as source, date_added as date_added FROM PERIODICAL_COPY WHERE periodical_id = ?";
+                    sql = "SELECT material_id, status, periodical_condition as condition, location, periodical_source as source, date_added as date_added FROM PERIODICAL_COPY WHERE periodical_id = ? AND status != 'Donated Outbound'";
                 }
 
                 const res = await db.execute({ sql, args: [itemId] });
