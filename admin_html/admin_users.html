@@ -301,13 +301,17 @@
         let currentSort = 'newest';
 
         function toggleFilterMenu() {
-            document.getElementById('filter-menu').classList.toggle('hidden');
-            document.getElementById('sort-menu').classList.add('hidden');
+            const filterMenu = document.getElementById('filter-menu');
+            const sortMenu = document.getElementById('sort-menu');
+            if (filterMenu) filterMenu.classList.toggle('hidden');
+            if (sortMenu) sortMenu.classList.add('hidden');
         }
 
         function toggleSortMenu() {
-            document.getElementById('sort-menu').classList.toggle('hidden');
-            document.getElementById('filter-menu').classList.add('hidden');
+            const sortMenu = document.getElementById('sort-menu');
+            const filterMenu = document.getElementById('filter-menu');
+            if (sortMenu) sortMenu.classList.toggle('hidden');
+            if (filterMenu) filterMenu.classList.add('hidden');
         }
 
         function setFilter(filter) {

@@ -259,6 +259,20 @@
                             </label>
                         `;
                     });
+                    
+                    const hasLost = damageSettings.some(s => s.fine_type.toLowerCase().includes('lost'));
+                    if (!hasLost) {
+                        damageOptionsHtml += `
+                            <label class="flex items-center justify-between cursor-pointer hover:bg-red-50 p-1 rounded border border-transparent hover:border-red-200">
+                                <div class="flex items-center">
+                                    <input type="radio" name="damage_${borrow.borrow_id}" value="0|Lost" 
+                                        class="accent-red-600 w-4 h-4" onchange="updateTotal(${borrow.borrow_id}, 0)">
+                                    <span class="ml-2 text-sm font-bold text-red-600">Lost Material</span>
+                                </div>
+                                <span class="text-xs font-bold text-slate-500">₱0.00</span>
+                            </label>
+                        `;
+                    }
                     damageOptionsHtml += `</div></div>`;
 
                     html += `
@@ -441,11 +455,12 @@
                     
                     const baseOverdueEl = document.getElementById(`base-overdue-${borrowId}`);
                     const overdueAmount = baseOverdueEl ? parseFloat(baseOverdueEl.value) : 0;
+                    const isLost = damageType.toLowerCase().includes('lost');
 
                     // Update Borrow Transaction
                     await db.execute({
-                        sql: "UPDATE BORROW_TRANSACTION SET status = 'Returned', return_date = DATE('now', '+8 hours') WHERE borrow_id = ?",
-                        args: [borrowId]
+                        sql: "UPDATE BORROW_TRANSACTION SET status = ?, return_date = DATE('now', '+8 hours') WHERE borrow_id = ?",
+                        args: [isLost ? 'Lost' : 'Returned', borrowId]
                     });
 
                     // Update Book/Periodical Status and Condition
@@ -457,7 +472,12 @@
                     const table = matType === 'Book' ? 'BOOK_COPY' : 'PERIODICAL_COPY';
                     const condField = matType === 'Book' ? 'book_condition' : 'periodical_condition';
 
-                    if (damageType && damageType !== 'None') {
+                    if (isLost) {
+                        await db.execute({
+                            sql: `UPDATE ${table} SET status = 'Lost' WHERE material_id = ?`,
+                            args: [materialId]
+                        });
+                    } else if (damageType && damageType !== 'None') {
                         await db.execute({
                             sql: `UPDATE ${table} SET status = 'Available', ${condField} = ? WHERE material_id = ?`,
                             args: [damageType, materialId]
@@ -601,9 +621,14 @@
         }
 
         window.applyFilters = function() {
-            const startDate = document.getElementById('filter-start-date').value;
-            const endDate = document.getElementById('filter-end-date').value;
-            const sortOrder = document.getElementById('history-sort').value; // 'desc' or 'asc'
+            const startEl = document.getElementById('filter-start-date');
+            const endEl = document.getElementById('filter-end-date');
+            const sortEl = document.getElementById('history-sort');
+            if (!startEl || !endEl || !sortEl) return;
+            
+            const startDate = startEl.value;
+            const endDate = endEl.value;
+            const sortOrder = sortEl.value; // 'desc' or 'asc'
             
             const isHistory = (typeof window.currentActiveTab !== 'undefined' ? window.currentActiveTab : 'history') === 'history';
             const dataset = isHistory ? historyData : overdueData;
@@ -635,9 +660,12 @@
         }
 
         window.clearFilters = function() {
-            document.getElementById('filter-start-date').value = '';
-            document.getElementById('filter-end-date').value = '';
-            document.getElementById('history-sort').value = 'desc';
+            const startEl = document.getElementById('filter-start-date');
+            const endEl = document.getElementById('filter-end-date');
+            const sortEl = document.getElementById('history-sort');
+            if (startEl) startEl.value = '';
+            if (endEl) endEl.value = '';
+            if (sortEl) sortEl.value = 'desc';
             applyFilters();
         }
 

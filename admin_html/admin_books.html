@@ -684,18 +684,21 @@
         window.searchBooks = searchBooks;
 
         window.toggleAdvancedFilter = function() {
-            document.getElementById('advanced-filter-menu').classList.toggle('hidden');
+            const menu = document.getElementById('advanced-filter-menu');
+            if (menu) menu.classList.toggle('hidden');
         }
 
         window.clearFilters = function() {
-            document.querySelector('input[name="adv-filter-type"][value="all"]').checked = true;
+            const typeAll = document.querySelector('input[name="adv-filter-type"][value="all"]');
+            if (typeAll) typeAll.checked = true;
             document.querySelectorAll('.adv-filter-genre').forEach(cb => cb.checked = false);
-            loadBooks();
+            if (typeof loadBooks === 'function') loadBooks();
         }
 
         window.applyFilters = function() {
-            document.getElementById('advanced-filter-menu').classList.add('hidden');
-            loadBooks();
+            const menu = document.getElementById('advanced-filter-menu');
+            if (menu) menu.classList.add('hidden');
+            if (typeof loadBooks === 'function') loadBooks();
         }
 
         async function loadBooks() {
