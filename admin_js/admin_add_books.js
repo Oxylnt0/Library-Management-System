@@ -177,6 +177,15 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // Set maximum allowed date for Periodical publication date to today
+    if (inpPublicationDate) {
+        const today = new Date();
+        const yyyy = today.getFullYear();
+        const mm = String(today.getMonth() + 1).padStart(2, '0');
+        const dd = String(today.getDate()).padStart(2, '0');
+        inpPublicationDate.max = `${yyyy}-${mm}-${dd}`;
+    }
+
     // Retain previous material type selection if present in URL
     if (params.has('type') && inpType) {
         inpType.value = params.get('type');

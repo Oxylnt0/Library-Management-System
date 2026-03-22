@@ -138,12 +138,14 @@
 
     <!-- Payment Modal -->
     <div id="payment-modal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center backdrop-blur-sm">
-        <div class="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden transform transition-all scale-100">
-            <div class="bg-[#183B5B] p-4 text-white flex justify-between items-center">
-                <h3 class="font-bold text-lg">Process Cash Payment</h3>
-                <button onclick="closePaymentModal()" class="text-white/70 hover:text-white">&times;</button>
-            </div>
-            <div class="p-6 space-y-4">
+        <div class="bg-[#fdfbf7] border-2 border-[#D6A84A] rounded-lg p-6 max-w-md w-full shadow-2xl transform scale-100 transition-transform duration-300 relative overflow-hidden">
+            <div class="absolute top-0 left-0 w-16 h-16 border-t-4 border-l-4 border-[#183B5B]/20 rounded-tl-lg pointer-events-none"></div>
+            <div class="absolute bottom-0 right-0 w-16 h-16 border-b-4 border-r-4 border-[#183B5B]/20 rounded-br-lg pointer-events-none"></div>
+            
+            <button onclick="closePaymentModal()" class="absolute top-4 right-4 text-slate-400 hover:text-[#183B5B] transition-colors z-10 text-xl leading-none">&times;</button>
+            
+            <h3 class="text-xl font-bold text-[#183B5B] font-cinzel mb-4 text-center">Process Cash Payment</h3>
+            <div class="space-y-4 relative z-10">
                 <!-- Read Only Info -->
                 <div class="bg-slate-50 p-3 rounded-lg border border-slate-200 text-sm space-y-1">
                     <div class="flex justify-between"><span class="text-slate-500">Transaction ID:</span> <span class="font-mono font-bold text-slate-700" id="pay-borrow-id">#0</span></div>
@@ -184,8 +186,8 @@
 
                     <div class="mb-4">
                         <label class="block text-xs font-bold text-slate-500 mb-1">OR Number</label>
-                        <input type="text" id="pay-or" required placeholder="e.g. OR-2023-001"
-                            class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#183B5B] focus:border-[#183B5B]">
+                        <input type="text" id="pay-or" required readonly
+                            class="w-full px-3 py-2 bg-slate-100 text-slate-600 font-mono border border-slate-300 rounded-lg focus:outline-none">
                     </div>
 
                     <div class="mb-6">
@@ -205,15 +207,17 @@
 
     <!-- E-Wallet Modal -->
     <div id="ewallet-modal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center backdrop-blur-sm">
-        <div class="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden transform transition-all scale-100">
-            <div class="bg-indigo-600 p-4 text-white flex justify-between items-center">
-                <h3 class="font-bold text-lg flex items-center gap-2">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
-                    Pay with E-Wallet
-                </h3>
-                <button onclick="closeEWalletModal()" class="text-white/70 hover:text-white">&times;</button>
-            </div>
-            <div class="p-6 space-y-6">
+        <div class="bg-[#fdfbf7] border-2 border-[#D6A84A] rounded-lg p-6 max-w-md w-full shadow-2xl transform scale-100 transition-transform duration-300 relative overflow-hidden">
+            <div class="absolute top-0 left-0 w-16 h-16 border-t-4 border-l-4 border-[#183B5B]/20 rounded-tl-lg pointer-events-none"></div>
+            <div class="absolute bottom-0 right-0 w-16 h-16 border-b-4 border-r-4 border-[#183B5B]/20 rounded-br-lg pointer-events-none"></div>
+            
+            <button onclick="closeEWalletModal()" class="absolute top-4 right-4 text-slate-400 hover:text-[#183B5B] transition-colors z-10 text-xl leading-none">&times;</button>
+            
+            <h3 class="text-xl font-bold text-[#183B5B] font-cinzel mb-4 text-center flex items-center justify-center gap-2">
+                <svg class="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
+                Pay with E-Wallet
+            </h3>
+            <div class="space-y-6 relative z-10">
                 <div class="text-center">
                     <p class="text-sm text-slate-500 mb-1">Total Amount Due</p>
                     <p class="text-3xl font-bold text-slate-800" id="ewallet-amount">₱0.00</p>
@@ -508,7 +512,7 @@
             // Reset Inputs
             document.getElementById('pay-tendered').value = '';
             document.getElementById('pay-change').value = '';
-            document.getElementById('pay-or').value = '';
+            document.getElementById('pay-or').value = 'OR-' + Date.now().toString().slice(-6) + Math.floor(Math.random() * 1000).toString().padStart(3, '0');
             document.getElementById('pay-remarks').value = '';
 
             document.getElementById('payment-modal').classList.remove('hidden');

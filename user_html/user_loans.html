@@ -158,6 +158,20 @@
                     </div>
                 </div>
 
+                <!-- Custom Alert Modal -->
+                <div id="custom-alert" style="z-index: 9999;" class="fixed inset-0 hidden flex items-center justify-center bg-black/50 backdrop-blur-sm transition-opacity duration-300">
+                    <div class="bg-[#fdfbf7] border-2 border-[#D6A84A] rounded-lg p-8 max-w-sm w-full shadow-2xl transform scale-100 transition-transform duration-300 relative overflow-hidden">
+                        <div class="absolute top-0 left-0 w-16 h-16 border-t-4 border-l-4 border-[#183B5B]/20 rounded-tl-lg"></div>
+                        <div class="absolute bottom-0 right-0 w-16 h-16 border-b-4 border-r-4 border-[#183B5B]/20 rounded-br-lg"></div>
+                        
+                        <h3 id="custom-alert-title" class="text-xl font-bold text-[#183B5B] font-cinzel mb-4 text-center">Notification</h3>
+                        <p id="custom-alert-msg" class="text-slate-700 text-center mb-6 font-inter"></p>
+                        <div id="custom-alert-actions" class="flex justify-center gap-4">
+                            <!-- Buttons injected via JS -->
+                        </div>
+                    </div>
+                </div>
+
                 <script>
                     window.openLoanDetailsPanel = function(title, author, borrowed, due, status) {
                         document.getElementById('loan_details_title').textContent = title;
@@ -229,15 +243,16 @@
                             });
                             const result = await response.json();
                             if (result.success) {
-                                alert(result.message);
-                                closeExtensionPanel();
-                                window.loadUserLoans(); // Refresh list
+                                showCustomAlert(result.message, () => {
+                                    closeExtensionPanel();
+                                    window.loadUserLoans(); // Refresh list
+                                });
                             } else {
-                                alert("Error: " + result.message);
+                                showCustomAlert("Error: " + result.message);
                             }
                         } catch (error) {
                             console.error("Extension error:", error);
-                            alert("Failed to process request.");
+                            showCustomAlert("Failed to process request.");
                         }
                     }
                 </script>
