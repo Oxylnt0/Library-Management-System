@@ -49,8 +49,8 @@ async function registerUser(userData) {
         const result = await db.execute({
             sql: `INSERT INTO USER (
                 first_name, last_name, middle_initial, email, contact_number, 
-                address, birth_date, password, guardian_id
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, NULL) RETURNING user_id`,
+                address, birth_date, password, guardian_id, email_verified
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, NULL, ?) RETURNING user_id`,
             args: [
                 userData.firstName,
                 userData.lastName,
@@ -59,7 +59,8 @@ async function registerUser(userData) {
                 userData.contact,
                 userData.address,
                 userData.birthDate,
-                userData.password
+                userData.password,
+                userData.email ? 0 : 1
             ]
         });
 
@@ -98,8 +99,8 @@ async function registerGuardian(guardianData, childrenData) {
         const guardianResult = await db.execute({
             sql: `INSERT INTO GUARDIAN_NAME (
                 first_name, last_name, middle_initial, birth_date, 
-                email, contact_number, address, password
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?) RETURNING guardian_id`,
+                email, contact_number, address, password, email_verified
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING guardian_id`,
             args: [
                 guardianData.firstName,
                 guardianData.lastName,
@@ -108,7 +109,8 @@ async function registerGuardian(guardianData, childrenData) {
                 guardianData.email,
                 guardianData.contact,
                 guardianData.address,
-                guardianData.password
+                guardianData.password,
+                guardianData.email ? 0 : 1
             ]
         });
         
@@ -160,12 +162,15 @@ async function registerGuardian(guardianData, childrenData) {
     }
 }
 
-async function login(email, password) {
+async function login(identifier, password) {
     try {
+        const isEmail = identifier.includes('@');
+        let userCondition = isEmail ? "LOWER(email) = LOWER(?)" : "LOWER(first_name || ' ' || last_name) = LOWER(?)";
+
         // Check User Table
         const userResult = await db.execute({
-            sql: "SELECT * FROM USER WHERE email = ? AND password = ?",
-            args: [email, password]
+            sql: `SELECT * FROM USER WHERE ${userCondition} AND password = ?`,
+            args: [identifier, password]
         });
 
         if (userResult.rows.length > 0) {
@@ -180,8 +185,8 @@ async function login(email, password) {
 
         // Check Guardian Table
         const guardianResult = await db.execute({
-            sql: "SELECT * FROM GUARDIAN_NAME WHERE email = ? AND password = ?",
-            args: [email, password]
+            sql: `SELECT * FROM GUARDIAN_NAME WHERE ${userCondition} AND password = ?`,
+            args: [identifier, password]
         });
 
         if (guardianResult.rows.length > 0) {

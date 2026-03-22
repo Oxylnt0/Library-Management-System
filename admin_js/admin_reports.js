@@ -195,38 +195,66 @@
         });
     }
 
-    function exportData(format) {
+    function loadScript(src) {
+        return new Promise((resolve, reject) => {
+            if (document.querySelector(`script[src="${src}"]`)) {
+                resolve();
+                return;
+            }
+            const script = document.createElement('script');
+            script.src = src;
+            script.onload = resolve;
+            script.onerror = reject;
+            document.head.appendChild(script);
+        });
+    }
+
+    async function exportData(format) {
         if (currentData.length === 0) {
             alert("No data to export.");
             return;
         }
 
         if (format === 'pdf') {
-            if (!window.jspdf) {
-                alert("PDF Library not loaded yet. Please try again in a moment.");
-                return;
+            const btn = document.getElementById('btn-export-pdf');
+            const origText = btn ? btn.innerHTML : 'PDF';
+            if (btn) { btn.innerHTML = 'Generating...'; btn.disabled = true; }
+
+            try {
+                if (!window.jspdf) {
+                    await loadScript("https://unpkg.com/jspdf@2.5.1/dist/jspdf.umd.min.js");
+                }
+                if (!window.jspdf.jsPDF.API.autoTable) {
+                    await loadScript("https://unpkg.com/jspdf-autotable@3.5.31/dist/jspdf.plugin.autotable.min.js");
+                }
+
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF();
+                const dateStr = new Date().toLocaleDateString();
+
+                doc.setFontSize(18);
+                doc.text(currentReportTitle, 14, 20);
+                doc.setFontSize(10);
+                doc.text(`Generated on: ${dateStr}`, 14, 28);
+                
+                const headers = currentColumns.map(c => c.replace(/_/g, ' ').toUpperCase());
+                const rows = currentData.map(row => currentColumns.map(col => row[col]));
+
+                doc.autoTable({ 
+                    startY: 35,
+                    head: [headers],
+                    body: rows,
+                    theme: 'grid',
+                    headStyles: { fillColor: [24, 59, 91] }
+                });
+
+                doc.save(`${currentReportTitle.replace(/\s+/g, '_')}.pdf`);
+            } catch (err) {
+                console.error("PDF Generation Error:", err);
+                alert("Failed to generate PDF. Please check your internet connection and try again.");
+            } finally {
+                if (btn) { btn.innerHTML = origText; btn.disabled = false; }
             }
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF();
-            const dateStr = new Date().toLocaleDateString();
-
-            doc.setFontSize(18);
-            doc.text(currentReportTitle, 14, 20);
-            doc.setFontSize(10);
-            doc.text(`Generated on: ${dateStr}`, 14, 28);
-            
-            const headers = currentColumns.map(c => c.replace(/_/g, ' ').toUpperCase());
-            const rows = currentData.map(row => currentColumns.map(col => row[col]));
-
-            doc.autoTable({ 
-                startY: 35,
-                head: [headers],
-                body: rows,
-                theme: 'grid',
-                headStyles: { fillColor: [24, 59, 91] }
-            });
-
-            doc.save(`${currentReportTitle.replace(/\s+/g, '_')}.pdf`);
         } else {
             // CSV
             const headers = currentColumns.join(",");

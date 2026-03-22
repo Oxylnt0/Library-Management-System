@@ -10,6 +10,7 @@ const { logUserAction, logAdminAction } = require('./audit_service.js');
 const app = express();
 const PORT = 3000;
 
+const QRCode = require('qrcode');
 // Ensure schema is updated for email reminders (Silently fails if already added)
 db.execute("ALTER TABLE BORROW_TRANSACTION ADD COLUMN reminder_sent INTEGER DEFAULT 0").catch(() => {});
 
@@ -2060,7 +2061,7 @@ app.post('/api/admin/user/status', async (req, res) => {
             await logAdminAction(adminId, 'UPDATE_USER_STATUS', table, userId, `Status updated to ${status}`);
         }
 
-        res.json({ success: true, message: `Account status updated to ${status}.` });
+        res.json({ success: true, message: `Account status updated to ${status}.`, requiresQrPrint: (status === 'Active' && !user.email) });
     } catch (e) {
         console.error("Update Status Error:", e);
         res.status(500).json({ success: false, message: e.message });
@@ -2093,6 +2094,19 @@ app.post('/api/user/:id/resend-qr', async (req, res) => {
     } catch (error) {
         console.error("Resend QR Error:", error);
         res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+// GET /api/user/:role/:id/qr (Generate QR Code for printing)
+app.get('/api/user/:role/:id/qr', async (req, res) => {
+    const { id, role } = req.params;
+    const prefix = role === 'Guardian' ? 'G' : 'U';
+    const qrData = JSON.stringify({ id: `${prefix}-${id}` });
+    try {
+        const qrImage = await QRCode.toDataURL(qrData);
+        res.json({ success: true, qrImage });
+    } catch (e) {
+        res.status(500).json({ success: false, message: e.message });
     }
 });
 
@@ -2390,13 +2404,13 @@ app.get('/api/reports/stats', async (req, res) => {
 app.get('/api/announcements/public', async (req, res) => {
     try {
         const result = await db.execute(`
-            SELECT title, content, date_posted 
+            SELECT title, content, date_posted, priority 
             FROM ANNOUNCEMENT 
+            WHERE status = 'Published'
             ORDER BY date_posted DESC
             LIMIT 5
         `);
-        const mapped = result.rows.map(r => ({...r, priority: 'Normal'}));
-        res.json({ success: true, data: mapped });
+        res.json({ success: true, data: result.rows });
     } catch (e) { res.status(500).json({ success: false, message: e.message }); }
 });
 

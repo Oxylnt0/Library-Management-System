@@ -14,6 +14,12 @@
         body {
             font-family: 'Inter', sans-serif;
         }
+        @media print {
+            body * { visibility: hidden; }
+            #qr-print-area, #qr-print-area * { visibility: visible; }
+            #qr-print-area { position: absolute; left: 0; top: 0; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+            .no-print { display: none !important; }
+        }
     </style>
 </head>
 
@@ -151,7 +157,7 @@
                 </main>
 
     <!-- Suspension Modal -->
-    <div id="suspend-modal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center backdrop-blur-sm">
+    <div id="suspend-modal" class="hidden fixed inset-0 bg-black/50 z-[100] flex items-center justify-center backdrop-blur-sm">
         <div class="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden transform transition-all scale-100">
             <div class="bg-red-600 p-4 text-white flex justify-between items-center">
                 <h3 class="font-bold text-lg">Suspend User</h3>
@@ -186,7 +192,7 @@
     </div>
 
     <!-- Reject Modal -->
-    <div id="reject-modal" class="hidden fixed inset-0 bg-black/50 z-[60] flex items-center justify-center backdrop-blur-sm">
+    <div id="reject-modal" class="hidden fixed inset-0 bg-black/50 z-[100] flex items-center justify-center backdrop-blur-sm">
         <div class="bg-white rounded-xl shadow-2xl w-full max-w-md p-6 transform transition-all scale-100">
             <h3 class="text-xl font-bold text-red-600 mb-2">Reject Account Application</h3>
             <p class="text-sm text-slate-600 mb-4">Please specify the reason for rejecting this user. This will be emailed to them.</p>
@@ -201,11 +207,13 @@
     </div>
 
     <!-- User Details Modal -->
-    <div id="user-details-modal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center backdrop-blur-sm">
+    <div id="user-details-modal" class="hidden fixed inset-0 bg-black/50 z-[100] flex items-center justify-center backdrop-blur-sm">
         <div class="bg-white rounded-xl shadow-2xl w-full max-w-xl overflow-hidden transform transition-all scale-100 max-h-[90vh] flex flex-col">
             <div class="bg-[#183B5B] p-4 text-white flex justify-between items-center">
                 <h3 class="font-bold text-lg">User Details</h3>
                 <button onclick="window.closeUserDetailsModal()" class="text-white/70 hover:text-white">&times;</button>
+            </div>
+            <div id="detail-print-qr-container" class="px-6 pt-4 hidden flex justify-end">
             </div>
             <div class="p-6 space-y-4 text-sm text-slate-600 overflow-y-auto">
                 <div class="flex items-center gap-4 mb-6">
@@ -253,6 +261,31 @@
             </div>
             <div class="p-4 border-t border-slate-100 flex justify-end">
                 <button onclick="window.closeUserDetailsModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-full font-bold text-sm transition-colors">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- QR Print Modal -->
+    <div id="qr-print-modal" class="hidden fixed inset-0 bg-black/50 z-[100] flex items-center justify-center backdrop-blur-sm">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-sm overflow-hidden flex flex-col">
+            <div class="bg-[#183B5B] p-4 text-white flex justify-between items-center no-print">
+                <h3 class="font-bold text-lg">Library Card QR</h3>
+                <button onclick="document.getElementById('qr-print-modal').classList.add('hidden')" class="text-white/70 hover:text-white">&times;</button>
+            </div>
+            <div class="p-8 flex flex-col items-center justify-center bg-white" id="qr-print-area">
+                <h2 class="text-xl font-bold text-[#183B5B] font-cinzel mb-1">Puerto Palabra</h2>
+                <p class="text-xs text-slate-500 mb-6 uppercase tracking-wider">Library Card</p>
+                
+                <img id="qr-print-img" src="" alt="QR Code" class="w-48 h-48 border-4 border-slate-100 rounded-lg mb-4">
+                
+                <div class="text-center">
+                    <p id="qr-print-name" class="font-bold text-lg text-slate-800"></p>
+                    <p id="qr-print-id" class="text-sm font-mono text-slate-500 mt-1"></p>
+                </div>
+            </div>
+            <div class="p-4 border-t border-slate-100 flex justify-center gap-3 bg-slate-50 no-print">
+                <button onclick="document.getElementById('qr-print-modal').classList.add('hidden')" class="px-6 py-2 bg-slate-200 text-slate-700 rounded-full font-bold text-sm hover:bg-slate-300 transition">Cancel</button>
+                <button onclick="window.print()" class="px-6 py-2 bg-[#D6A84A] text-[#183B5B] rounded-full font-bold text-sm hover:bg-[#F0C66B] transition shadow-md">Print QR</button>
             </div>
         </div>
     </div>
@@ -334,6 +367,13 @@
 
                 // Sorting
                 filteredParents.sort((a, b) => {
+                    // Always prioritize Pending approvals at the top
+                    const aPending = a.status === 'Pending' ? 1 : 0;
+                    const bPending = b.status === 'Pending' ? 1 : 0;
+                    if (aPending !== bPending) {
+                        return bPending - aPending;
+                    }
+
                     if (currentSort === 'newest') return b.user_id - a.user_id;
                     if (currentSort === 'oldest') return a.user_id - b.user_id;
                     if (currentSort === 'name_asc') return a.last_name.localeCompare(b.last_name);
@@ -504,7 +544,15 @@
                         body: JSON.stringify({ userId, accountType, status, adminId })
                     });
                     const result = await response.json();
-                    window.showCustomAlert(result.message, () => loadUsers());
+                    
+                    if (result.requiresQrPrint) {
+                        window.showCustomAlert(result.message + " User has no email. Please print their QR Code.", () => {
+                            window.openQrPrintModal(userId, accountType);
+                            loadUsers();
+                        });
+                    } else {
+                        window.showCustomAlert(result.message, () => loadUsers());
+                    }
                 } catch (error) {
                     window.showCustomAlert("Error: " + error.message);
                 }
@@ -600,6 +648,14 @@
             document.getElementById('detail-birthdate').innerText = user.birth_date ? new Date(user.birth_date).toLocaleDateString() : 'N/A';
             document.getElementById('detail-joined').innerText = user.date_created ? new Date(user.date_created).toLocaleDateString() : 'N/A';
             
+            const printBtnContainer = document.getElementById('detail-print-qr-container');
+            if (!user.email && user.status === 'Active') {
+                printBtnContainer.innerHTML = `<button onclick="window.openQrPrintModal(${user.user_id}, '${user.account_type}')" class="px-4 py-2 bg-[#183B5B] text-white rounded-full text-xs font-bold shadow hover:bg-[#2E5F87] transition-colors flex items-center gap-2"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg> Print QR Code</button>`;
+                printBtnContainer.classList.remove('hidden');
+            } else {
+                printBtnContainer.classList.add('hidden');
+            }
+
             const statusContainer = document.getElementById('detail-status');
             if (user.status === 'Pending') {
                 statusContainer.innerHTML = '<span class="bg-amber-100 text-amber-700 px-2 py-1 rounded-full text-xs font-bold">Pending</span>';
@@ -653,6 +709,24 @@
         window.closeUserDetailsModal = function() {
             document.getElementById('user-details-modal').classList.add('hidden');
         };
+
+        window.openQrPrintModal = async function(userId, accountType) {
+            try {
+                const res = await fetch(`http://localhost:3000/api/user/${accountType}/${userId}/qr`);
+                const data = await res.json();
+                if (data.success) {
+                    const user = allUsers.find(u => u.user_id === userId && u.account_type === accountType);
+                    const name = user ? `${user.first_name} ${user.last_name}` : 'User';
+                    
+                    document.getElementById('qr-print-img').src = data.qrImage;
+                    document.getElementById('qr-print-name').innerText = name;
+                    document.getElementById('qr-print-id').innerText = `${accountType.charAt(0)}-${userId}`;
+                    document.getElementById('qr-print-modal').classList.remove('hidden');
+                }
+            } catch(e) {
+                console.error(e);
+            }
+        }
 
         function updateStats(total, suspended) {
             document.getElementById('stat-total-users').innerText = total;

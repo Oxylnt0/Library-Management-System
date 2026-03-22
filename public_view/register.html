@@ -881,7 +881,7 @@
                 if (currentFlow === 'user') {
                     const age = parseInt(document.getElementById('user-age').value) || 0;
                     const email = document.getElementById('user-email').value.trim();
-                    const requiredFields = ['user-lname', 'user-fname', 'user-mi', 'user-contact', 'user-address', 'user-dob'];
+                    const requiredFields = ['user-lname', 'user-fname', 'user-contact', 'user-address', 'user-dob'];
                     if (age < 60) requiredFields.push('user-email');
 
                     if (!validateFields(requiredFields)) {
@@ -923,7 +923,7 @@
                         return false;
                     }
                 } else {
-                    if (!validateFields(['guardian-lname', 'guardian-fname', 'guardian-mi', 'guardian-contact', 'guardian-address', 'guardian-dob'])) {
+                    if (!validateFields(['guardian-lname', 'guardian-fname', 'guardian-contact', 'guardian-address', 'guardian-dob'])) {
                         window.showCustomAlert("Please complete all fields.");
                         return false;
                     }
@@ -1566,7 +1566,7 @@
                             window.registrationEmail = email;
                             document.getElementById('otp-modal').classList.remove('hidden');
                         } else {
-                            window.showCustomAlert(result.message, () => {
+                            window.showCustomAlert("Registration successful! Please wait for a Librarian to approve your account.", () => {
                                 window.location.href = 'login.html';
                             });
                         }
