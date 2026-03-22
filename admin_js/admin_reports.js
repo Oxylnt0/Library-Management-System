@@ -34,12 +34,18 @@
 
     function switchTab(tabId) {
         // Update Tab UI
-        document.querySelectorAll('button[id^="tab-"]').forEach(btn => {
-            btn.classList.remove('text-[#183B5B]', 'border-[#183B5B]', 'font-bold');
-            btn.classList.add('text-slate-500', 'border-transparent', 'font-medium');
-        });
+        const allTabs = document.querySelectorAll('button[id^="tab-"]');
+        if (allTabs) {
+            allTabs.forEach(btn => {
+                if (btn && btn.classList) {
+                    btn.classList.remove('text-[#183B5B]', 'border-[#183B5B]', 'font-bold');
+                    btn.classList.add('text-slate-500', 'border-transparent', 'font-medium');
+                }
+            });
+        }
+        
         const activeBtn = document.getElementById(`tab-${tabId}`);
-        if(activeBtn) {
+        if (activeBtn && activeBtn.classList) {
             activeBtn.classList.add('text-[#183B5B]', 'border-[#183B5B]', 'font-bold');
             activeBtn.classList.remove('text-slate-500', 'border-transparent', 'font-medium');
         }
@@ -49,6 +55,7 @@
 
         // Render Sub-Report Chips
         const selector = document.getElementById('report-selector');
+        if (!selector) return; // Prevent errors if DOM is not fully ready
         selector.innerHTML = '';
         
         const reports = reportConfig[tabId] || [];
@@ -58,9 +65,11 @@
             btn.innerText = rep.label;
             btn.onclick = () => {
                 // Reset other chips
-                Array.from(selector.children).forEach(c => {
-                    c.className = 'px-4 py-2 rounded-full text-xs font-bold border transition-colors bg-white text-slate-600 border-slate-300 hover:bg-slate-100';
-                });
+                if (selector && selector.children) {
+                    Array.from(selector.children).forEach(c => {
+                        if (c) c.className = 'px-4 py-2 rounded-full text-xs font-bold border transition-colors bg-white text-slate-600 border-slate-300 hover:bg-slate-100';
+                    });
+                }
                 // Highlight this one
                 btn.className = 'px-4 py-2 rounded-full text-xs font-bold border transition-colors bg-[#183B5B] text-[#D6A84A] border-[#183B5B]';
                 currentReportId = rep.id;
@@ -107,6 +116,8 @@
         const titleEl = document.getElementById('table-title');
         const countEl = document.getElementById('record-count');
         
+        if (!tbody || !thead || !titleEl || !countEl) return;
+
         titleEl.innerText = title;
         currentReportTitle = title;
         tbody.innerHTML = '<tr><td colspan="10" class="p-4 text-center text-slate-500">Loading data...</td></tr>';

@@ -2354,7 +2354,35 @@ app.get('/api/reports/view', async (req, res) => {
 
             // 2. Inventory
             case 'inventory_summary':
-                sql = `SELECT status, COUNT(*) as count FROM BOOK_COPY GROUP BY status`;
+                sql = `
+                    SELECT 'Status: Available' as metric, COUNT(*) as count FROM (
+                        SELECT status FROM BOOK_COPY WHERE status = 'Available' UNION ALL SELECT status FROM PERIODICAL_COPY WHERE status = 'Available'
+                    )
+                    UNION ALL
+                    SELECT 'Status: Borrowed', COUNT(*) FROM (
+                        SELECT status FROM BOOK_COPY WHERE status = 'Borrowed' UNION ALL SELECT status FROM PERIODICAL_COPY WHERE status = 'Borrowed'
+                    )
+                    UNION ALL
+                    SELECT 'Status: Lost', COUNT(*) FROM (
+                        SELECT status FROM BOOK_COPY WHERE status = 'Lost' UNION ALL SELECT status FROM PERIODICAL_COPY WHERE status = 'Lost'
+                    )
+                    UNION ALL
+                    SELECT 'Status: Archived', COUNT(*) FROM (
+                        SELECT status FROM BOOK_COPY WHERE status = 'Archived' UNION ALL SELECT status FROM PERIODICAL_COPY WHERE status = 'Archived'
+                    )
+                    UNION ALL
+                    SELECT 'Condition: Outdated', COUNT(*) FROM (
+                        SELECT book_condition FROM BOOK_COPY WHERE book_condition = 'Outdated' UNION ALL SELECT periodical_condition FROM PERIODICAL_COPY WHERE periodical_condition = 'Outdated'
+                    )
+                    UNION ALL
+                    SELECT 'Condition: Obsolete', COUNT(*) FROM (
+                        SELECT book_condition FROM BOOK_COPY WHERE book_condition = 'Obsolete' UNION ALL SELECT periodical_condition FROM PERIODICAL_COPY WHERE periodical_condition = 'Obsolete'
+                    )
+                    UNION ALL
+                    SELECT 'Total Physical Items', COUNT(*) FROM (
+                        SELECT material_id FROM BOOK_COPY UNION ALL SELECT material_id FROM PERIODICAL_COPY
+                    )
+                `;
                 args = [];
                 break;
             case 'weeding':
@@ -2435,11 +2463,11 @@ app.get('/api/reports/stats', async (req, res) => {
             ];
         } else if (domain === 'inventory') {
             const total = await db.execute("SELECT COUNT(*) as c FROM BOOK_COPY");
-            const lost = await db.execute("SELECT COUNT(*) as c FROM BOOK_COPY WHERE status = 'Lost'");
+            const periodicals = await db.execute("SELECT COUNT(*) as c FROM PERIODICAL_COPY");
             const archived = await db.execute("SELECT COUNT(*) as c FROM BOOK_COPY WHERE status = 'Archived'");
             stats = [
                 { label: 'Total Books', value: total.rows[0].c, color: 'blue' },
-                { label: 'Lost Books', value: lost.rows[0].c, color: 'red' },
+                { label: 'Total Periodicals', value: periodicals.rows[0].c, color: 'purple' },
                 { label: 'Archived', value: archived.rows[0].c, color: 'amber' }
             ];
         } else if (domain === 'financials') {
