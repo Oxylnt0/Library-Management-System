@@ -135,44 +135,44 @@ app.get('/api/admin/reservations', async (req, res) => {
         // Array 1: Ready to Process
         const readyRes = await db.execute({
             sql: `SELECT r.reservation_id, r.user_id, bc.book_id as item_id, 'Book' as material_type, DATETIME(r.reservation_date, '+8 hours') as reservation_date, r.status, r.priority_no,
-                         u.first_name, u.last_name, b.title, bc.status as material_status 
+                         u.first_name, u.last_name, b.title, 'Available' as material_status 
                   FROM RESERVATION r
                   JOIN BOOK_COPY bc ON r.material_id = bc.material_id
                   JOIN BOOK b ON bc.book_id = b.book_id
                   JOIN USER u ON r.user_id = u.user_id
-                  WHERE r.status IN ('Pending', 'Approved') 
-                  AND bc.status = 'Available'
+                  WHERE r.status = 'Approved' 
+                     OR (r.status = 'Pending' AND r.priority_no <= (SELECT COUNT(*) FROM BOOK_COPY WHERE book_id = bc.book_id AND status = 'Available'))
                   UNION ALL
                   SELECT r.reservation_id, r.user_id, pc.periodical_id as item_id, 'Periodical' as material_type, DATETIME(r.reservation_date, '+8 hours') as reservation_date, r.status, r.priority_no,
-                         u.first_name, u.last_name, p.title, pc.status as material_status 
+                         u.first_name, u.last_name, p.title, 'Available' as material_status 
                   FROM RESERVATION r
                   JOIN PERIODICAL_COPY pc ON r.material_id = pc.material_id
                   JOIN PERIODICAL p ON pc.periodical_id = p.periodical_id
                   JOIN USER u ON r.user_id = u.user_id
-                  WHERE r.status IN ('Pending', 'Approved') 
-                  AND pc.status = 'Available'
+                  WHERE r.status = 'Approved' 
+                     OR (r.status = 'Pending' AND r.priority_no <= (SELECT COUNT(*) FROM PERIODICAL_COPY WHERE periodical_id = pc.periodical_id AND status = 'Available'))
                   ORDER BY reservation_date ASC`
         });
 
         // Array 2: Waitlist
         const waitlistRes = await db.execute({
             sql: `SELECT r.reservation_id, r.user_id, bc.book_id as item_id, 'Book' as material_type, DATETIME(r.reservation_date, '+8 hours') as reservation_date, r.priority_no,
-                         u.first_name, u.last_name, b.title, bc.status as book_status 
+                         u.first_name, u.last_name, b.title, CASE WHEN (SELECT COUNT(*) FROM BOOK_COPY WHERE book_id = bc.book_id AND status = 'Available') > 0 THEN 'Available' ELSE 'Borrowed' END as book_status 
                   FROM RESERVATION r
                   JOIN BOOK_COPY bc ON r.material_id = bc.material_id
                   JOIN BOOK b ON bc.book_id = b.book_id
                   JOIN USER u ON r.user_id = u.user_id
                   WHERE r.status = 'Pending' 
-                  AND bc.status != 'Available'
+                  AND r.priority_no > (SELECT COUNT(*) FROM BOOK_COPY WHERE book_id = bc.book_id AND status = 'Available')
                   UNION ALL
                   SELECT r.reservation_id, r.user_id, pc.periodical_id as item_id, 'Periodical' as material_type, DATETIME(r.reservation_date, '+8 hours') as reservation_date, r.priority_no,
-                         u.first_name, u.last_name, p.title, pc.status as book_status 
+                         u.first_name, u.last_name, p.title, CASE WHEN (SELECT COUNT(*) FROM PERIODICAL_COPY WHERE periodical_id = pc.periodical_id AND status = 'Available') > 0 THEN 'Available' ELSE 'Borrowed' END as book_status 
                   FROM RESERVATION r
                   JOIN PERIODICAL_COPY pc ON r.material_id = pc.material_id
                   JOIN PERIODICAL p ON pc.periodical_id = p.periodical_id
                   JOIN USER u ON r.user_id = u.user_id
                   WHERE r.status = 'Pending' 
-                  AND pc.status != 'Available' 
+                  AND r.priority_no > (SELECT COUNT(*) FROM PERIODICAL_COPY WHERE periodical_id = pc.periodical_id AND status = 'Available')
                   ORDER BY reservation_date ASC`
         });
 
@@ -199,11 +199,19 @@ app.post('/api/checkout', async (req, res) => {
         const bType = isFrontDesk ? 'Inside Library' : 'Outside Library';
         const dueSql = isFrontDesk ? "DATE('now', '+8 hours')" : "DATE('now', '+8 hours', '+7 days')";
 
+        const resData = await db.execute({ sql: "SELECT material_id, priority_no FROM RESERVATION WHERE reservation_id = ?", args: [reservationId] });
+        const origMatId = resData.rows[0]?.material_id;
+        const origPrio = resData.rows[0]?.priority_no;
+
         // Step 1: Mark Reservation as Fulfilled
         await db.execute({
             sql: "UPDATE RESERVATION SET status = 'Fulfilled' WHERE reservation_id = ?",
             args: [reservationId]
         });
+
+        if (origPrio && origMatId) {
+            await db.execute({ sql: "UPDATE RESERVATION SET priority_no = priority_no - 1 WHERE material_id = ? AND priority_no > ?", args: [origMatId, origPrio] });
+        }
 
         // Step 2: Create Borrow Transaction
         await db.execute({

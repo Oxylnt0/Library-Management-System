@@ -284,6 +284,13 @@
             window.showCustomConfirm("Confirm book claim? This will start the loan period.", async () => {
                 const adminId = localStorage.getItem('adminId');
                 try {
+                    const resData = await db.execute({ sql: "SELECT material_id, priority_no FROM RESERVATION WHERE reservation_id = ?", args: [reservationId] });
+                    let origMatId = null, origPrio = null;
+                    if (resData.rows.length > 0) {
+                        origMatId = resData.rows[0].material_id;
+                        origPrio = resData.rows[0].priority_no;
+                    }
+
                     let materialId;
                     if (materialType === 'Book') {
                         const copyRes = await db.execute({ sql: "SELECT material_id FROM BOOK_COPY WHERE book_id = ? AND status = 'Available' LIMIT 1", args: [itemId] });
@@ -298,6 +305,11 @@
                     }
 
                     await db.execute({ sql: "UPDATE RESERVATION SET status = 'Fulfilled' WHERE reservation_id = ?", args: [reservationId] });
+                    
+                    if (origPrio && origMatId) {
+                        await db.execute({ sql: "UPDATE RESERVATION SET priority_no = priority_no - 1 WHERE material_id = ? AND priority_no > ?", args: [origMatId, origPrio] });
+                    }
+
                     await db.execute({ 
                         sql: "INSERT INTO BORROW_TRANSACTION (user_id, book_id, material_id, borrow_date, borrow_time, due_date, status, borrow_type) VALUES (?, ?, ?, DATE('now', '+8 hours'), TIME('now', '+8 hours'), DATE('now', '+8 hours', '+7 days'), 'Borrowed', 'Outside Library')", 
                         args: [userId, itemId, materialId] 
