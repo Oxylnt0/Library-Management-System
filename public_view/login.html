@@ -511,6 +511,7 @@
         // --- RECOVERY LOGIC ---
         let recoveryEmail = "";
         let recoveryUserId = null;
+        let recoveryRole = null;
 
         window.openRecoveryModal = function() {
             document.getElementById('recovery-modal').classList.remove('hidden');
@@ -547,6 +548,7 @@
 
             if(data.success) {
                 recoveryUserId = data.userId;
+                recoveryRole = data.role;
                 document.getElementById('q1-text-email').innerText = data.questions[0].text;
                 document.getElementById('q2-text-email').innerText = data.questions[1].text;
                 showRecoveryStep('email-challenge');
@@ -562,7 +564,7 @@
             const res = await fetch('http://localhost:3000/api/auth/forgot-email/verify', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ userId: recoveryUserId, answers: { answer_1: a1, answer_2: a2 } })
+                body: JSON.stringify({ userId: recoveryUserId, role: recoveryRole, answers: { answer_1: a1, answer_2: a2 } })
             });
             const data = await res.json();
 

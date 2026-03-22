@@ -1456,6 +1456,19 @@ app.put('/api/user/:id/password', async (req, res) => {
     try {
         const table = role === 'guardian' ? 'GUARDIAN_NAME' : 'USER';
         const idField = role === 'guardian' ? 'guardian_id' : 'user_id';
+
+        // Check if old password matches new password
+        const userRes = await db.execute({
+            sql: `SELECT password FROM ${table} WHERE ${idField} = ?`,
+            args: [id]
+        });
+
+        if (userRes.rows.length === 0) return res.status(404).json({ success: false, message: "User not found." });
+
+        if (userRes.rows[0].password === newPassword) {
+            return res.json({ success: false, message: "New password cannot be the same as your old password." });
+        }
+
         await db.execute({
             sql: `UPDATE ${table} SET password = ? WHERE ${idField} = ?`,
             args: [newPassword, id]
@@ -1885,30 +1898,40 @@ app.delete('/api/admin/:id', async (req, res) => {
 app.post('/api/auth/forgot-email/search', async (req, res) => {
     const { firstName, lastName, birthDate } = req.body;
     try {
-        const userRes = await db.execute({
-            sql: "SELECT user_id FROM USER WHERE first_name = ? AND last_name = ? AND birth_date = ?",
-            args: [firstName, lastName, birthDate]
-        });
+        let userId = null;
+        let role = null;
+        let qRes = null;
+
+        // 1. Check USER table
+        const userRes = await db.execute({ sql: "SELECT user_id FROM USER WHERE first_name = ? AND last_name = ? AND birth_date = ?", args: [firstName, lastName, birthDate] });
         
-        if (userRes.rows.length === 0) {
-            return res.json({ success: false, message: "No matching student found." });
+        if (userRes.rows.length > 0) {
+            userId = userRes.rows[0].user_id;
+            role = 'user';
+            qRes = await db.execute({ sql: "SELECT question_1, question_2 FROM SECURITY_QUESTIONS WHERE user_id = ?", args: [userId] });
+        } else {
+            // 2. Check GUARDIAN_NAME table
+            const guardRes = await db.execute({ sql: "SELECT guardian_id FROM GUARDIAN_NAME WHERE first_name = ? AND last_name = ? AND birth_date = ?", args: [firstName, lastName, birthDate] });
+            
+            if (guardRes.rows.length > 0) {
+                userId = guardRes.rows[0].guardian_id;
+                role = 'guardian';
+                qRes = await db.execute({ sql: "SELECT question_1, question_2 FROM SECURITY_QUESTIONS WHERE guardian_id = ?", args: [userId] });
+            }
         }
         
-        const userId = userRes.rows[0].user_id;
+        if (!userId) {
+            return res.json({ success: false, message: "No matching account found." });
+        }
         
-        // Fetch Questions (Q1 & Q2)
-        const qRes = await db.execute({
-            sql: "SELECT question_1, question_2 FROM SECURITY_QUESTIONS WHERE user_id = ?",
-            args: [userId]
-        });
-        
-        if (qRes.rows.length === 0) {
+        if (!qRes || qRes.rows.length === 0) {
             return res.json({ success: false, message: "Security questions not set for this user." });
         }
         
         res.json({ 
             success: true, 
             userId, 
+            role,
             questions: [
                 { key: 'answer_1', text: qRes.rows[0].question_1 },
                 { key: 'answer_2', text: qRes.rows[0].question_2 }
@@ -1919,12 +1942,20 @@ app.post('/api/auth/forgot-email/search', async (req, res) => {
 
 // 31. Forgot Email - Verify & Reveal
 app.post('/api/auth/forgot-email/verify', async (req, res) => {
-    const { userId, answers } = req.body;
+    const { userId, role, answers } = req.body;
     try {
-        const qRes = await db.execute({
-            sql: "SELECT answer_1, answer_2, u.email FROM SECURITY_QUESTIONS sq JOIN USER u ON sq.user_id = u.user_id WHERE sq.user_id = ?",
-            args: [userId]
-        });
+        let qRes;
+        if (role === 'guardian') {
+            qRes = await db.execute({
+                sql: "SELECT answer_1, answer_2, g.email FROM SECURITY_QUESTIONS sq JOIN GUARDIAN_NAME g ON sq.guardian_id = g.guardian_id WHERE sq.guardian_id = ?",
+                args: [userId]
+            });
+        } else {
+            qRes = await db.execute({
+                sql: "SELECT answer_1, answer_2, u.email FROM SECURITY_QUESTIONS sq JOIN USER u ON sq.user_id = u.user_id WHERE sq.user_id = ?",
+                args: [userId]
+            });
+        }
         
         if (qRes.rows.length === 0) return res.json({ success: false, message: "User not found." });
         
@@ -1934,11 +1965,15 @@ app.post('/api/auth/forgot-email/verify', async (req, res) => {
             
             // Mask Email
             const email = row.email || "";
-            const [local, domain] = email.split('@');
-            const maskedLocal = local.length > 3 ? local.substring(0, 3) + '*'.repeat(local.length - 3) : local + '***';
-            const maskedEmail = `${maskedLocal}@${domain}`;
+            const maskedEmail = email ? (email.split('@')[0].length > 3 ? email.split('@')[0].substring(0, 3) + '*'.repeat(email.split('@')[0].length - 3) : email.split('@')[0] + '***') + '@' + email.split('@')[1] : 'No Email on File';
             
-            await logUserAction(userId, 'FORGOT_EMAIL_REVEAL', 'USER', userId, 'User recovered email via security questions');
+            if (role === 'guardian') {
+                const { logGuardianAction } = require('./audit_service.js');
+                await logGuardianAction(userId, 'FORGOT_EMAIL_REVEAL', 'GUARDIAN_NAME', userId, 'Guardian recovered email via security questions');
+            } else {
+                await logUserAction(userId, 'FORGOT_EMAIL_REVEAL', 'USER', userId, 'User recovered email via security questions');
+            }
+            
             res.json({ success: true, email: maskedEmail });
         } else {
             res.json({ success: false, message: "Incorrect answers." });
@@ -1950,7 +1985,7 @@ app.post('/api/auth/forgot-email/verify', async (req, res) => {
 app.post('/api/auth/forgot-password/init', async (req, res) => {
     const { email } = req.body;
     try {
-        const userRes = await db.execute({ sql: "SELECT user_id FROM USER WHERE email = ?", args: [email] });
+        const userRes = await db.execute({ sql: "SELECT email FROM USER WHERE email = ? UNION ALL SELECT email FROM GUARDIAN_NAME WHERE email = ?", args: [email, email] });
         if (userRes.rows.length === 0) return res.json({ success: false, message: "Email not found." });
         
         const otp = Math.floor(100000 + Math.random() * 900000).toString();
@@ -1987,10 +2022,17 @@ app.post('/api/auth/forgot-password/verify-otp', async (req, res) => {
 app.post('/api/auth/forgot-password/questions', async (req, res) => {
     const { email } = req.body;
     try {
-        const qRes = await db.execute({
-            sql: "SELECT question_1, question_2, answer_1, answer_2 FROM SECURITY_QUESTIONS sq JOIN USER u ON sq.user_id = u.user_id WHERE u.email = ?",
+        let qRes = await db.execute({
+            sql: "SELECT question_1, question_2 FROM SECURITY_QUESTIONS sq JOIN USER u ON sq.user_id = u.user_id WHERE u.email = ?",
             args: [email]
         });
+
+        if (qRes.rows.length === 0) {
+            qRes = await db.execute({
+                sql: "SELECT question_1, question_2 FROM SECURITY_QUESTIONS sq JOIN GUARDIAN_NAME g ON sq.guardian_id = g.guardian_id WHERE g.email = ?",
+                args: [email]
+            });
+        }
         
         if (qRes.rows.length === 0) return res.json({ success: false, message: "No security questions found." });
         
@@ -2002,13 +2044,32 @@ app.post('/api/auth/forgot-password/questions', async (req, res) => {
 app.post('/api/auth/reset-password', async (req, res) => {
     const { email, newPassword, answers } = req.body; // answers optional if OTP used
     try {
+        let isGuardian = false;
+        let userRes = await db.execute({ sql: "SELECT user_id, password FROM USER WHERE email = ?", args: [email] });
+        let targetUser = userRes.rows[0];
+
+        if (!targetUser) {
+            const guardRes = await db.execute({ sql: "SELECT guardian_id as user_id, password FROM GUARDIAN_NAME WHERE email = ?", args: [email] });
+            targetUser = guardRes.rows[0];
+            isGuardian = true;
+        }
+
+        if (!targetUser) return res.json({ success: false, message: "User not found." });
+
+        if (targetUser.password === newPassword) {
+            return res.json({ success: false, message: "New password cannot be the same as your old password." });
+        }
+
+        const table = isGuardian ? 'GUARDIAN_NAME' : 'USER';
+        const idField = isGuardian ? 'guardian_id' : 'user_id';
+
         // If answers provided, verify them first (Path B)
         if (answers) {
             const qRes = await db.execute({
-                sql: "SELECT answer_1, answer_2 FROM SECURITY_QUESTIONS sq JOIN USER u ON sq.user_id = u.user_id WHERE u.email = ?",
-                args: [email]
+                sql: `SELECT answer_1, answer_2 FROM SECURITY_QUESTIONS WHERE ${idField} = ?`,
+                args: [targetUser.user_id]
             });
-            if (qRes.rows.length === 0) return res.json({ success: false, message: "User not found." });
+            if (qRes.rows.length === 0) return res.json({ success: false, message: "Security questions not set." });
             const row = qRes.rows[0];
             if (row.answer_1.toLowerCase().trim() !== answers.answer_1.toLowerCase().trim() ||
                 row.answer_2.toLowerCase().trim() !== answers.answer_2.toLowerCase().trim()) {
@@ -2016,13 +2077,9 @@ app.post('/api/auth/reset-password', async (req, res) => {
             }
         }
         // Update Password
-        await db.execute({ sql: "UPDATE USER SET password = ? WHERE email = ?", args: [newPassword, email] });
+        await db.execute({ sql: `UPDATE ${table} SET password = ? WHERE email = ?`, args: [newPassword, email] });
         
-        // Fetch ID for logging
-        const userRes = await db.execute({ sql: "SELECT user_id FROM USER WHERE email = ?", args: [email] });
-        if (userRes.rows.length > 0) {
-            await logUserAction(userRes.rows[0].user_id, 'PASSWORD_RESET', 'USER', userRes.rows[0].user_id, 'Password reset successfully using Email OTP/Questions');
-        }
+        await logUserAction(targetUser.user_id, 'PASSWORD_RESET', table, targetUser.user_id, 'Password reset successfully using Email OTP/Questions');
         
         res.json({ success: true, message: "Password updated successfully." });
     } catch (e) { res.status(500).json({ success: false, message: e.message }); }

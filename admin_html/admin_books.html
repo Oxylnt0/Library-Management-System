@@ -779,7 +779,11 @@
                 // Client-side Genre Filtering
                 const checkedGenres = Array.from(document.querySelectorAll('.adv-filter-genre:checked')).map(cb => cb.value);
                 if (checkedGenres.length > 0) {
-                    allItems = allItems.filter(item => checkedGenres.includes(item.genre));
+                    allItems = allItems.filter(item => checkedGenres.some(filterGenre => {
+                        const bGenre = String(item.genre || '').toLowerCase();
+                        const fGenre = filterGenre.toLowerCase();
+                        return bGenre && (fGenre === bGenre || fGenre.includes(bGenre) || bGenre.includes(fGenre));
+                    }));
                 }
 
                 // Apply Sorting

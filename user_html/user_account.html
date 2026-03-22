@@ -151,6 +151,7 @@
                         <p class="font-bold mb-2 text-[#183B5B]">Password Requirements:</p>
                         <ul class="space-y-1">
                             <li id="req-length" class="flex items-center gap-2 text-slate-500"><span class="w-1.5 h-1.5 rounded-full bg-slate-300"></span> At least 12 characters</li>
+                            <li id="req-capital" class="flex items-center gap-2 text-slate-500"><span class="w-1.5 h-1.5 rounded-full bg-slate-300"></span> At least 1 capital letter</li>
                             <li id="req-number" class="flex items-center gap-2 text-slate-500"><span class="w-1.5 h-1.5 rounded-full bg-slate-300"></span> At least 1 number</li>
                             <li id="req-special" class="flex items-center gap-2 text-slate-500"><span class="w-1.5 h-1.5 rounded-full bg-slate-300"></span> At least 1 special character</li>
                         </ul>
@@ -308,6 +309,7 @@
         function checkPasswordStrength(password) {
             const strengthBox = document.getElementById('password-strength');
             const reqLength = document.getElementById('req-length');
+            const reqCapital = document.getElementById('req-capital');
             const reqNumber = document.getElementById('req-number');
             const reqSpecial = document.getElementById('req-special');
 
@@ -325,6 +327,7 @@
             };
 
             setValid(reqLength, password.length >= 12);
+            setValid(reqCapital, /[A-Z]/.test(password));
             setValid(reqNumber, /\d/.test(password));
             setValid(reqSpecial, /[^A-Za-z0-9]/.test(password));
         }
@@ -336,11 +339,12 @@
 
             // Password Strength Validation
             const lengthValid = newPassword.length >= 12;
+            const capitalValid = /[A-Z]/.test(newPassword);
             const numberValid = /\d/.test(newPassword);
             const specialValid = /[^A-Za-z0-9]/.test(newPassword);
 
-            if (!lengthValid || !numberValid || !specialValid) {
-                showCustomAlert("Password must be at least 12 characters long, contain at least 1 number, and 1 special character.");
+            if (!lengthValid || !capitalValid || !numberValid || !specialValid) {
+                showCustomAlert("Password must be at least 12 characters long, contain at least 1 capital letter, 1 number, and 1 special character.");
                 return;
             }
 
@@ -356,10 +360,15 @@
                     body: JSON.stringify({ newPassword, role: userRole })
                 });
                 const result = await response.json();
-                showCustomAlert(result.message);
+                
                 if (result.success) {
-                    document.getElementById('input-new-pass').value = '';
-                    document.getElementById('input-confirm-pass').value = '';
+                    showCustomAlert(result.message + " You will now be logged out.", () => {
+                        localStorage.clear();
+                        sessionStorage.clear();
+                        window.location.href = '../public_view/login.html';
+                    });
+                } else {
+                    showCustomAlert(result.message);
                 }
             } catch (error) {
                 showCustomAlert('Failed to update password.');

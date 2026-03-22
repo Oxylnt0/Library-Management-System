@@ -283,14 +283,6 @@
                             </div>
                         </div>
 
-                        <div class="mb-6">
-                            <h4 class="text-xs font-bold text-slate-400 uppercase mb-2">Availability</h4>
-                            <div class="space-y-2 text-sm">
-                                <label class="flex items-center gap-2 cursor-pointer"><input type="radio" name="status" value="All" checked class="text-[#183B5B]"> All Books</label>
-                                <label class="flex items-center gap-2 cursor-pointer"><input type="radio" name="status" value="Available" class="text-[#183B5B]"> Available Now</label>
-                            </div>
-                        </div>
-
                         <div class="space-y-4">
                             <details class="group">
                                 <summary class="font-bold text-sm text-[#183B5B] cursor-pointer list-none flex justify-between items-center">
@@ -550,6 +542,14 @@
                 // Initial Load: New Arrivals
                 loadNewArrivals();
                 loadPublicAnnouncements();
+
+                // Auto-apply filters when changed
+                document.querySelectorAll('.genre-filter').forEach(cb => {
+                    cb.addEventListener('change', filterCatalogBooks);
+                });
+                document.querySelectorAll('input[name="adv-filter-type"]').forEach(radio => {
+                    radio.addEventListener('change', filterCatalogBooks);
+                });
             }
 
             if (document.readyState === 'loading') {
@@ -805,9 +805,9 @@
                 const sortValue = document.getElementById('catalog-sort').value;
                 
                 if (sortValue === 'title_asc') {
-                    allCatalogBooks.sort((a, b) => (a.title || '').localeCompare(b.title || ''));
+                    allCatalogBooks.sort((a, b) => String(a.title || '').localeCompare(String(b.title || '')));
                 } else if (sortValue === 'title_desc') {
-                    allCatalogBooks.sort((a, b) => (b.title || '').localeCompare(a.title || ''));
+                    allCatalogBooks.sort((a, b) => String(b.title || '').localeCompare(String(a.title || '')));
                 } else if (sortValue === 'date_desc') {
                     allCatalogBooks.sort((a, b) => (b.item_id || 0) - (a.item_id || 0));
                 } else if (sortValue === 'date_asc') {
@@ -826,13 +826,12 @@
                 const typeFilterEl = document.querySelector('input[name="adv-filter-type"]:checked');
                 const filterType = typeFilterEl ? typeFilterEl.value : 'all';
                 const checkedGenres = Array.from(document.querySelectorAll('.genre-filter:checked')).map(cb => cb.value);
-                const statusFilter = document.querySelector('input[name="status"]:checked').value;
 
                 let filtered = allCatalogBooks.filter(book => {
                     // Search
-                    const title = (book.title || '').toLowerCase();
-                    const author = (book.author || '').toLowerCase();
-                    const isbn = (book.isbn || '');
+                    const title = String(book.title || '').toLowerCase();
+                    const author = String(book.author || '').toLowerCase();
+                    const isbn = String(book.isbn || '');
 
                     const matchesSearch = !query || 
                         title.includes(query) || 
@@ -843,14 +842,13 @@
                     const matchesType = filterType === 'all' || book.material_type === filterType;
 
                     // Genre
-                    const matchesGenre = checkedGenres.length === 0 || checkedGenres.includes(book.genre);
+                    const matchesGenre = checkedGenres.length === 0 || checkedGenres.some(filterGenre => {
+                        const bGenre = String(book.genre || '').toLowerCase();
+                        const fGenre = filterGenre.toLowerCase();
+                        return bGenre && (fGenre === bGenre || fGenre.includes(bGenre) || bGenre.includes(fGenre));
+                    });
 
-                    // Status
-                    const matchesStatus = statusFilter === 'All' || 
-                        (statusFilter === 'Available' && book.available_copies > 0) || 
-                        (statusFilter === 'Borrowed' && book.available_copies === 0);
-
-                    return matchesSearch && matchesType && matchesGenre && matchesStatus;
+                    return matchesSearch && matchesType && matchesGenre;
                 });
 
                 countEl.innerText = filtered.length;
@@ -960,7 +958,6 @@
 
             function resetFilters() {
                 document.querySelectorAll('.genre-filter').forEach(cb => cb.checked = false);
-                document.querySelector('input[name="status"][value="All"]').checked = true;
                 document.querySelector('input[name="adv-filter-type"][value="all"]').checked = true;
                 document.getElementById('catalog-search-input').value = '';
                 filterCatalogBooks();

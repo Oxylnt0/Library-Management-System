@@ -51,15 +51,11 @@
         document.querySelectorAll('input[name="adv-filter-type"]').forEach(radio => {
             radio.addEventListener('change', performSearch);
         });
-        document.querySelectorAll('input[name="status"]').forEach(radio => {
-            radio.addEventListener('change', performSearch);
-        });
         
         const resetBtn = document.getElementById('reset-filters-btn');
         if (resetBtn) {
             resetBtn.addEventListener('click', () => {
                 document.querySelectorAll('.genre-filter').forEach(cb => cb.checked = false);
-                document.querySelector('input[name="status"][value="All"]').checked = true;
                 document.querySelector('input[name="adv-filter-type"][value="all"]').checked = true;
                 const searchInput = document.getElementById('search-input');
                 if(searchInput) searchInput.value = '';
@@ -230,33 +226,33 @@
         const typeFilterEl = document.querySelector('input[name="adv-filter-type"]:checked');
         const filterType = typeFilterEl ? typeFilterEl.value : 'all';
         const checkedGenres = Array.from(document.querySelectorAll('.genre-filter:checked')).map(cb => cb.value);
-        const statusFilter = document.querySelector('input[name="status"]:checked')?.value || 'All';
         const sortValue = document.getElementById('sort-select')?.value || 'title_asc';
         
         const filtered = allBooks.filter(book => {
             // Search
-            const titleMatch = book.title && book.title.toLowerCase().includes(query);
-            const authorMatch = book.author && book.author.toLowerCase().includes(query);
-            const isbnMatch = book.isbn && book.isbn.includes(query);
+            const titleMatch = book.title && String(book.title).toLowerCase().includes(query);
+            const authorMatch = book.author && String(book.author).toLowerCase().includes(query);
+            const isbnMatch = book.isbn && String(book.isbn).includes(query);
             const matchesSearch = !query || titleMatch || authorMatch || isbnMatch;
 
             // Material Type
             const matchesType = filterType === 'all' || book.material_type === filterType;
 
             // Genre
-            const matchesGenre = checkedGenres.length === 0 || checkedGenres.includes(book.genre);
+            const matchesGenre = checkedGenres.length === 0 || checkedGenres.some(filterGenre => {
+                const bGenre = String(book.genre || '').toLowerCase();
+                const fGenre = filterGenre.toLowerCase();
+                return bGenre && (fGenre === bGenre || fGenre.includes(bGenre) || bGenre.includes(fGenre));
+            });
 
-            // Status
-            const matchesStatus = statusFilter === 'All' || book.status === statusFilter;
-
-            return matchesSearch && matchesType && matchesGenre && matchesStatus;
+            return matchesSearch && matchesType && matchesGenre;
         });
 
         // Sorting Logic
         if (sortValue === 'title_asc') {
-            filtered.sort((a, b) => (a.title || '').localeCompare(b.title || ''));
+            filtered.sort((a, b) => String(a.title || '').localeCompare(String(b.title || '')));
         } else if (sortValue === 'title_desc') {
-            filtered.sort((a, b) => (b.title || '').localeCompare(a.title || ''));
+            filtered.sort((a, b) => String(b.title || '').localeCompare(String(a.title || '')));
         } else if (sortValue === 'date_desc') {
             filtered.sort((a, b) => (b.item_id || 0) - (a.item_id || 0));
         } else if (sortValue === 'date_asc') {
