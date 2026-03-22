@@ -165,12 +165,26 @@ async function registerGuardian(guardianData, childrenData) {
 async function login(identifier, password) {
     try {
         const isEmail = identifier.includes('@');
-        let userCondition = isEmail ? "LOWER(email) = LOWER(?)" : "LOWER(first_name || ' ' || last_name) = LOWER(?)";
+        
+        let userCondition = "";
+        let queryArgs = [];
+
+        if (isEmail) {
+            userCondition = "LOWER(email) = LOWER(?)";
+            queryArgs = [identifier, password];
+        } else {
+            userCondition = `(
+                LOWER(first_name || ' ' || last_name) = LOWER(?) OR 
+                LOWER(first_name || ' ' || IFNULL(middle_initial, '') || ' ' || last_name) = LOWER(?) OR 
+                LOWER(first_name || ' ' || REPLACE(IFNULL(middle_initial, ''), '.', '') || '. ' || last_name) = LOWER(?)
+            )`;
+            queryArgs = [identifier, identifier, identifier, password];
+        }
 
         // Check User Table
         const userResult = await db.execute({
             sql: `SELECT * FROM USER WHERE ${userCondition} AND password = ?`,
-            args: [identifier, password]
+            args: queryArgs
         });
 
         if (userResult.rows.length > 0) {
@@ -186,7 +200,7 @@ async function login(identifier, password) {
         // Check Guardian Table
         const guardianResult = await db.execute({
             sql: `SELECT * FROM GUARDIAN_NAME WHERE ${userCondition} AND password = ?`,
-            args: [identifier, password]
+            args: queryArgs
         });
 
         if (guardianResult.rows.length > 0) {

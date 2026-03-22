@@ -370,18 +370,18 @@
         }
 
         window.deleteAdmin = async function(id) {
-            if (!confirm("Are you sure you want to delete this admin account? This action cannot be undone.")) return;
-            const currentAdminId = localStorage.getItem('adminId');
-            try {
-                const response = await fetch(`http://localhost:3000/api/admin/${id}`, { 
-                    method: 'DELETE',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ currentAdminId })
-                });
-                const result = await response.json();
-                alert(result.message);
-                if (result.success) loadAdminDirectory();
-            } catch (e) { alert("Error: " + e.message); }
+            showCustomConfirm("Are you sure you want to delete this admin account? This action cannot be undone.", async () => {
+                const currentAdminId = localStorage.getItem('adminId');
+                try {
+                    const response = await fetch(`http://localhost:3000/api/admin/${id}`, { 
+                        method: 'DELETE',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ currentAdminId })
+                    });
+                    const result = await response.json();
+                    showCustomAlert(result.message, () => { if (result.success) loadAdminDirectory(); });
+                } catch (e) { showCustomAlert("Error: " + e.message); }
+            });
         }
 
         window.openEditAdminModal = function(id, name, email, role) {
@@ -407,12 +407,13 @@
                     body: JSON.stringify({ full_name, email, role, currentAdminId })
                 });
                 const result = await response.json();
-                alert(result.message);
-                if (result.success) {
-                    document.getElementById('edit-admin-modal').classList.add('hidden');
-                    loadAdminDirectory();
-                }
-            } catch (e) { alert("Error: " + e.message); }
+                showCustomAlert(result.message, () => {
+                    if (result.success) {
+                        document.getElementById('edit-admin-modal').classList.add('hidden');
+                        loadAdminDirectory();
+                    }
+                });
+            } catch (e) { showCustomAlert("Error: " + e.message); }
         });
 
         function togglePassword(fieldId) {
@@ -470,18 +471,19 @@
                     body: JSON.stringify({ full_name: fullName, email, adminId })
                 });
                 const result = await response.json();
-                alert(result.message);
                 
-                if (result.success) {
-                    // Update UI elements to reflect changes immediately
-                    document.getElementById('profile-name').innerText = fullName;
-                    document.getElementById('profile-email').innerText = email;
-                    const topbarName = document.getElementById('topbar-admin-name');
-                    if (topbarName) topbarName.innerText = fullName;
-                }
+                showCustomAlert(result.message, () => {
+                    if (result.success) {
+                        // Update UI elements to reflect changes immediately
+                        document.getElementById('profile-name').innerText = fullName;
+                        document.getElementById('profile-email').innerText = email;
+                        const topbarName = document.getElementById('topbar-admin-name');
+                        if (topbarName) topbarName.innerText = fullName;
+                    }
+                });
             } catch (error) {
                 console.error(error);
-                alert('Failed to update profile.');
+                showCustomAlert('Failed to update profile.');
             }
         });
 
@@ -501,12 +503,12 @@
             const capitalValid = /[A-Z]/.test(password);
 
             if (!lengthValid || !numberValid || !specialValid || !capitalValid) {
-                alert("Password must be at least 12 characters long, contain at least 1 number, 1 special character, and 1 capital letter.");
+                showCustomAlert("Password must be at least 12 characters long, contain at least 1 number, 1 special character, and 1 capital letter.");
                 return;
             }
 
             if (password !== confirmPassword) {
-                alert("Passwords do not match!");
+                showCustomAlert("Passwords do not match!");
                 return;
             }
 
@@ -518,15 +520,16 @@
                 });
                 const result = await response.json();
                 if (result.success) {
-                    alert('New admin created successfully!');
-                    e.target.reset();
-                    loadAdminDirectory(); // Refresh list
+                    showCustomAlert('New admin created successfully!', () => {
+                        e.target.reset();
+                        loadAdminDirectory(); // Refresh list
+                    });
                 } else {
-                    alert('Error: ' + result.message);
+                    showCustomAlert('Error: ' + result.message);
                 }
             } catch (error) {
                 console.error(error);
-                alert('Failed to create admin.');
+                showCustomAlert('Failed to create admin.');
             }
         });
 
@@ -543,12 +546,12 @@
             const capitalValid = /[A-Z]/.test(password);
 
             if (!lengthValid || !numberValid || !specialValid || !capitalValid) {
-                alert("Password must be at least 12 characters long, contain at least 1 number, 1 special character, and 1 capital letter.");
+                showCustomAlert("Password must be at least 12 characters long, contain at least 1 number, 1 special character, and 1 capital letter.");
                 return;
             }
 
             if (password !== confirmPassword) {
-                alert("Passwords do not match!");
+                showCustomAlert("Passwords do not match!");
                 return;
             }
 
@@ -560,19 +563,21 @@
                 });
                 const result = await response.json();
                 alert(result.message);
-                if(result.success) e.target.reset();
+                showCustomAlert(result.message, () => {
+                    if(result.success) e.target.reset();
+                });
             } catch (error) {
                 console.error(error);
-                alert('Failed to update password.');
+                showCustomAlert('Failed to update password.');
             }
         });
 
         function logout() {
-            if (confirm("Are you sure you want to sign out?")) {
+            showCustomConfirm("Are you sure you want to sign out?", () => {
                 localStorage.clear();
                 sessionStorage.clear();
                 window.location.href = 'admin_login.html';
-            }
+            });
         }
     </script>
 </body>

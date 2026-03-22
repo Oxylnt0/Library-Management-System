@@ -191,7 +191,7 @@
         </section>
 
         <!-- Custom Alert Modal -->
-        <div id="custom-alert" class="fixed inset-0 z-[100] hidden flex items-center justify-center bg-black/50 backdrop-blur-sm transition-opacity duration-300">
+        <div id="custom-alert" style="z-index: 9999;" class="fixed inset-0 hidden flex items-center justify-center bg-black/50 backdrop-blur-sm transition-opacity duration-300">
             <div class="bg-[#fdfbf7] border-2 border-[#D6A84A] rounded-lg p-8 max-w-sm w-full shadow-2xl transform scale-100 transition-transform duration-300 relative overflow-hidden">
                 <div class="absolute top-0 left-0 w-16 h-16 border-t-4 border-l-4 border-[#183B5B]/20 rounded-tl-lg"></div>
                 <div class="absolute bottom-0 right-0 w-16 h-16 border-b-4 border-r-4 border-[#183B5B]/20 rounded-br-lg"></div>
@@ -368,19 +368,19 @@
 
         async function resendQrCode() {
             const { id: userId, role: userRole } = getAccountTarget();
-            if (!confirm("Resend your Digital Library Card QR code to your email?")) return;
-
-            try {
-                const response = await fetch(`http://localhost:3000/api/user/${userId}/resend-qr`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ role: userRole })
-                });
-                const result = await response.json();
-                showCustomAlert(result.message);
-            } catch (error) {
-                showCustomAlert('Failed to resend QR code.');
-            }
+            showCustomConfirm("Resend your Digital Library Card QR code to your email?", async () => {
+                try {
+                    const response = await fetch(`http://localhost:3000/api/user/${userId}/resend-qr`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ role: userRole })
+                    });
+                    const result = await response.json();
+                    showCustomAlert(result.message);
+                } catch (error) {
+                    showCustomAlert('Failed to resend QR code.');
+                }
+            });
         }
 
         function logout() {
@@ -402,7 +402,7 @@
             alertMsg.textContent = message;
             alertBox.classList.remove('hidden');
             
-            alertActions.innerHTML = `<button class="px-6 py-2 bg-[#183B5B] text-[#D6A84A] font-bold font-cinzel rounded-full hover:bg-[#244D75] transition-colors">OK</button>`;
+            alertActions.innerHTML = `<button class="px-6 py-2 bg-[#183B5B] text-[#D6A84A] font-bold font-cinzel rounded hover:bg-[#244D75] transition-colors shadow-sm">Acknowledge</button>`;
             
             const btn = alertActions.querySelector('button');
             btn.onclick = function() {
@@ -422,8 +422,8 @@
             alertBox.classList.remove('hidden');
             
             alertActions.innerHTML = `
-                <button id="confirm-no" class="px-6 py-2 border border-slate-300 text-slate-600 font-bold font-cinzel rounded-full hover:bg-slate-100 transition-colors">Cancel</button>
-                <button id="confirm-yes" class="px-6 py-2 bg-[#183B5B] text-[#D6A84A] font-bold font-cinzel rounded-full hover:bg-[#244D75] transition-colors">Confirm</button>
+                <button id="confirm-no" class="px-6 py-2 border border-slate-300 text-slate-600 font-bold font-cinzel rounded hover:bg-slate-100 transition-colors shadow-sm">Cancel</button>
+                <button id="confirm-yes" class="px-6 py-2 bg-[#183B5B] text-[#D6A84A] font-bold font-cinzel rounded hover:bg-[#244D75] transition-colors shadow-sm">Confirm</button>
             `;
             
             document.getElementById('confirm-no').onclick = () => alertBox.classList.add('hidden');

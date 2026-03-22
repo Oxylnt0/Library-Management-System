@@ -292,14 +292,20 @@ app.get('/api/donations/eligible', async (req, res) => {
             sql: `SELECT b.book_id as item_id, 'Book' as material_type, b.title, b.book_category as category, MAX(c.book_condition) as condition, MIN(c.date_added) as date_added, COUNT(c.copy_id) as eligible_copies 
                   FROM BOOK b
                   JOIN BOOK_COPY c ON b.book_id = c.book_id
-                  WHERE c.book_condition IN ('Outdated', 'Obsolete') 
+                  WHERE (
+                      (c.book_condition IN ('Outdated', 'Obsolete') AND c.date_added <= DATE('now', '+8 hours', '-5 years'))
+                      OR c.book_condition = 'Severe Damage'
+                  )
                   AND c.status IN ('Available', 'Archived')
                   GROUP BY b.book_id
                   UNION ALL
                   SELECT p.periodical_id as item_id, 'Periodical' as material_type, p.title, p.type as category, MAX(pc.periodical_condition) as condition, MIN(pc.date_added) as date_added, COUNT(pc.p_copy_id) as eligible_copies 
                   FROM PERIODICAL p
                   JOIN PERIODICAL_COPY pc ON p.periodical_id = p.periodical_id
-                  WHERE pc.periodical_condition IN ('Outdated', 'Obsolete') 
+                  WHERE (
+                      (pc.periodical_condition IN ('Outdated', 'Obsolete') AND pc.date_added <= DATE('now', '+8 hours', '-5 years'))
+                      OR pc.periodical_condition = 'Severe Damage'
+                  )
                   AND pc.status IN ('Available', 'Archived')
                   GROUP BY p.periodical_id`
         });
@@ -317,13 +323,13 @@ app.post('/api/donations/outbound', async (req, res) => {
 
     try {
         if (material_type === 'Book') {
-            const cRes = await db.execute({ sql: "SELECT COUNT(*) as c FROM BOOK_COPY WHERE book_id = ? AND book_condition IN ('Outdated', 'Obsolete') AND status IN ('Available', 'Archived')", args: [item_id] });
+            const cRes = await db.execute({ sql: "SELECT COUNT(*) as c FROM BOOK_COPY WHERE book_id = ? AND ((book_condition IN ('Outdated', 'Obsolete') AND date_added <= DATE('now', '+8 hours', '-5 years')) OR book_condition = 'Severe Damage') AND status IN ('Available', 'Archived')", args: [item_id] });
             const qty = cRes.rows[0]?.c || 1;
             
             await db.execute({
                 sql: `UPDATE BOOK_COPY 
-                      SET status = 'Donated Outbound', book_condition = 'Outdated' 
-                      WHERE book_id = ? AND book_condition IN ('Outdated', 'Obsolete') AND status IN ('Available', 'Archived')`,
+                      SET status = 'Donated Outbound', book_condition = CASE WHEN book_condition = 'Severe Damage' THEN 'Severe Damage' ELSE 'Outdated' END 
+                      WHERE book_id = ? AND ((book_condition IN ('Outdated', 'Obsolete') AND date_added <= DATE('now', '+8 hours', '-5 years')) OR book_condition = 'Severe Damage') AND status IN ('Available', 'Archived')`,
                 args: [item_id]
             });
             await db.execute({
@@ -332,13 +338,13 @@ app.post('/api/donations/outbound', async (req, res) => {
                 args: [recipient_organization, item_id, book_title, category, qty]
             });
         } else {
-            const cRes = await db.execute({ sql: "SELECT COUNT(*) as c FROM PERIODICAL_COPY WHERE periodical_id = ? AND periodical_condition IN ('Outdated', 'Obsolete') AND status IN ('Available', 'Archived')", args: [item_id] });
+            const cRes = await db.execute({ sql: "SELECT COUNT(*) as c FROM PERIODICAL_COPY WHERE periodical_id = ? AND ((periodical_condition IN ('Outdated', 'Obsolete') AND date_added <= DATE('now', '+8 hours', '-5 years')) OR periodical_condition = 'Severe Damage') AND status IN ('Available', 'Archived')", args: [item_id] });
             const qty = cRes.rows[0]?.c || 1;
             
             await db.execute({
                 sql: `UPDATE PERIODICAL_COPY 
-                      SET status = 'Donated Outbound', periodical_condition = 'Outdated' 
-                      WHERE periodical_id = ? AND periodical_condition IN ('Outdated', 'Obsolete') AND status IN ('Available', 'Archived')`,
+                      SET status = 'Donated Outbound', periodical_condition = CASE WHEN periodical_condition = 'Severe Damage' THEN 'Severe Damage' ELSE 'Outdated' END 
+                      WHERE periodical_id = ? AND ((periodical_condition IN ('Outdated', 'Obsolete') AND date_added <= DATE('now', '+8 hours', '-5 years')) OR periodical_condition = 'Severe Damage') AND status IN ('Available', 'Archived')`,
                 args: [item_id]
             });
             await db.execute({
@@ -366,13 +372,13 @@ app.post('/api/donations/outbound/bulk', async (req, res) => {
     try {
         for (const book of books) {
             if (book.material_type === 'Book') {
-                const cRes = await db.execute({ sql: "SELECT COUNT(*) as c FROM BOOK_COPY WHERE book_id = ? AND book_condition IN ('Outdated', 'Obsolete') AND status IN ('Available', 'Archived')", args: [book.item_id] });
+                const cRes = await db.execute({ sql: "SELECT COUNT(*) as c FROM BOOK_COPY WHERE book_id = ? AND ((book_condition IN ('Outdated', 'Obsolete') AND date_added <= DATE('now', '+8 hours', '-5 years')) OR book_condition = 'Severe Damage') AND status IN ('Available', 'Archived')", args: [book.item_id] });
                 const qty = cRes.rows[0]?.c || 1;
                 
                 await db.execute({
                     sql: `UPDATE BOOK_COPY 
-                          SET status = 'Donated Outbound', book_condition = 'Outdated' 
-                          WHERE book_id = ? AND book_condition IN ('Outdated', 'Obsolete') AND status IN ('Available', 'Archived')`,
+                          SET status = 'Donated Outbound', book_condition = CASE WHEN book_condition = 'Severe Damage' THEN 'Severe Damage' ELSE 'Outdated' END 
+                          WHERE book_id = ? AND ((book_condition IN ('Outdated', 'Obsolete') AND date_added <= DATE('now', '+8 hours', '-5 years')) OR book_condition = 'Severe Damage') AND status IN ('Available', 'Archived')`,
                     args: [book.item_id]
                 });
                 await db.execute({
@@ -381,13 +387,13 @@ app.post('/api/donations/outbound/bulk', async (req, res) => {
                     args: [recipient_organization, book.item_id, book.book_title, book.category, qty]
                 });
             } else {
-                const cRes = await db.execute({ sql: "SELECT COUNT(*) as c FROM PERIODICAL_COPY WHERE periodical_id = ? AND periodical_condition IN ('Outdated', 'Obsolete') AND status IN ('Available', 'Archived')", args: [book.item_id] });
+                const cRes = await db.execute({ sql: "SELECT COUNT(*) as c FROM PERIODICAL_COPY WHERE periodical_id = ? AND ((periodical_condition IN ('Outdated', 'Obsolete') AND date_added <= DATE('now', '+8 hours', '-5 years')) OR periodical_condition = 'Severe Damage') AND status IN ('Available', 'Archived')", args: [book.item_id] });
                 const qty = cRes.rows[0]?.c || 1;
                 
                 await db.execute({
                     sql: `UPDATE PERIODICAL_COPY 
-                          SET status = 'Donated Outbound', periodical_condition = 'Outdated' 
-                          WHERE periodical_id = ? AND periodical_condition IN ('Outdated', 'Obsolete') AND status IN ('Available', 'Archived')`,
+                          SET status = 'Donated Outbound', periodical_condition = CASE WHEN periodical_condition = 'Severe Damage' THEN 'Severe Damage' ELSE 'Outdated' END 
+                          WHERE periodical_id = ? AND ((periodical_condition IN ('Outdated', 'Obsolete') AND date_added <= DATE('now', '+8 hours', '-5 years')) OR periodical_condition = 'Severe Damage') AND status IN ('Available', 'Archived')`,
                     args: [book.item_id]
                 });
                 await db.execute({
@@ -416,7 +422,7 @@ app.get('/api/donations/outbound/history', async (req, res) => {
             sql: `SELECT 
                     CASE WHEN book_id IS NOT NULL THEN 'Book' ELSE 'Periodical' END as material_type,
                     COALESCE(book_id, periodical_id, 0) as item_id,
-                    book_title as title, category, 'Outdated' as condition, quantity,
+                    book_title as title, category, 'Outdated / Damaged' as condition, quantity,
                     recipient_organization, donation_date
                   FROM DONATION
                   WHERE donation_type = 'Outbound'
